@@ -441,6 +441,86 @@
     margin-top: 12px;
     display: none;
   }
+
+  /* ---------- Bereichswechsel ---------- */
+  .nav-tabs { display: flex; gap: 2px; }
+  .nav-tabs button {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 6px 12px;
+    color: var(--color-ink-muted);
+    font-size: 14px;
+    border-radius: 0;
+  }
+  .nav-tabs button.active { color: var(--color-ink); border-bottom-color: var(--color-accent); font-weight: 500; }
+
+  /* ---------- Stellenanzeigen ---------- */
+  .jobs-workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    overflow: hidden;
+  }
+  .jobs-list { border-right: 1px solid var(--color-border); overflow-y: auto; padding: 16px; }
+  .job-row {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--color-border);
+    cursor: pointer;
+  }
+  .job-row:hover { background: var(--color-panel); }
+  .job-row.selected { background: var(--color-panel); border-left: 3px solid var(--color-accent); padding-left: 7px; }
+  .job-row .job-title { font-weight: 500; margin-bottom: 2px; }
+  .job-row .job-company { font-size: 13px; color: var(--color-ink-muted); }
+
+  .job-detail { overflow-y: auto; padding: 24px 32px; }
+  .job-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 14px 0 18px;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 20px;
+  }
+  .job-meta div { font-size: 13px; }
+  .job-meta .meta-label { color: var(--color-ink-muted); display: block; margin-bottom: 2px; }
+
+  .req-item {
+    border-bottom: 1px solid var(--color-border);
+    padding: 12px 0;
+  }
+  .req-head { display: flex; gap: 10px; align-items: baseline; }
+  .req-badge {
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .req-badge.muss { background: var(--color-accent); color: #fff; }
+  .req-badge.kann { background: var(--color-border); color: var(--color-ink); }
+  .req-matches { margin: 8px 0 0 62px; }
+  .match-line { font-size: 13px; padding: 4px 0; display: flex; gap: 8px; }
+  .match-strength {
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    height: fit-content;
+  }
+  .match-strength.stark { background: #E4EDE3; color: var(--color-published); }
+  .match-strength.teilweise { background: #FBF3E2; color: var(--color-draft); }
+  .gap-line {
+    margin: 8px 0 0 62px;
+    font-size: 13px;
+    color: var(--color-danger);
+  }
+  .section-title {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    margin: 28px 0 8px;
+  }
 </style>
 </head>
 <body>
@@ -531,11 +611,16 @@
 <!-- ========== MAIN APP ========== -->
 <div class="app" id="app">
   <div class="topbar">
-    <h1>Content-Pool</h1>
+    <h1>CV-Tailoring</h1>
+    <div class="nav-tabs">
+      <button id="tab-pool" class="active">Content-Pool</button>
+      <button id="tab-jobs">Stellenanzeigen</button>
+    </div>
     <input type="search" class="search" id="search-input" placeholder="Bausteine durchsuchen …">
     <div class="spacer"></div>
     <button class="btn-secondary" id="import-cv-btn">CV importieren</button>
     <button class="btn-primary" id="new-block-btn">Neuer Baustein</button>
+    <button class="btn-primary" id="new-job-btn" style="display:none;">Anzeige hinzufügen</button>
     <button class="logout-link" id="logout-btn">Abmelden</button>
   </div>
 
@@ -567,6 +652,40 @@
     <!-- Detail panel -->
     <div class="detail-panel" id="detail-panel">
       <p class="detail-placeholder">Wähle einen Baustein aus der Liste aus oder lege einen neuen an.</p>
+    </div>
+  </div>
+
+  <!-- Stellenanzeigen-Ansicht -->
+  <div class="jobs-workspace" id="jobs-workspace" style="display:none;">
+    <div class="jobs-list" id="jobs-list"></div>
+    <div class="job-detail" id="job-detail">
+      <p class="detail-placeholder">Wähle eine Anzeige aus oder füge eine neue hinzu.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== STELLENANZEIGE HINZUFÜGEN ========== -->
+<div class="modal-backdrop" id="job-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Stellenanzeige hinzufügen</h2>
+      <button class="modal-close" id="job-close" aria-label="Schließen">×</button>
+    </div>
+    <p class="lead">Text der Anzeige einfügen. Claude zerlegt sie in einzelne Anforderungen und gleicht sie anschließend mit deinem Content-Pool ab.</p>
+
+    <div id="job-step-input">
+      <div class="field">
+        <textarea id="job-text" style="min-height:260px; resize:vertical;" placeholder="Kompletten Text der Stellenanzeige hier einfügen …"></textarea>
+      </div>
+      <p class="modal-error" id="job-error"></p>
+      <div class="modal-footer">
+        <span style="font-size:13px; color:var(--color-ink-muted);">Je vollständiger der Text, desto präziser die Anforderungsliste.</span>
+        <button class="btn-primary" id="job-analyze">Analysieren</button>
+      </div>
+    </div>
+
+    <div id="job-step-progress" style="display:none;">
+      <div class="progress-note"><span class="spinner"></span><span id="job-progress-text">Anzeige wird analysiert …</span></div>
     </div>
   </div>
 </div>
@@ -1536,6 +1655,236 @@ function initApp() {
     } finally {
       saveBtn.disabled = false;
       saveBtn.textContent = 'Übernehmen';
+    }
+  });
+
+  // =======================================================================
+  // STELLENANZEIGEN
+  // =======================================================================
+  let allJobs = [];
+  let selectedJobId = null;
+
+  document.getElementById('tab-pool').addEventListener('click', () => switchView('pool'));
+  document.getElementById('tab-jobs').addEventListener('click', () => switchView('jobs'));
+
+  function switchView(view) {
+    const isPool = view === 'pool';
+    document.querySelector('.workspace').style.display = isPool ? 'grid' : 'none';
+    document.getElementById('jobs-workspace').style.display = isPool ? 'none' : 'grid';
+    document.getElementById('tab-pool').className = isPool ? 'active' : '';
+    document.getElementById('tab-jobs').className = isPool ? '' : 'active';
+    document.getElementById('search-input').style.display = isPool ? 'block' : 'none';
+    document.getElementById('import-cv-btn').style.display = isPool ? 'inline-block' : 'none';
+    document.getElementById('new-block-btn').style.display = isPool ? 'inline-block' : 'none';
+    document.getElementById('new-job-btn').style.display = isPool ? 'none' : 'inline-block';
+    if (!isPool) loadJobs();
+  }
+
+  async function loadJobs() {
+    const { data, error } = await client
+      .from('job_postings')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      alert('Fehler beim Laden der Stellenanzeigen: ' + error.message);
+      return;
+    }
+    allJobs = data || [];
+    renderJobsList();
+  }
+
+  function renderJobsList() {
+    const el = document.getElementById('jobs-list');
+    if (allJobs.length === 0) {
+      el.innerHTML = '<p style="font-size:13px; color:var(--color-ink-muted); padding:12px 0;">Noch keine Anzeigen erfasst.</p>';
+      return;
+    }
+    el.innerHTML = '';
+    allJobs.forEach(job => {
+      const row = document.createElement('div');
+      row.className = 'job-row' + (job.id === selectedJobId ? ' selected' : '');
+      row.innerHTML = `
+        <div class="job-title">${escapeHtml(job.job_title || '(ohne Titel)')}</div>
+        <div class="job-company">${escapeHtml(job.company || '')}</div>
+      `;
+      row.addEventListener('click', () => {
+        selectedJobId = job.id;
+        renderJobsList();
+        renderJobDetail(job);
+      });
+      el.appendChild(row);
+    });
+  }
+
+  function renderJobDetail(job) {
+    const panel = document.getElementById('job-detail');
+    const a = job.analysis || {};
+    const reqs = a.anforderungen || [];
+    const matching = job.matching || {};
+    const treffer = matching.treffer || [];
+    const luecken = matching.luecken || [];
+
+    const matchesFor = idx => treffer.filter(t => t.anforderung_index === idx);
+    const gapFor = idx => luecken.find(l => l.anforderung_index === idx);
+
+    const mussCount = reqs.filter(r => r.prioritaet === 'muss').length;
+    const coveredMuss = reqs.filter((r, i) => r.prioritaet === 'muss' && matchesFor(i).length > 0).length;
+
+    panel.innerHTML = `
+      <h2 style="font-size:20px; margin-bottom:4px;">${escapeHtml(a.stellentitel || job.job_title || '(ohne Titel)')}</h2>
+      <p style="color:var(--color-ink-muted); margin:0;">${escapeHtml(a.unternehmen || job.company || '')}</p>
+
+      <div class="job-meta">
+        <div><span class="meta-label">Branche</span>${escapeHtml(a.branche || '—')}</div>
+        <div><span class="meta-label">Tonalität</span>${escapeHtml(a.tonalitaet || '—')}</div>
+        <div><span class="meta-label">Sprache</span>${escapeHtml((a.sprache || job.language || 'de').toUpperCase())}</div>
+        <div><span class="meta-label">Muss-Anforderungen abgedeckt</span>${coveredMuss} von ${mussCount}</div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <button class="btn-primary" id="run-matching">${Object.keys(matching).length ? 'Abgleich erneut ausführen' : 'Mit Content-Pool abgleichen'}</button>
+        <button class="btn-danger-text" id="delete-job">Anzeige löschen</button>
+      </div>
+      <p class="modal-error" id="matching-error"></p>
+      <div id="matching-progress" style="display:none;">
+        <div class="progress-note"><span class="spinner"></span><span>Abgleich läuft …</span></div>
+      </div>
+
+      <h3 class="section-title">Anforderungen</h3>
+      ${reqs.length === 0 ? '<p style="color:var(--color-ink-muted); font-size:14px;">Keine Anforderungen erkannt.</p>' : reqs.map((r, i) => {
+        const ms = matchesFor(i);
+        const gap = gapFor(i);
+        return `
+          <div class="req-item">
+            <div class="req-head">
+              <span class="req-badge ${r.prioritaet === 'muss' ? 'muss' : 'kann'}">${r.prioritaet === 'muss' ? 'Muss' : 'Kann'}</span>
+              <span>${escapeHtml(r.text || '')}</span>
+            </div>
+            ${ms.length ? `<div class="req-matches">${ms.map(m => {
+              const block = allGroups.find(g => g.id === m.baustein_id);
+              const title = block && block.block ? (block.block.title || '(ohne Titel)') : 'Baustein nicht mehr vorhanden';
+              return `<div class="match-line">
+                <span class="match-strength ${m.staerke === 'stark' ? 'stark' : 'teilweise'}">${m.staerke === 'stark' ? 'stark' : 'teilweise'}</span>
+                <span>${escapeHtml(title)}${m.begruendung ? ' — ' + escapeHtml(m.begruendung) : ''}</span>
+              </div>`;
+            }).join('')}</div>` : ''}
+            ${gap ? `<div class="gap-line">Keine Entsprechung im Pool${gap.hinweis ? ': ' + escapeHtml(gap.hinweis) : '.'}</div>` : ''}
+          </div>
+        `;
+      }).join('')}
+    `;
+
+    document.getElementById('run-matching').addEventListener('click', () => runMatching(job));
+    document.getElementById('delete-job').addEventListener('click', async () => {
+      if (!confirm('Diese Anzeige wirklich löschen?')) return;
+      const { error } = await client.from('job_postings').delete().eq('id', job.id);
+      if (error) { alert('Fehler beim Löschen: ' + error.message); return; }
+      selectedJobId = null;
+      await loadJobs();
+      panel.innerHTML = '<p class="detail-placeholder">Wähle eine Anzeige aus oder füge eine neue hinzu.</p>';
+    });
+  }
+
+  async function runMatching(job) {
+    const errorEl = document.getElementById('matching-error');
+    const progressEl = document.getElementById('matching-progress');
+    errorEl.style.display = 'none';
+    progressEl.style.display = 'block';
+
+    try {
+      if (allGroups.length === 0) await loadData();
+
+      const bausteine = allGroups
+        .filter(g => g.block && g.status === 'published')
+        .map(g => ({
+          id: g.id,
+          kategorie: g.category,
+          titel: g.block.title || '',
+          text: (g.block.text_content || '').slice(0, 800),
+          tags: g.tags.map(t => t.name)
+        }));
+
+      if (bausteine.length === 0) {
+        throw new Error('Es sind noch keine veröffentlichten Bausteine im Pool. Entwürfe werden beim Abgleich nicht berücksichtigt — setze die gewünschten Bausteine zuerst auf "Veröffentlicht".');
+      }
+
+      const result = await callClaude({
+        task: 'matching',
+        anforderungen: (job.analysis && job.analysis.anforderungen) || [],
+        bausteine
+      });
+
+      const { error } = await client
+        .from('job_postings')
+        .update({ matching: result })
+        .eq('id', job.id);
+      if (error) throw error;
+
+      await loadJobs();
+      const updated = allJobs.find(j => j.id === job.id);
+      if (updated) renderJobDetail(updated);
+
+    } catch (err) {
+      progressEl.style.display = 'none';
+      errorEl.textContent = err.message || 'Der Abgleich ist fehlgeschlagen.';
+      errorEl.style.display = 'block';
+    }
+  }
+
+  // ---- Neue Anzeige erfassen ----
+  const jobBackdrop = document.getElementById('job-backdrop');
+
+  document.getElementById('new-job-btn').addEventListener('click', () => {
+    document.getElementById('job-text').value = '';
+    document.getElementById('job-error').style.display = 'none';
+    document.getElementById('job-step-input').style.display = 'block';
+    document.getElementById('job-step-progress').style.display = 'none';
+    jobBackdrop.classList.add('open');
+  });
+  document.getElementById('job-close').addEventListener('click', () => jobBackdrop.classList.remove('open'));
+  jobBackdrop.addEventListener('click', (e) => { if (e.target === jobBackdrop) jobBackdrop.classList.remove('open'); });
+
+  document.getElementById('job-analyze').addEventListener('click', async () => {
+    const text = document.getElementById('job-text').value.trim();
+    const errorEl = document.getElementById('job-error');
+    errorEl.style.display = 'none';
+
+    if (text.length < 100) {
+      errorEl.textContent = 'Der Text ist sehr kurz. Bitte die vollständige Anzeige einfügen.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    document.getElementById('job-step-input').style.display = 'none';
+    document.getElementById('job-step-progress').style.display = 'block';
+
+    try {
+      const a = await callClaude({ task: 'job_extract', text });
+
+      const { data, error } = await client
+        .from('job_postings')
+        .insert({
+          user_id: currentUser.id,
+          company: a.unternehmen || null,
+          job_title: a.stellentitel || null,
+          raw_text: text,
+          language: a.sprache === 'en' ? 'en' : 'de',
+          analysis: a
+        })
+        .select()
+        .single();
+      if (error) throw error;
+
+      jobBackdrop.classList.remove('open');
+      selectedJobId = data.id;
+      await loadJobs();
+      renderJobDetail(data);
+
+    } catch (err) {
+      document.getElementById('job-step-input').style.display = 'block';
+      document.getElementById('job-step-progress').style.display = 'none';
+      errorEl.textContent = err.message || 'Die Analyse ist fehlgeschlagen.';
+      errorEl.style.display = 'block';
     }
   });
 
