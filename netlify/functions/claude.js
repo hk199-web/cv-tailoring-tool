@@ -42,6 +42,36 @@ Antworte ausschließlich mit JSON in genau dieser Form. Keine Backticks, keine E
 
 {"treffer":[{"neu_index":0,"vorhanden_id":"...","begruendung":"..."}]}`;
 
+const JOB_EXTRACT_PROMPT = `Du analysierst eine Stellenanzeige und zerlegst sie in strukturierte Anforderungen.
+
+Regeln:
+- Erfinde nichts. Nur was tatsächlich in der Anzeige steht.
+- Trenne Muss-Anforderungen von Kann-Anforderungen. Formulierungen wie "zwingend", "Voraussetzung", "mindestens" deuten auf muss; "wünschenswert", "von Vorteil", "idealerweise" auf kann.
+- Eine Anforderung = ein Eintrag. Aufzählungen mit mehreren Kompetenzen in einem Satz aufteilen.
+- Formuliere jede Anforderung knapp und neutral, ohne Werbesprache der Anzeige.
+- tonalitaet: wie die Anzeige klingt, in 3 bis 6 Wörtern (z. B. "förmlich, konservativ" oder "locker, Du-Ansprache").
+- sprache: "de" oder "en", je nachdem in welcher Sprache die Anzeige verfasst ist.
+
+Antworte ausschließlich mit JSON in genau dieser Form. Keine Backticks, keine Erklärung:
+
+{"unternehmen":"...","stellentitel":"...","sprache":"de","branche":"...","tonalitaet":"...","anforderungen":[{"text":"...","prioritaet":"muss","kategorie":"fachlich"}]}
+
+Erlaubte Werte für prioritaet: "muss", "kann".
+Erlaubte Werte für kategorie: "fachlich", "methodisch", "persoenlich", "formal".`;
+
+const MATCHING_PROMPT = `Du gleichst die Anforderungen einer Stellenanzeige mit den vorhandenen Bausteinen eines Bewerbungs-Content-Pools ab.
+
+Regeln:
+- Ordne jeder Anforderung die Bausteine zu, die sie tatsächlich belegen. Ein Baustein kann mehrere Anforderungen belegen.
+- staerke "stark": der Baustein belegt die Anforderung direkt und nachweisbar.
+- staerke "teilweise": es gibt inhaltliche Nähe, aber kein direkter Nachweis.
+- Ist zu einer Anforderung nichts vorhanden, lass sie in "treffer" weg und führe sie unter "luecken" auf.
+- Sei streng. Eine erfundene oder weit hergeholte Zuordnung ist schlechter als eine ehrlich benannte Lücke.
+
+Antworte ausschließlich mit JSON in genau dieser Form. Keine Backticks, keine Erklärung:
+
+{"treffer":[{"anforderung_index":0,"baustein_id":"...","staerke":"stark","begruendung":"..."}],"luecken":[{"anforderung_index":0,"hinweis":"..."}]}`;
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return json(405, { error: 'Nur POST erlaubt' });
@@ -80,6 +110,21 @@ exports.handler = async (event) => {
         '\n\nNeue Bausteine:\n' + JSON.stringify(body.neu || []).slice(0, 60000)
     }];
 
+  } else if (task === 'job_extract') {
+    if (!body.text) return json(400, { error: 'Es wurde keine Stellenanzeige übergeben.' });
+    messages = [{
+      role: 'user',
+      content: JOB_EXTRACT_PROMPT + '\n\nStellenanzeige:\n\n' + String(body.text).slice(0, 20000)
+    }];
+
+  } else if (task === 'matching') {
+    messages = [{
+      role: 'user',
+      content: MATCHING_PROMPT +
+        '\n\nAnforderungen:\n' + JSON.stringify(body.anforderungen || []).slice(0, 20000) +
+        '\n\nVorhandene Bausteine:\n' + JSON.stringify(body.bausteine || []).slice(0, 40000)
+    }];
+
   } else {
     return json(400, { error: 'Unbekannte Aufgabe.' });
   }
@@ -93,7 +138,7 @@ exports.handler = async (event) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: task === 'cv_import' || task === 'duplicate_check' ? MODEL_FAST : MODEL_REASONING,
+        model: task === 'matching' ? MODEL_REASONING : MODEL_FAST,
         max_tokens: 4000,
         messages
       })
