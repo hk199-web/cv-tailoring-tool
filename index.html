@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.12.3/mammoth.browser.min.js"></script>
 <style>
   :root {
     --color-bg: #F6F4EF;
@@ -328,6 +329,117 @@
   .save-status { font-size: 13px; color: var(--color-ink-muted); }
 
   textarea.text-content { min-height: 140px; resize: vertical; }
+
+  /* ---------- Import-Dialog ---------- */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 42, 50, 0.45);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 5vh 20px;
+    overflow-y: auto;
+    z-index: 50;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--color-panel);
+    border-radius: 4px;
+    width: 100%;
+    max-width: 760px;
+    padding: 28px 32px 24px;
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+  .modal-header h2 { font-size: 20px; }
+  .modal-close {
+    background: none; border: none; font-size: 22px;
+    color: var(--color-ink-muted); line-height: 1; padding: 0 4px;
+  }
+  .modal .lead { color: var(--color-ink-muted); font-size: 14px; margin: 0 0 20px; }
+
+  .dropzone {
+    border: 1px dashed var(--color-border);
+    border-radius: 4px;
+    padding: 32px 20px;
+    text-align: center;
+    background: var(--color-bg);
+  }
+  .dropzone.has-file { border-style: solid; border-color: var(--color-accent); background: #fff; }
+  .dropzone .filename { font-weight: 500; margin-bottom: 4px; }
+  .dropzone .hint { color: var(--color-ink-muted); font-size: 13px; }
+
+  .progress-note {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-ink-muted);
+    font-size: 14px;
+    padding: 24px 0;
+  }
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .review-item {
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .review-item.skipped { opacity: 0.5; }
+  .review-item.duplicate { border-left: 3px solid var(--color-draft); }
+  .review-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .review-top select { width: auto; }
+  .review-decision { display: flex; gap: 6px; }
+  .review-decision button {
+    border: 1px solid var(--color-border);
+    background: #fff;
+    padding: 5px 12px;
+    font-size: 13px;
+  }
+  .review-decision button.on-keep { background: var(--color-published); color: #fff; border-color: var(--color-published); }
+  .review-decision button.on-skip { background: var(--color-ink-muted); color: #fff; border-color: var(--color-ink-muted); }
+  .duplicate-note {
+    background: #FBF3E2;
+    border-radius: 3px;
+    padding: 8px 10px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .review-item .field { margin-bottom: 10px; }
+  .review-item textarea { min-height: 90px; resize: vertical; }
+
+  .modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--color-border);
+    padding-top: 16px;
+    margin-top: 20px;
+  }
+  .modal-error {
+    color: var(--color-danger);
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
 </style>
 </head>
 <body>
@@ -421,6 +533,7 @@
     <h1>Content-Pool</h1>
     <input type="search" class="search" id="search-input" placeholder="Bausteine durchsuchen …">
     <div class="spacer"></div>
+    <button class="btn-secondary" id="import-cv-btn">CV importieren</button>
     <button class="btn-primary" id="new-block-btn">Neuer Baustein</button>
     <button class="logout-link" id="logout-btn">Abmelden</button>
   </div>
@@ -453,6 +566,49 @@
     <!-- Detail panel -->
     <div class="detail-panel" id="detail-panel">
       <p class="detail-placeholder">Wähle einen Baustein aus der Liste aus oder lege einen neuen an.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CV-IMPORT DIALOG ========== -->
+<div class="modal-backdrop" id="import-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="import-title">Lebenslauf importieren</h2>
+      <button class="modal-close" id="import-close" aria-label="Schließen">×</button>
+    </div>
+    <p class="lead" id="import-lead">PDF oder Word-Datei hochladen. Claude schlägt daraus Bausteine vor — übernommen wird nur, was du bestätigst.</p>
+
+    <!-- Schritt 1: Datei wählen -->
+    <div id="import-step-upload">
+      <label for="import-file" class="dropzone" id="import-dropzone" style="display:block; cursor:pointer;">
+        <div class="filename" id="import-filename">Datei auswählen</div>
+        <div class="hint">PDF oder DOCX, maximal 4 MB</div>
+      </label>
+      <input type="file" id="import-file" accept=".pdf,.docx" style="display:none;">
+      <p class="modal-error" id="import-error"></p>
+      <div class="modal-footer">
+        <span style="font-size:13px; color:var(--color-ink-muted);">Bei PDF bleibt das Layout erhalten — das ist bei mehrspaltigen Lebensläufen zuverlässiger.</span>
+        <button class="btn-primary" id="import-analyze" disabled>Analysieren</button>
+      </div>
+    </div>
+
+    <!-- Schritt 2: Analyse läuft -->
+    <div id="import-step-progress" style="display:none;">
+      <div class="progress-note"><span class="spinner"></span><span id="progress-text">Lebenslauf wird gelesen …</span></div>
+    </div>
+
+    <!-- Schritt 3: Review -->
+    <div id="import-step-review" style="display:none;">
+      <div id="review-list"></div>
+      <p class="modal-error" id="review-error"></p>
+      <div class="modal-footer">
+        <span style="font-size:13px; color:var(--color-ink-muted);" id="review-count"></span>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-secondary" id="review-cancel">Abbrechen</button>
+          <button class="btn-primary" id="review-save">Übernehmen</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1011,14 +1167,14 @@ function initApp() {
     return ids;
   }
 
-  async function createGroup(payload, tagList) {
+  async function createGroup(payload, tagList, source) {
     const { data: group, error: groupError } = await client
       .from('content_groups')
       .insert({
         user_id: currentUser.id,
         category: payload.category,
         status: payload.status,
-        source: 'manual'
+        source: source || 'manual'
       })
       .select()
       .single();
@@ -1074,6 +1230,270 @@ function initApp() {
       if (linkError) throw linkError;
     }
   }
+
+  // =======================================================================
+  // CV-IMPORT
+  // =======================================================================
+  const importBackdrop = document.getElementById('import-backdrop');
+  let selectedFile = null;
+  let reviewItems = [];
+
+  document.getElementById('import-cv-btn').addEventListener('click', openImport);
+  document.getElementById('import-close').addEventListener('click', closeImport);
+  importBackdrop.addEventListener('click', (e) => {
+    if (e.target === importBackdrop) closeImport();
+  });
+
+  function openImport() {
+    selectedFile = null;
+    reviewItems = [];
+    document.getElementById('import-file').value = '';
+    document.getElementById('import-filename').textContent = 'Datei auswählen';
+    document.getElementById('import-dropzone').classList.remove('has-file');
+    document.getElementById('import-analyze').disabled = true;
+    document.getElementById('import-error').style.display = 'none';
+    showImportStep('upload');
+    importBackdrop.classList.add('open');
+  }
+
+  function closeImport() {
+    importBackdrop.classList.remove('open');
+  }
+
+  function showImportStep(step) {
+    document.getElementById('import-step-upload').style.display = step === 'upload' ? 'block' : 'none';
+    document.getElementById('import-step-progress').style.display = step === 'progress' ? 'block' : 'none';
+    document.getElementById('import-step-review').style.display = step === 'review' ? 'block' : 'none';
+
+    const title = document.getElementById('import-title');
+    const lead = document.getElementById('import-lead');
+    if (step === 'review') {
+      title.textContent = 'Vorschläge prüfen';
+      lead.textContent = 'Alles hier ist noch ein Vorschlag. Was du übernimmst, landet als Entwurf im Pool und kann dort weiter bearbeitet werden.';
+    } else {
+      title.textContent = 'Lebenslauf importieren';
+      lead.textContent = 'PDF oder Word-Datei hochladen. Claude schlägt daraus Bausteine vor — übernommen wird nur, was du bestätigst.';
+    }
+  }
+
+  document.getElementById('import-file').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    const errorEl = document.getElementById('import-error');
+    errorEl.style.display = 'none';
+    if (!file) return;
+
+    if (file.size > 4 * 1024 * 1024) {
+      errorEl.textContent = 'Die Datei ist größer als 4 MB. Bitte eine kleinere Version verwenden.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    const name = file.name.toLowerCase();
+    if (!name.endsWith('.pdf') && !name.endsWith('.docx')) {
+      errorEl.textContent = 'Es werden nur PDF- und DOCX-Dateien unterstützt.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    selectedFile = file;
+    document.getElementById('import-filename').textContent = file.name;
+    document.getElementById('import-dropzone').classList.add('has-file');
+    document.getElementById('import-analyze').disabled = false;
+  });
+
+  document.getElementById('import-analyze').addEventListener('click', async () => {
+    if (!selectedFile) return;
+    showImportStep('progress');
+    document.getElementById('progress-text').textContent = 'Lebenslauf wird gelesen …';
+
+    try {
+      const payload = { task: 'cv_import' };
+      const name = selectedFile.name.toLowerCase();
+
+      if (name.endsWith('.pdf')) {
+        payload.pdfBase64 = await fileToBase64(selectedFile);
+      } else {
+        if (typeof mammoth === 'undefined') {
+          throw new Error('Word-Dateien können gerade nicht gelesen werden. Bitte den Lebenslauf als PDF speichern und erneut versuchen.');
+        }
+        const buffer = await selectedFile.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+        if (!result.value || result.value.trim().length < 50) {
+          throw new Error('Aus dieser Word-Datei konnte kein Text gelesen werden.');
+        }
+        payload.text = result.value;
+      }
+
+      const suggestions = await callClaude(payload);
+      let items = (suggestions.bausteine || []).map(b => ({
+        category: normalizeCategory(b.category),
+        title: b.title || '',
+        text: b.text || '',
+        tags: Array.isArray(b.tags) ? b.tags : [],
+        keep: true,
+        duplicateOf: null
+      }));
+
+      if (items.length === 0) {
+        throw new Error('Aus diesem Dokument konnten keine Bausteine gelesen werden.');
+      }
+
+      // Dublettenprüfung nur, wenn schon etwas im Pool liegt
+      if (allGroups.length > 0) {
+        document.getElementById('progress-text').textContent = 'Abgleich mit vorhandenen Bausteinen …';
+        try {
+          const existing = allGroups
+            .filter(g => g.block)
+            .map(g => ({ id: g.id, title: g.block.title || '', text: (g.block.text_content || '').slice(0, 600) }));
+
+          const dupes = await callClaude({
+            task: 'duplicate_check',
+            vorhanden: existing,
+            neu: items.map(i => ({ title: i.title, text: i.text.slice(0, 600) }))
+          });
+
+          (dupes.treffer || []).forEach(t => {
+            const item = items[t.neu_index];
+            const match = allGroups.find(g => g.id === t.vorhanden_id);
+            if (item && match) {
+              item.duplicateOf = { title: (match.block && match.block.title) || '(ohne Titel)', reason: t.begruendung || '' };
+              item.keep = false;
+            }
+          });
+        } catch (dupErr) {
+          // Ein fehlgeschlagener Abgleich darf den Import nicht blockieren
+          console.warn('Dublettenprüfung übersprungen:', dupErr);
+        }
+      }
+
+      reviewItems = items;
+      renderReview();
+      showImportStep('review');
+
+    } catch (err) {
+      showImportStep('upload');
+      const errorEl = document.getElementById('import-error');
+      errorEl.textContent = err.message || 'Die Analyse ist fehlgeschlagen.';
+      errorEl.style.display = 'block';
+    }
+  });
+
+  async function callClaude(payload) {
+    const res = await fetch('/.netlify/functions/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Die Analyse ist fehlgeschlagen.');
+    return data;
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(',')[1]);
+      reader.onerror = () => reject(new Error('Die Datei konnte nicht gelesen werden.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function normalizeCategory(value) {
+    const valid = CATEGORIES.map(c => c.value);
+    return valid.includes(value) ? value : 'erfahrung';
+  }
+
+  function renderReview() {
+    const listEl = document.getElementById('review-list');
+    listEl.innerHTML = '';
+
+    reviewItems.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'review-item' + (item.keep ? '' : ' skipped') + (item.duplicateOf ? ' duplicate' : '');
+      div.innerHTML = `
+        <div class="review-top">
+          <select data-idx="${idx}" class="review-category">
+            ${CATEGORIES.map(c => `<option value="${c.value}" ${c.value === item.category ? 'selected' : ''}>${c.label}</option>`).join('')}
+          </select>
+          <div class="review-decision">
+            <button type="button" class="review-keep ${item.keep ? 'on-keep' : ''}" data-idx="${idx}">Übernehmen</button>
+            <button type="button" class="review-skip ${item.keep ? '' : 'on-skip'}" data-idx="${idx}">Verwerfen</button>
+          </div>
+        </div>
+        ${item.duplicateOf ? `<div class="duplicate-note"><strong>Mögliche Dublette</strong> zu „${escapeHtml(item.duplicateOf.title)}“. ${escapeHtml(item.duplicateOf.reason)} Standardmäßig verworfen — übernimm ihn nur, wenn es eine andere Station ist.</div>` : ''}
+        <div class="field">
+          <label>Titel</label>
+          <input type="text" class="review-title" data-idx="${idx}" value="${escapeAttr(item.title)}">
+        </div>
+        <div class="field">
+          <label>Text</label>
+          <textarea class="review-text" data-idx="${idx}">${escapeHtml(item.text)}</textarea>
+        </div>
+        <div class="field">
+          <label>Tags (mit Komma trennen)</label>
+          <input type="text" class="review-tags" data-idx="${idx}" value="${escapeAttr(item.tags.join(', '))}">
+        </div>
+      `;
+      listEl.appendChild(div);
+    });
+
+    listEl.querySelectorAll('.review-keep').forEach(btn => {
+      btn.addEventListener('click', () => { syncReviewFields(); reviewItems[btn.dataset.idx].keep = true; renderReview(); });
+    });
+    listEl.querySelectorAll('.review-skip').forEach(btn => {
+      btn.addEventListener('click', () => { syncReviewFields(); reviewItems[btn.dataset.idx].keep = false; renderReview(); });
+    });
+
+    updateReviewCount();
+  }
+
+  function syncReviewFields() {
+    document.querySelectorAll('.review-title').forEach(el => { reviewItems[el.dataset.idx].title = el.value; });
+    document.querySelectorAll('.review-text').forEach(el => { reviewItems[el.dataset.idx].text = el.value; });
+    document.querySelectorAll('.review-category').forEach(el => { reviewItems[el.dataset.idx].category = el.value; });
+    document.querySelectorAll('.review-tags').forEach(el => {
+      reviewItems[el.dataset.idx].tags = el.value.split(',').map(t => t.trim()).filter(Boolean);
+    });
+  }
+
+  function updateReviewCount() {
+    const keepCount = reviewItems.filter(i => i.keep).length;
+    document.getElementById('review-count').textContent =
+      keepCount + ' von ' + reviewItems.length + ' werden übernommen';
+    document.getElementById('review-save').disabled = keepCount === 0;
+  }
+
+  document.getElementById('review-cancel').addEventListener('click', closeImport);
+
+  document.getElementById('review-save').addEventListener('click', async () => {
+    syncReviewFields();
+    const toSave = reviewItems.filter(i => i.keep && i.text.trim());
+    const saveBtn = document.getElementById('review-save');
+    const errorEl = document.getElementById('review-error');
+    errorEl.style.display = 'none';
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Übernimmt …';
+
+    let saved = 0;
+    try {
+      for (const item of toSave) {
+        await createGroup(
+          { category: item.category, title: item.title, text_content: item.text, status: 'draft' },
+          item.tags.map(name => ({ id: 'new:' + name, name })),
+          'cv_import'
+        );
+        saved++;
+      }
+      await loadData();
+      closeImport();
+    } catch (err) {
+      errorEl.textContent = 'Fehler nach ' + saved + ' übernommenen Bausteinen: ' + err.message;
+      errorEl.style.display = 'block';
+      await loadData();
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Übernehmen';
+    }
+  });
 
   function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
