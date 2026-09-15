@@ -1312,37 +1312,45 @@ function initApp() {
 
       if (name.endsWith('.pdf')) {
         if (typeof pdfjsLib === 'undefined') {
-          throw new Error('PDF-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden.');
+          throw new Error('PDF-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden oder die Datei als DOCX speichern.');
         }
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        document.getElementById('progress-text').textContent = 'PDF wird gelesen …';
-        const buffer = await selectedFile.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-        const pages = [];
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          // Zeilenumbrüche anhand der Y-Position rekonstruieren
-          let lastY = null;
-          const lines = [];
-          let line = [];
-          content.items.forEach(item => {
-            if (lastY !== null && Math.abs(item.transform[5] - lastY) > 2) {
-              if (line.length) lines.push(line.join(' '));
-              line = [];
-            }
-            line.push(item.str);
-            lastY = item.transform[5];
-          });
-          if (line.length) lines.push(line.join(' '));
-          pages.push(lines.join('\n'));
+        try {
+          pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          document.getElementById('progress-text').textContent = 'PDF wird gelesen …';
+          const buffer = await selectedFile.arrayBuffer();
+          const loadingTask = pdfjsLib.getDocument({ data: buffer });
+          const pdf = await loadingTask.promise;
+          const pages = [];
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            let lastY = null;
+            const lines = [];
+            let line = [];
+            content.items.forEach(item => {
+              if (!item.str) return;
+              if (lastY !== null && Math.abs(item.transform[5] - lastY) > 2) {
+                if (line.length) lines.push(line.join(' '));
+                line = [];
+              }
+              line.push(item.str);
+              lastY = item.transform[5];
+            });
+            if (line.length) lines.push(line.join(' '));
+            pages.push(lines.join('\n'));
+          }
+          const text = pages.join('\n\n').trim();
+          if (text.length < 50) {
+            throw new Error('hint:canva');
+          }
+          payload.text = text;
+        } catch (pdfErr) {
+          if (pdfErr.message === 'hint:canva') {
+            throw new Error('Aus dieser PDF konnte kein Text gelesen werden — wahrscheinlich sind Texte darin als Grafik gespeichert (kommt bei Canva-PDFs vor). Bitte in Canva unter Teilen → Als DOCX herunterladen und diese Datei dann importieren.');
+          }
+          throw new Error('Die PDF konnte nicht gelesen werden (' + (pdfErr.message || 'Unbekannt') + '). Bitte als DOCX exportieren und erneut versuchen.');
         }
-        const text = pages.join('\n\n--- Seite ' + pages.length + ' ---\n\n');
-        if (!text.trim() || text.trim().length < 50) {
-          throw new Error('Aus dieser PDF konnte kein Text gelesen werden. Möglicherweise ist sie eingescannt. Bitte als DOCX exportieren.');
-        }
-        payload.text = text;
       } else {
         if (typeof mammoth === 'undefined') {
           throw new Error('Word-Dateien können gerade nicht gelesen werden. Bitte den Lebenslauf als PDF speichern und erneut versuchen.');
@@ -1353,6 +1361,10 @@ function initApp() {
           throw new Error('Aus dieser Word-Datei konnte kein Text gelesen werden.');
         }
         payload.text = result.value;
+      }
+
+      if (!payload.text) {
+        throw new Error('Kein Text aus dem Dokument gelesen. Bitte als DOCX exportieren und erneut versuchen.');
       }
 
       const suggestions = await callClaude(payload);
