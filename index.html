@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.12.3/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root {
     --color-bg: #F6F4EF;
@@ -1310,7 +1311,38 @@ function initApp() {
       const name = selectedFile.name.toLowerCase();
 
       if (name.endsWith('.pdf')) {
-        payload.pdfBase64 = await fileToBase64(selectedFile);
+        if (typeof pdfjsLib === 'undefined') {
+          throw new Error('PDF-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden.');
+        }
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        document.getElementById('progress-text').textContent = 'PDF wird gelesen …';
+        const buffer = await selectedFile.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+        const pages = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          // Zeilenumbrüche anhand der Y-Position rekonstruieren
+          let lastY = null;
+          const lines = [];
+          let line = [];
+          content.items.forEach(item => {
+            if (lastY !== null && Math.abs(item.transform[5] - lastY) > 2) {
+              if (line.length) lines.push(line.join(' '));
+              line = [];
+            }
+            line.push(item.str);
+            lastY = item.transform[5];
+          });
+          if (line.length) lines.push(line.join(' '));
+          pages.push(lines.join('\n'));
+        }
+        const text = pages.join('\n\n--- Seite ' + pages.length + ' ---\n\n');
+        if (!text.trim() || text.trim().length < 50) {
+          throw new Error('Aus dieser PDF konnte kein Text gelesen werden. Möglicherweise ist sie eingescannt. Bitte als DOCX exportieren.');
+        }
+        payload.text = text;
       } else {
         if (typeof mammoth === 'undefined') {
           throw new Error('Word-Dateien können gerade nicht gelesen werden. Bitte den Lebenslauf als PDF speichern und erneut versuchen.');
