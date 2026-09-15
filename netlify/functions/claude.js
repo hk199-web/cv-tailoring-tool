@@ -10,7 +10,6 @@
 // =========================================================================
 
 const MODEL = 'claude-sonnet-5';
-const MAX_PDF_BYTES = 4 * 1024 * 1024; // 4 MB — darüber lehnt Netlify die Anfrage ohnehin ab
 
 const CV_IMPORT_PROMPT = `Du analysierst einen Lebenslauf und zerlegst ihn in einzelne, wiederverwendbare Bausteine für einen Content-Pool.
 
@@ -61,21 +60,7 @@ exports.handler = async (event) => {
   let messages;
 
   if (task === 'cv_import') {
-    // Zwei Wege: PDF wird als Dokument übergeben (Layout bleibt erhalten),
-    // DOCX-Text kommt bereits als reiner Text an.
-    if (body.pdfBase64) {
-      const approxBytes = (body.pdfBase64.length * 3) / 4;
-      if (approxBytes > MAX_PDF_BYTES) {
-        return json(413, { error: 'Die Datei ist zu groß. Bitte eine PDF unter 4 MB verwenden.' });
-      }
-      messages = [{
-        role: 'user',
-        content: [
-          { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: body.pdfBase64 } },
-          { type: 'text', text: CV_IMPORT_PROMPT }
-        ]
-      }];
-    } else if (body.text) {
+    if (body.text) {
       messages = [{
         role: 'user',
         content: CV_IMPORT_PROMPT + '\n\nLebenslauf:\n\n' + String(body.text).slice(0, 60000)
