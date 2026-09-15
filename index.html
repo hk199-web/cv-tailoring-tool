@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content-Pool — CV-Tailoring-Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+  :root {
+    --color-bg: #F6F4EF;
+    --color-panel: #FFFFFF;
+    --color-ink: #1E2A32;
+    --color-ink-muted: #6B7680;
+    --color-accent: #2B6777;
+    --color-accent-hover: #1F4E5B;
+    --color-border: #DAD5C9;
+    --color-published: #5B7B5A;
+    --color-draft: #B98B34;
+    --color-danger: #A6453A;
+    --font-serif: 'Source Serif 4', Georgia, serif;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background: var(--color-bg);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; margin: 0; }
+
+  button {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+
+  button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+  }
+
+  input, textarea, select {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-ink);
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    padding: 8px 10px;
+    background: #FFFFFF;
+    width: 100%;
+  }
+
+  label { font-size: 13px; color: var(--color-ink-muted); display: block; margin-bottom: 4px; }
+
+  .field { margin-bottom: 16px; }
+
+  .btn-primary {
+    background: var(--color-accent);
+    color: #fff;
+    border: none;
+    padding: 9px 16px;
+  }
+  .btn-primary:hover { background: var(--color-accent-hover); }
+  .btn-primary:disabled { background: #A9BCC1; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--color-ink);
+    border: 1px solid var(--color-border);
+    padding: 9px 16px;
+  }
+  .btn-secondary:hover { border-color: var(--color-ink-muted); }
+
+  .btn-danger-text {
+    background: none;
+    border: none;
+    color: var(--color-danger);
+    padding: 6px 0;
+    font-size: 13px;
+  }
+
+  /* ---------- Setup / Config Error ---------- */
+  .setup-screen {
+    max-width: 560px;
+    margin: 12vh auto;
+    padding: 32px;
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+  }
+  .setup-screen h1 { font-size: 22px; margin-bottom: 12px; }
+  .setup-screen p { color: var(--color-ink-muted); margin: 0 0 8px; }
+  .setup-screen code {
+    display: block;
+    background: var(--color-bg);
+    padding: 12px 14px;
+    border-radius: 3px;
+    margin: 12px 0;
+    font-size: 13px;
+    white-space: pre-wrap;
+  }
+
+  /* ---------- Login ---------- */
+  .login-screen {
+    max-width: 380px;
+    margin: 16vh auto;
+    padding: 36px;
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+  }
+  .login-screen h1 { font-size: 24px; margin-bottom: 4px; }
+  .login-screen .subtitle { color: var(--color-ink-muted); font-size: 14px; margin-bottom: 24px; }
+  .login-error {
+    color: var(--color-danger);
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
+  .info-box {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    padding: 12px 14px;
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
+  .password-wrapper { position: relative; }
+  .password-wrapper input { padding-right: 40px; }
+  .password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 6px;
+    color: var(--color-ink-muted);
+    display: flex;
+    align-items: center;
+  }
+  .password-toggle:hover { color: var(--color-ink); }
+  .link-btn {
+    background: none;
+    border: none;
+    color: var(--color-accent);
+    font-size: 13px;
+    text-decoration: underline;
+    padding: 0;
+  }
+  .link-btn:hover { color: var(--color-accent-hover); }
+
+  /* ---------- App shell ---------- */
+  .app { display: none; height: 100vh; flex-direction: column; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-panel);
+  }
+  .topbar h1 { font-size: 19px; flex-shrink: 0; }
+  .topbar .search { flex: 1; max-width: 360px; }
+  .topbar .spacer { flex: 1; }
+  .topbar .logout-link {
+    background: none; border: none; color: var(--color-ink-muted);
+    font-size: 13px; text-decoration: underline;
+  }
+
+  .workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 220px 1fr 400px;
+    overflow: hidden;
+  }
+
+  /* ---------- Filter rail ---------- */
+  .filter-rail {
+    border-right: 1px solid var(--color-border);
+    padding: 20px 16px;
+    overflow-y: auto;
+  }
+  .filter-group { margin-bottom: 24px; }
+  .filter-group h3 {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-ink-muted);
+    margin-bottom: 8px;
+  }
+  .filter-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .filter-item:hover { background: var(--color-bg); }
+  .filter-item.active { background: var(--color-accent); color: #fff; }
+  .filter-item .count { font-size: 12px; color: inherit; opacity: 0.65; }
+
+  /* ---------- List ---------- */
+  .list-panel { overflow-y: auto; padding: 20px 24px; }
+  .list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 110px 1fr 130px 90px;
+    gap: 12px;
+    align-items: start;
+    padding: 14px 10px;
+    border-bottom: 1px solid var(--color-border);
+    cursor: pointer;
+  }
+  .row:hover { background: var(--color-panel); }
+  .row.selected { background: var(--color-panel); border-left: 3px solid var(--color-accent); padding-left: 7px; }
+  .row .category { color: var(--color-accent); font-size: 13px; font-weight: 500; }
+  .row .title-block .title { font-weight: 500; margin-bottom: 3px; }
+  .row .title-block .tags { color: var(--color-ink-muted); font-size: 13px; }
+  .row .updated { color: var(--color-ink-muted); font-size: 12px; }
+  .status-dot { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+  .status-dot::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--dot-color, var(--color-ink-muted));
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--color-ink-muted);
+  }
+  .empty-state p { margin-bottom: 16px; }
+
+  /* ---------- Detail panel ---------- */
+  .detail-panel {
+    border-left: 1px solid var(--color-border);
+    background: var(--color-panel);
+    padding: 24px;
+    overflow-y: auto;
+  }
+  .detail-placeholder {
+    color: var(--color-ink-muted);
+    font-size: 14px;
+    margin-top: 40px;
+    text-align: center;
+  }
+  .detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .detail-header h2 { font-size: 17px; }
+
+  .tag-input-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    padding: 6px 8px;
+  }
+  .tag-chip {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    padding: 3px 8px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tag-chip button {
+    background: none; border: none; color: var(--color-ink-muted);
+    padding: 0; font-size: 14px; line-height: 1;
+  }
+  .tag-input-wrap input {
+    border: none;
+    flex: 1;
+    min-width: 80px;
+    padding: 4px 2px;
+  }
+
+  .status-toggle { display: flex; gap: 8px; }
+  .status-toggle button {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid var(--color-border);
+    background: #fff;
+    font-size: 13px;
+  }
+  .status-toggle button.active-draft { background: var(--color-draft); color: #fff; border-color: var(--color-draft); }
+  .status-toggle button.active-published { background: var(--color-published); color: #fff; border-color: var(--color-published); }
+
+  .detail-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border);
+  }
+  .detail-actions .right { display: flex; gap: 8px; }
+
+  .save-status { font-size: 13px; color: var(--color-ink-muted); }
+
+  textarea.text-content { min-height: 140px; resize: vertical; }
+</style>
+</head>
+<body>
+
+<!-- ========== SETUP SCREEN (shown if config placeholders still active) ========== -->
+<div id="setup-screen" class="setup-screen" style="display:none;">
+  <h1>Konfiguration fehlt noch</h1>
+  <p>Die Datei ist noch nicht mit deinem Supabase-Projekt verbunden. Öffne <code style="display:inline">index.html</code> in einem Editor und trage oben im Bereich <code style="display:inline">CONFIG</code> deine echten Werte ein:</p>
+  <code>const CONFIG = {
+  supabaseUrl: 'https://DEIN-PROJEKT.supabase.co',
+  supabaseAnonKey: 'DEIN-ANON-ODER-PUBLISHABLE-KEY'
+};</code>
+  <p>Beide Werte findest du in deinem Supabase-Projekt unter <strong>Project Settings → API</strong>.</p>
+</div>
+
+<!-- ========== LOGIN SCREEN ========== -->
+<div id="login-screen" class="login-screen" style="display:none;">
+  <h1>Content-Pool</h1>
+  <p class="subtitle">CV-Tailoring-Tool — Anmeldung</p>
+  <form id="login-form">
+    <div class="field">
+      <label for="login-email">E-Mail</label>
+      <input type="email" id="login-email" required autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="login-password">Passwort</label>
+      <div class="password-wrapper">
+        <input type="password" id="login-password" required autocomplete="current-password">
+        <button type="button" class="password-toggle" data-target="login-password" aria-label="Passwort anzeigen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <button type="submit" class="btn-primary" style="width:100%;" id="login-submit">Anmelden</button>
+    <p class="login-error" id="login-error"></p>
+    <p style="text-align:center; margin-top:16px;">
+      <button type="button" class="link-btn" id="show-forgot-btn">Passwort vergessen?</button>
+    </p>
+  </form>
+</div>
+
+<!-- ========== PASSWORT VERGESSEN ========== -->
+<div id="forgot-screen" class="login-screen" style="display:none;">
+  <h1>Passwort zurücksetzen</h1>
+  <p class="subtitle">Wir senden dir einen Link zum Zurücksetzen per E-Mail.</p>
+  <form id="forgot-form">
+    <div class="field">
+      <label for="forgot-email">E-Mail</label>
+      <input type="email" id="forgot-email" required autocomplete="username">
+    </div>
+    <button type="submit" class="btn-primary" style="width:100%;" id="forgot-submit">Link senden</button>
+    <p class="login-error" id="forgot-error"></p>
+    <p class="info-box" id="forgot-success">Falls ein Konto mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen gesendet. Bitte E-Mail-Postfach prüfen.</p>
+    <p style="text-align:center; margin-top:16px;">
+      <button type="button" class="link-btn" id="back-to-login-btn">Zurück zur Anmeldung</button>
+    </p>
+  </form>
+</div>
+
+<!-- ========== NEUES PASSWORT FESTLEGEN (nach Klick auf E-Mail-Link) ========== -->
+<div id="reset-screen" class="login-screen" style="display:none;">
+  <h1>Neues Passwort festlegen</h1>
+  <p class="subtitle">Bitte vergib ein neues Passwort für dein Konto.</p>
+  <form id="reset-form">
+    <div class="field">
+      <label for="reset-password">Neues Passwort</label>
+      <div class="password-wrapper">
+        <input type="password" id="reset-password" required minlength="8" autocomplete="new-password">
+        <button type="button" class="password-toggle" data-target="reset-password" aria-label="Passwort anzeigen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="reset-password-confirm">Passwort bestätigen</label>
+      <div class="password-wrapper">
+        <input type="password" id="reset-password-confirm" required minlength="8" autocomplete="new-password">
+        <button type="button" class="password-toggle" data-target="reset-password-confirm" aria-label="Passwort anzeigen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <button type="submit" class="btn-primary" style="width:100%;" id="reset-submit">Passwort speichern</button>
+    <p class="login-error" id="reset-error"></p>
+  </form>
+</div>
+
+<!-- ========== MAIN APP ========== -->
+<div class="app" id="app">
+  <div class="topbar">
+    <h1>Content-Pool</h1>
+    <input type="search" class="search" id="search-input" placeholder="Bausteine durchsuchen …">
+    <div class="spacer"></div>
+    <button class="btn-primary" id="new-block-btn">Neuer Baustein</button>
+    <button class="logout-link" id="logout-btn">Abmelden</button>
+  </div>
+
+  <div class="workspace">
+    <!-- Filter rail -->
+    <div class="filter-rail">
+      <div class="filter-group">
+        <h3>Kategorie</h3>
+        <div id="category-filters"></div>
+      </div>
+      <div class="filter-group">
+        <h3>Status</h3>
+        <div id="status-filters"></div>
+      </div>
+      <div class="filter-group">
+        <h3>Tags</h3>
+        <div id="tag-filters"></div>
+      </div>
+    </div>
+
+    <!-- List -->
+    <div class="list-panel">
+      <div class="list-header">
+        <span id="result-count" style="color:var(--color-ink-muted); font-size:13px;"></span>
+      </div>
+      <div id="list-content"></div>
+    </div>
+
+    <!-- Detail panel -->
+    <div class="detail-panel" id="detail-panel">
+      <p class="detail-placeholder">Wähle einen Baustein aus der Liste aus oder lege einen neuen an.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================================================
+// KONFIGURATION — hier deine echten Supabase-Werte eintragen
+// =========================================================================
+const CONFIG = {
+  supabaseUrl: 'https://dspfvjybwvztvossqvxf.supabase.co',
+  supabaseAnonKey: 'sb_publishable_XsJX_bsJSkg6RtBM-9aScQ_nivayn1E'
+};
+
+const CATEGORIES = [
+  { value: 'erfahrung', label: 'Erfahrung' },
+  { value: 'skill', label: 'Skill' },
+  { value: 'ausbildung', label: 'Ausbildung' },
+  { value: 'leitbild', label: 'Leitbild' }
+];
+
+// -------------------------------------------------------------------------
+// Config-Validierung: klare Fehlermeldung statt kryptischem Netzwerkfehler
+// -------------------------------------------------------------------------
+const configIsPlaceholder =
+  CONFIG.supabaseUrl.includes('DEIN-PROJEKT') ||
+  CONFIG.supabaseAnonKey.includes('DEIN-ANON');
+
+if (configIsPlaceholder) {
+  document.getElementById('setup-screen').style.display = 'block';
+} else {
+  initApp();
+}
+
+function initApp() {
+  const { createClient } = supabase;
+  const client = createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+
+  let currentUser = null;
+  let allGroups = [];       // content_groups mit verschachteltem content_blocks[0] und tags[]
+  let allTags = [];
+  let selectedGroupId = null;
+  let filters = { category: null, status: null, tag: null, search: '' };
+
+  const loginScreen = document.getElementById('login-screen');
+  const forgotScreen = document.getElementById('forgot-screen');
+  const resetScreen = document.getElementById('reset-screen');
+  const appEl = document.getElementById('app');
+
+  // ---- Passwort-Sichtbarkeit umschalten (Login, neues Passwort, Bestätigung) ----
+  const EYE_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const EYE_OFF_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.2A11 11 0 0 1 12 5c7 0 11 7 11 7a13.4 13.4 0 0 1-3.2 3.8M6.5 6.6C3.8 8.4 1 12 1 12s4 7 11 7a10.9 10.9 0 0 0 4.2-.8"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+
+  document.querySelectorAll('.password-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.dataset.target);
+      const willShow = input.type === 'password';
+      input.type = willShow ? 'text' : 'password';
+      btn.innerHTML = willShow ? EYE_OFF_ICON : EYE_ICON;
+      btn.setAttribute('aria-label', willShow ? 'Passwort verbergen' : 'Passwort anzeigen');
+    });
+  });
+
+  // ---- Zwischen Anmeldung und "Passwort vergessen" wechseln ----
+  document.getElementById('show-forgot-btn').addEventListener('click', () => {
+    loginScreen.style.display = 'none';
+    forgotScreen.style.display = 'block';
+  });
+  document.getElementById('back-to-login-btn').addEventListener('click', () => {
+    forgotScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
+  });
+
+  document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('forgot-email').value.trim();
+    const errorEl = document.getElementById('forgot-error');
+    const successEl = document.getElementById('forgot-success');
+    const submitBtn = document.getElementById('forgot-submit');
+    errorEl.style.display = 'none';
+    successEl.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Wird gesendet …';
+
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Link senden';
+
+    if (error) {
+      errorEl.textContent = 'Fehler: ' + error.message;
+      errorEl.style.display = 'block';
+      return;
+    }
+    successEl.style.display = 'block';
+  });
+
+  // ---- Neues Passwort nach Klick auf den E-Mail-Link ----
+  // Wichtig: Der Recovery-Link erzeugt eine gültige Sitzung. Ohne dieses Flag
+  // würde getSession() unten die App öffnen, statt das Passwortformular zu zeigen.
+  let isPasswordRecovery = false;
+
+  client.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      isPasswordRecovery = true;
+      loginScreen.style.display = 'none';
+      forgotScreen.style.display = 'none';
+      appEl.style.display = 'none';
+      resetScreen.style.display = 'block';
+    }
+    if (event === 'SIGNED_OUT') {
+      appEl.style.display = 'none';
+      resetScreen.style.display = 'none';
+      forgotScreen.style.display = 'none';
+      loginScreen.style.display = 'block';
+    }
+  });
+
+  document.getElementById('reset-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pw = document.getElementById('reset-password').value;
+    const pwConfirm = document.getElementById('reset-password-confirm').value;
+    const errorEl = document.getElementById('reset-error');
+    const submitBtn = document.getElementById('reset-submit');
+    errorEl.style.display = 'none';
+
+    if (pw !== pwConfirm) {
+      errorEl.textContent = 'Die Passwörter stimmen nicht überein.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    if (pw.length < 8) {
+      errorEl.textContent = 'Das Passwort muss mindestens 8 Zeichen lang sein.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Speichert …';
+
+    const { data, error } = await client.auth.updateUser({ password: pw });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Passwort speichern';
+
+    if (error) {
+      errorEl.textContent = 'Fehler: ' + error.message;
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    currentUser = data.user;
+    isPasswordRecovery = false;
+    resetScreen.style.display = 'none';
+    showApp();
+  });
+
+  // ---- Auth ----
+  client.auth.getSession().then(({ data }) => {
+    if (isPasswordRecovery) return;
+    if (data.session) {
+      currentUser = data.session.user;
+      showApp();
+    } else {
+      loginScreen.style.display = 'block';
+    }
+  });
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
+    const submitBtn = document.getElementById('login-submit');
+    errorEl.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Anmeldung läuft …';
+
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Anmelden';
+
+    if (error) {
+      errorEl.textContent = 'Anmeldung fehlgeschlagen: ' + error.message;
+      errorEl.style.display = 'block';
+      return;
+    }
+    currentUser = data.user;
+    showApp();
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await client.auth.signOut();
+    location.reload();
+  });
+
+  function showApp() {
+    loginScreen.style.display = 'none';
+    appEl.style.display = 'flex';
+    renderCategoryFilters();
+    loadData();
+  }
+
+  // ---- Daten laden ----
+  async function loadData() {
+    const { data: groups, error: groupsError } = await client
+      .from('content_groups')
+      .select('*, content_blocks(*)')
+      .order('created_at', { ascending: false });
+
+    if (groupsError) {
+      alert('Fehler beim Laden der Bausteine: ' + groupsError.message);
+      return;
+    }
+
+    const { data: tagLinks, error: tagLinksError } = await client
+      .from('content_group_tags')
+      .select('group_id, tags(id, name)');
+
+    if (tagLinksError) {
+      alert('Fehler beim Laden der Tags: ' + tagLinksError.message);
+      return;
+    }
+
+    const { data: tagsData, error: tagsError } = await client.from('tags').select('*').order('name');
+    if (tagsError) {
+      alert('Fehler beim Laden der Tags: ' + tagsError.message);
+      return;
+    }
+    allTags = tagsData || [];
+
+    const tagsByGroup = {};
+    (tagLinks || []).forEach(link => {
+      if (!tagsByGroup[link.group_id]) tagsByGroup[link.group_id] = [];
+      if (link.tags) tagsByGroup[link.group_id].push(link.tags);
+    });
+
+    allGroups = (groups || []).map(g => ({
+      ...g,
+      // Gezielt die deutsche Version wählen — ab Phase 6 liegen hier mehrere Sprachen
+      block: (g.content_blocks || []).find(b => b.language === 'de') || (g.content_blocks || [])[0] || null,
+      tags: tagsByGroup[g.id] || []
+    }));
+
+    renderTagFilters();
+    renderList();
+  }
+
+  // ---- Filter-Rail ----
+  function renderCategoryFilters() {
+    const el = document.getElementById('category-filters');
+    el.innerHTML = '';
+    const allItem = filterItem('Alle', filters.category === null, () => {
+      filters.category = null; renderAll();
+    });
+    el.appendChild(allItem);
+    CATEGORIES.forEach(cat => {
+      el.appendChild(filterItem(cat.label, filters.category === cat.value, () => {
+        filters.category = filters.category === cat.value ? null : cat.value;
+        renderAll();
+      }));
+    });
+
+    const statusEl = document.getElementById('status-filters');
+    statusEl.innerHTML = '';
+    [['draft', 'Entwurf'], ['published', 'Veröffentlicht']].forEach(([val, label]) => {
+      statusEl.appendChild(filterItem(label, filters.status === val, () => {
+        filters.status = filters.status === val ? null : val;
+        renderAll();
+      }));
+    });
+  }
+
+  function renderTagFilters() {
+    const el = document.getElementById('tag-filters');
+    el.innerHTML = '';
+    if (allTags.length === 0) {
+      el.innerHTML = '<p style="font-size:13px;color:var(--color-ink-muted);">Noch keine Tags</p>';
+      return;
+    }
+    allTags.forEach(tag => {
+      el.appendChild(filterItem(tag.name, filters.tag === tag.id, () => {
+        filters.tag = filters.tag === tag.id ? null : tag.id;
+        renderAll();
+      }));
+    });
+  }
+
+  function filterItem(label, active, onClick) {
+    const div = document.createElement('div');
+    div.className = 'filter-item' + (active ? ' active' : '');
+    div.textContent = label;
+    div.addEventListener('click', onClick);
+    return div;
+  }
+
+  document.getElementById('search-input').addEventListener('input', (e) => {
+    filters.search = e.target.value.toLowerCase();
+    renderAll();
+  });
+
+  function renderAll() {
+    renderCategoryFilters();
+    renderTagFilters();
+    renderList();
+  }
+
+  // ---- Liste ----
+  function getFilteredGroups() {
+    return allGroups.filter(g => {
+      if (filters.category && g.category !== filters.category) return false;
+      if (filters.status && g.status !== filters.status) return false;
+      if (filters.tag && !g.tags.some(t => t.id === filters.tag)) return false;
+      if (filters.search) {
+        const haystack = ((g.block && g.block.title) || '') + ' ' + ((g.block && g.block.text_content) || '');
+        if (!haystack.toLowerCase().includes(filters.search)) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderList() {
+    const listEl = document.getElementById('list-content');
+    const countEl = document.getElementById('result-count');
+    const filtered = getFilteredGroups();
+    countEl.textContent = filtered.length + (filtered.length === 1 ? ' Baustein' : ' Bausteine');
+
+    if (allGroups.length === 0) {
+      listEl.innerHTML = `<div class="empty-state">
+        <p>Der Content-Pool ist noch leer.</p>
+        <button class="btn-primary" onclick="document.getElementById('new-block-btn').click()">Ersten Baustein anlegen</button>
+      </div>`;
+      return;
+    }
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = `<div class="empty-state"><p>Keine Bausteine passen zu den aktuellen Filtern.</p></div>`;
+      return;
+    }
+
+    listEl.innerHTML = '';
+    filtered.forEach(g => {
+      const row = document.createElement('div');
+      row.className = 'row' + (g.id === selectedGroupId ? ' selected' : '');
+      const catLabel = CATEGORIES.find(c => c.value === g.category)?.label || g.category;
+      const title = (g.block && g.block.title) || '(ohne Titel)';
+      const tagNames = g.tags.map(t => t.name).join(', ');
+      const statusLabel = g.status === 'published' ? 'Veröffentlicht' : 'Entwurf';
+      const dotColor = g.status === 'published' ? 'var(--color-published)' : 'var(--color-draft)';
+      const updated = g.block ? new Date(g.block.updated_at).toLocaleDateString('de-DE') : '';
+
+      row.innerHTML = `
+        <div class="category">${catLabel}</div>
+        <div class="title-block">
+          <div class="title">${escapeHtml(title)}</div>
+          <div class="tags">${escapeHtml(tagNames)}</div>
+        </div>
+        <div class="status-dot" style="--dot-color:${dotColor}">${statusLabel}</div>
+        <div class="updated">${updated}</div>
+      `;
+      row.addEventListener('click', () => {
+        selectedGroupId = g.id;
+        renderList();
+        renderDetail(g);
+      });
+      listEl.appendChild(row);
+    });
+  }
+
+  // ---- Detailpanel ----
+  document.getElementById('new-block-btn').addEventListener('click', () => {
+    selectedGroupId = null;
+    renderList();
+    renderDetail(null);
+  });
+
+  function renderDetail(group) {
+    const panel = document.getElementById('detail-panel');
+    const isNew = !group;
+    const category = group?.category || CATEGORIES[0].value;
+    const title = group?.block?.title || '';
+    const text = group?.block?.text_content || '';
+    const status = group?.status || 'draft';
+    const tags = group?.tags || [];
+
+    panel.innerHTML = `
+      <div class="detail-header">
+        <h2>${isNew ? 'Neuer Baustein' : 'Baustein bearbeiten'}</h2>
+      </div>
+
+      <div class="field">
+        <label for="f-category">Kategorie</label>
+        <select id="f-category">
+          ${CATEGORIES.map(c => `<option value="${c.value}" ${c.value === category ? 'selected' : ''}>${c.label}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="f-title">Titel</label>
+        <input type="text" id="f-title" value="${escapeAttr(title)}" placeholder="z. B. Teamleitung Vertrieb 2021–2024">
+      </div>
+
+      <div class="field">
+        <label for="f-text">Text</label>
+        <textarea id="f-text" class="text-content" placeholder="Inhalt dieses Bausteins …">${escapeHtml(text)}</textarea>
+      </div>
+
+      <div class="field">
+        <label for="f-language">Sprache</label>
+        <select id="f-language" disabled>
+          <option selected>Deutsch</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Tags</label>
+        <div class="tag-input-wrap" id="tag-wrap">
+          ${tags.map(t => `<span class="tag-chip" data-tag-id="${t.id}" data-tag-name="${escapeAttr(t.name)}">${escapeHtml(t.name)} <button type="button" class="remove-tag">×</button></span>`).join('')}
+          <input type="text" id="f-tag-input" placeholder="Tag hinzufügen, Enter drücken">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Status</label>
+        <div class="status-toggle">
+          <button type="button" id="f-status-draft" class="${status === 'draft' ? 'active-draft' : ''}">Entwurf</button>
+          <button type="button" id="f-status-published" class="${status === 'published' ? 'active-published' : ''}">Veröffentlicht</button>
+        </div>
+      </div>
+
+      <div class="detail-actions">
+        <div class="left">
+          ${!isNew ? '<button type="button" class="btn-danger-text" id="f-delete">Baustein löschen</button>' : '<span></span>'}
+        </div>
+        <div class="right">
+          <button type="button" class="btn-secondary" id="f-cancel">Abbrechen</button>
+          <button type="button" class="btn-primary" id="f-save">Speichern</button>
+        </div>
+      </div>
+    `;
+
+    let currentStatus = status;
+    let currentTags = tags.map(t => ({ id: t.id, name: t.name }));
+
+    document.getElementById('f-status-draft').addEventListener('click', () => {
+      currentStatus = 'draft';
+      document.getElementById('f-status-draft').className = 'active-draft';
+      document.getElementById('f-status-published').className = '';
+    });
+    document.getElementById('f-status-published').addEventListener('click', () => {
+      currentStatus = 'published';
+      document.getElementById('f-status-published').className = 'active-published';
+      document.getElementById('f-status-draft').className = '';
+    });
+
+    const tagWrap = document.getElementById('tag-wrap');
+    tagWrap.addEventListener('click', (e) => {
+      if (e.target.classList.contains('remove-tag')) {
+        const chip = e.target.closest('.tag-chip');
+        const tagId = chip.dataset.tagId;
+        currentTags = currentTags.filter(t => String(t.id) !== String(tagId));
+        chip.remove();
+      }
+    });
+
+    document.getElementById('f-tag-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const val = e.target.value.trim();
+        if (val && !currentTags.some(t => t.name.toLowerCase() === val.toLowerCase())) {
+          const tempId = 'new:' + val;
+          currentTags.push({ id: tempId, name: val });
+          const chip = document.createElement('span');
+          chip.className = 'tag-chip';
+          chip.dataset.tagId = tempId;
+          chip.innerHTML = `${escapeHtml(val)} <button type="button" class="remove-tag">×</button>`;
+          tagWrap.insertBefore(chip, e.target);
+        }
+        e.target.value = '';
+      }
+    });
+
+    document.getElementById('f-cancel').addEventListener('click', () => {
+      selectedGroupId = null;
+      renderList();
+      panel.innerHTML = '<p class="detail-placeholder">Wähle einen Baustein aus der Liste aus oder lege einen neuen an.</p>';
+    });
+
+    document.getElementById('f-save').addEventListener('click', async () => {
+      const saveBtn = document.getElementById('f-save');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Speichert …';
+
+      const payload = {
+        category: document.getElementById('f-category').value,
+        title: document.getElementById('f-title').value.trim(),
+        text_content: document.getElementById('f-text').value.trim(),
+        status: currentStatus
+      };
+
+      try {
+        if (isNew) {
+          await createGroup(payload, currentTags);
+        } else {
+          await updateGroup(group.id, group.block?.id, payload, currentTags);
+        }
+        await loadData();
+        panel.innerHTML = '<p class="detail-placeholder">Wähle einen Baustein aus der Liste aus oder lege einen neuen an.</p>';
+        selectedGroupId = null;
+        renderList();
+      } catch (err) {
+        alert('Fehler beim Speichern: ' + err.message);
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Speichern';
+      }
+    });
+
+    if (!isNew) {
+      document.getElementById('f-delete').addEventListener('click', async () => {
+        if (!confirm('Diesen Baustein wirklich löschen?')) return;
+        const { error } = await client.from('content_groups').delete().eq('id', group.id);
+        if (error) { alert('Fehler beim Löschen: ' + error.message); return; }
+        selectedGroupId = null;
+        await loadData();
+        panel.innerHTML = '<p class="detail-placeholder">Wähle einen Baustein aus der Liste aus oder lege einen neuen an.</p>';
+      });
+    }
+  }
+
+  // ---- Speicher-Logik ----
+  async function resolveTagIds(tagList) {
+    const ids = [];
+    for (const tag of tagList) {
+      if (typeof tag.id === 'string' && tag.id.startsWith('new:')) {
+        // Erst prüfen, ob es diesen Tag schon gibt — sonst entstehen Duplikate
+        // wie "Vertrieb" und "vertrieb" nebeneinander in der Filterleiste
+        const existing = allTags.find(t => t.name.toLowerCase() === tag.name.toLowerCase());
+        if (existing) {
+          ids.push(existing.id);
+          continue;
+        }
+        const { data, error } = await client
+          .from('tags')
+          .insert({ user_id: currentUser.id, name: tag.name })
+          .select()
+          .single();
+        if (error) throw error;
+        allTags.push(data);
+        ids.push(data.id);
+      } else {
+        ids.push(tag.id);
+      }
+    }
+    return ids;
+  }
+
+  async function createGroup(payload, tagList) {
+    const { data: group, error: groupError } = await client
+      .from('content_groups')
+      .insert({
+        user_id: currentUser.id,
+        category: payload.category,
+        status: payload.status,
+        source: 'manual'
+      })
+      .select()
+      .single();
+    if (groupError) throw groupError;
+
+    const { error: blockError } = await client
+      .from('content_blocks')
+      .insert({
+        group_id: group.id,
+        language: 'de',
+        title: payload.title,
+        text_content: payload.text_content
+      });
+    if (blockError) {
+      // Sonst bliebe eine leere Gruppe ohne Inhalt in der Datenbank zurück
+      await client.from('content_groups').delete().eq('id', group.id);
+      throw blockError;
+    }
+
+    const tagIds = await resolveTagIds(tagList);
+    if (tagIds.length > 0) {
+      const links = tagIds.map(tid => ({ group_id: group.id, tag_id: tid }));
+      const { error: linkError } = await client.from('content_group_tags').insert(links);
+      if (linkError) throw linkError;
+    }
+  }
+
+  async function updateGroup(groupId, blockId, payload, tagList) {
+    const { error: groupError } = await client
+      .from('content_groups')
+      .update({ category: payload.category, status: payload.status })
+      .eq('id', groupId);
+    if (groupError) throw groupError;
+
+    if (blockId) {
+      const { error: blockError } = await client
+        .from('content_blocks')
+        .update({ title: payload.title, text_content: payload.text_content, updated_at: new Date().toISOString() })
+        .eq('id', blockId);
+      if (blockError) throw blockError;
+    } else {
+      const { error: blockError } = await client
+        .from('content_blocks')
+        .insert({ group_id: groupId, language: 'de', title: payload.title, text_content: payload.text_content });
+      if (blockError) throw blockError;
+    }
+
+    await client.from('content_group_tags').delete().eq('group_id', groupId);
+    const tagIds = await resolveTagIds(tagList);
+    if (tagIds.length > 0) {
+      const links = tagIds.map(tid => ({ group_id: groupId, tag_id: tid }));
+      const { error: linkError } = await client.from('content_group_tags').insert(links);
+      if (linkError) throw linkError;
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+  function escapeAttr(str) { return escapeHtml(str); }
+}
+</script>
+</body>
+</html>
