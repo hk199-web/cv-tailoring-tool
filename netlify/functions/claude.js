@@ -9,7 +9,10 @@
 // jemand über die eigene App beliebige Anfragen auf eure Rechnung stellen.
 // =========================================================================
 
-const MODEL = 'claude-sonnet-5';
+// cv_import: Haiku reicht für strukturiertes Parsing und ist deutlich schneller
+// duplicate_check: ebenfalls Haiku
+const MODEL_FAST = 'claude-haiku-4-5';
+const MODEL_REASONING = 'claude-sonnet-5'; // für spätere komplexere Schritte
 
 const CV_IMPORT_PROMPT = `Du analysierst einen Lebenslauf und zerlegst ihn in einzelne, wiederverwendbare Bausteine für einen Content-Pool.
 
@@ -63,7 +66,7 @@ exports.handler = async (event) => {
     if (body.text) {
       messages = [{
         role: 'user',
-        content: CV_IMPORT_PROMPT + '\n\nLebenslauf:\n\n' + String(body.text).slice(0, 60000)
+        content: CV_IMPORT_PROMPT + '\n\nLebenslauf:\n\n' + String(body.text).slice(0, 20000)
       }];
     } else {
       return json(400, { error: 'Es wurde kein Dokument übergeben.' });
@@ -89,7 +92,11 @@ exports.handler = async (event) => {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify({ model: MODEL, max_tokens: 8000, messages })
+      body: JSON.stringify({
+        model: task === 'cv_import' || task === 'duplicate_check' ? MODEL_FAST : MODEL_REASONING,
+        max_tokens: 4000,
+        messages
+      })
     });
 
     if (!response.ok) {
