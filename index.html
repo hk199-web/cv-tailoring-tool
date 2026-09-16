@@ -816,7 +816,7 @@
 
     <p class="modal-error" id="profile-error"></p>
     <div class="modal-footer">
-      <span></span>
+      <button class="btn-danger-text" id="profile-delete">Profil löschen</button>
       <button class="btn-primary" id="profile-save">Speichern</button>
     </div>
   </div>
@@ -2139,6 +2139,22 @@ function initApp() {
     }
     currentProfile = data;
     profileBackdrop.classList.remove('open');
+  });
+
+  document.getElementById('profile-delete').addEventListener('click', async () => {
+    if (!confirm('Alle Profildaten wirklich löschen? Das kann nicht rückgängig gemacht werden.')) return;
+    const errorEl = document.getElementById('profile-error');
+    errorEl.style.display = 'none';
+
+    const { error } = await client.from('profile').delete().eq('user_id', currentUser.id);
+    if (error) {
+      errorEl.textContent = 'Fehler beim Löschen: ' + error.message;
+      errorEl.style.display = 'block';
+      return;
+    }
+    currentProfile = null;
+    pendingProfileFromCv = null;
+    fillProfileForm();
   });
 
   function escapeHtml(str) {
