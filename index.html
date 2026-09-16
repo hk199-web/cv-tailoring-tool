@@ -424,6 +424,24 @@
     font-size: 13px;
     margin-bottom: 12px;
   }
+  .derived-note {
+    background: #EDF3F4;
+    border-radius: 3px;
+    padding: 8px 10px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    color: var(--color-accent-hover);
+  }
+  .origin-badge {
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border: 1px solid var(--color-border);
+    color: var(--color-ink-muted);
+  }
+  .origin-badge.derived { border-color: var(--color-accent); color: var(--color-accent); }
   .review-item .field { margin-bottom: 10px; }
   .review-item textarea { min-height: 90px; resize: vertical; }
 
@@ -515,6 +533,14 @@
     margin: 8px 0 0 62px;
     font-size: 13px;
     color: var(--color-danger);
+  }
+  .suggestion-line {
+    margin: 2px 0 8px 52px;
+    padding: 6px 10px;
+    background: #EDF3F4;
+    border-radius: 3px;
+    font-size: 13px;
+    color: var(--color-accent-hover);
   }
   .section-title {
     font-family: var(--font-serif);
@@ -1492,6 +1518,8 @@ function initApp() {
         title: b.title || '',
         text: b.text || '',
         tags: Array.isArray(b.tags) ? b.tags : [],
+        herkunft: b.herkunft === 'abgeleitet' ? 'abgeleitet' : 'explizit',
+        beleg: b.beleg || '',
         keep: true,
         duplicateOf: null
       }));
@@ -1541,9 +1569,17 @@ function initApp() {
   });
 
   async function callClaude(payload) {
-    const res = await fetch('/.netlify/functions/claude', {
+    const { data: sessionData } = await client.auth.getSession();
+    const token = sessionData && sessionData.session ? sessionData.session.access_token : null;
+    if (!token) throw new Error('Deine Sitzung ist abgelaufen. Bitte neu anmelden.');
+
+    const res = await fetch(CONFIG.supabaseUrl + '/functions/v1/claude', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        'apikey': CONFIG.supabaseAnonKey
+      },
       body: JSON.stringify(payload)
     });
     const data = await res.json().catch(() => ({}));
@@ -1577,12 +1613,14 @@ function initApp() {
           <select data-idx="${idx}" class="review-category">
             ${CATEGORIES.map(c => `<option value="${c.value}" ${c.value === item.category ? 'selected' : ''}>${c.label}</option>`).join('')}
           </select>
+          <span class="origin-badge ${item.herkunft === 'abgeleitet' ? 'derived' : ''}">${item.herkunft === 'abgeleitet' ? 'Abgeleitet' : 'Aus CV'}</span>
           <div class="review-decision">
             <button type="button" class="review-keep ${item.keep ? 'on-keep' : ''}" data-idx="${idx}">Übernehmen</button>
             <button type="button" class="review-skip ${item.keep ? '' : 'on-skip'}" data-idx="${idx}">Verwerfen</button>
           </div>
         </div>
         ${item.duplicateOf ? `<div class="duplicate-note"><strong>Mögliche Dublette</strong> zu „${escapeHtml(item.duplicateOf.title)}“. ${escapeHtml(item.duplicateOf.reason)} Standardmäßig verworfen — übernimm ihn nur, wenn es eine andere Station ist.</div>` : ''}
+        ${item.herkunft === 'abgeleitet' && item.beleg ? `<div class="derived-note"><strong>Ableitung, bitte prüfen:</strong> ${escapeHtml(item.beleg)}</div>` : ''}
         <div class="field">
           <label>Titel</label>
           <input type="text" class="review-title" data-idx="${idx}" value="${escapeAttr(item.title)}">
@@ -1766,7 +1804,8 @@ function initApp() {
               return `<div class="match-line">
                 <span class="match-strength ${m.staerke === 'stark' ? 'stark' : 'teilweise'}">${m.staerke === 'stark' ? 'stark' : 'teilweise'}</span>
                 <span>${escapeHtml(title)}${m.begruendung ? ' — ' + escapeHtml(m.begruendung) : ''}</span>
-              </div>`;
+              </div>
+              ${m.vorschlag ? `<div class="suggestion-line"><strong>Vorschlag:</strong> ${escapeHtml(m.vorschlag)}</div>` : ''}`;
             }).join('')}</div>` : ''}
             ${gap ? `<div class="gap-line">Keine Entsprechung im Pool${gap.hinweis ? ': ' + escapeHtml(gap.hinweis) : '.'}</div>` : ''}
           </div>
@@ -1792,7 +1831,10 @@ function initApp() {
     progressEl.style.display = 'block';
 
     try {
-      if (allGroups.length === 0) await loadData();
+      // Immer frisch laden statt nur bei leerem Stand — sonst fehlen
+      // Bausteine, die seit dem letzten Laden veröffentlicht wurden
+      // (genau das Problem, das eben aufgetreten ist).
+      await loadData();
 
       const bausteine = allGroups
         .filter(g => g.block && g.status === 'published')
@@ -1803,6 +1845,9 @@ function initApp() {
           text: (g.block.text_content || '').slice(0, 800),
           tags: g.tags.map(t => t.name)
         }));
+      // Hinweis: Die Herkunft (explizit/abgeleitet) wird bewusst nicht mit gespeichert.
+      // Sobald ein Baustein im Review veröffentlicht wurde, hat der Nutzer die Ableitung
+      // bereits bestätigt — für das Matching zählt er dann wie jeder andere Baustein.
 
       if (bausteine.length === 0) {
         throw new Error('Es sind noch keine veröffentlichten Bausteine im Pool. Entwürfe werden beim Abgleich nicht berücksichtigt — setze die gewünschten Bausteine zuerst auf "Veröffentlicht".');
@@ -1822,7 +1867,11 @@ function initApp() {
 
       await loadJobs();
       const updated = allJobs.find(j => j.id === job.id);
-      if (updated) renderJobDetail(updated);
+      if (updated) {
+        renderJobDetail(updated);
+      } else {
+        progressEl.style.display = 'none';
+      }
 
     } catch (err) {
       progressEl.style.display = 'none';
