@@ -547,6 +547,30 @@
     font-size: 16px;
     margin: 28px 0 8px;
   }
+
+  /* ---------- Profil: abweichende Angaben aus einem Lebenslauf ---------- */
+  .profile-diff, .profile-diff-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: #FBF3E2;
+    border-radius: 3px;
+    padding: 7px 10px;
+    font-size: 13px;
+  }
+  .profile-diff { margin-top: 6px; }
+  .profile-diff-summary { display: none; margin-bottom: 16px; }
+  .profile-diff-summary.open { display: flex; }
+  .profile-diff button, .profile-diff-summary button {
+    background: #fff;
+    border: 1px solid var(--color-border);
+    padding: 3px 10px;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .profile-diff button:hover, .profile-diff-summary button:hover { border-color: var(--color-ink-muted); }
 </style>
 </head>
 <body>
@@ -779,6 +803,11 @@
     </div>
     <p class="modal-error" id="profile-cv-error"></p>
 
+    <div id="profile-diff-summary" class="profile-diff-summary">
+      <span id="profile-diff-count"></span>
+      <button type="button" id="profile-diff-apply-all">Alle übernehmen</button>
+    </div>
+
     <div class="field">
       <label for="profile-full-name">Name</label>
       <input type="text" id="profile-full-name" placeholder="Vor- und Nachname">
@@ -787,14 +816,16 @@
       <label for="profile-street">Straße und Hausnummer</label>
       <input type="text" id="profile-street">
     </div>
-    <div style="display:flex; gap:12px;">
-      <div class="field" style="flex:0 0 140px;">
-        <label for="profile-postal-code">PLZ</label>
-        <input type="text" id="profile-postal-code">
-      </div>
-      <div class="field" style="flex:1;">
-        <label for="profile-city">Ort</label>
-        <input type="text" id="profile-city">
+    <div id="profile-plz-city-block">
+      <div style="display:flex; gap:12px;">
+        <div class="field" style="flex:0 0 140px;">
+          <label for="profile-postal-code">PLZ</label>
+          <input type="text" id="profile-postal-code">
+        </div>
+        <div class="field" style="flex:1;">
+          <label for="profile-city">Ort</label>
+          <input type="text" id="profile-city">
+        </div>
       </div>
     </div>
     <div class="field">
@@ -2052,13 +2083,80 @@ function initApp() {
     });
   }
 
-  // Trägt nur in Felder ein, die noch leer sind — bewusst eingegebene oder
-  // schon gespeicherte Angaben werden nie stillschweigend überschrieben.
+  function clearProfileDiffs() {
+    document.querySelectorAll('.profile-diff').forEach(el => el.remove());
+    document.getElementById('profile-diff-summary').classList.remove('open');
+  }
+
+  function diffLabel(count) {
+    return count === 1
+      ? '1 Angabe weicht von deiner bisherigen ab'
+      : count + ' Angaben weichen von deinen bisherigen ab';
+  }
+
+  function refreshDiffSummary() {
+    const remaining = document.querySelectorAll('.profile-diff').length;
+    const summary = document.getElementById('profile-diff-summary');
+    if (remaining < 2) {
+      summary.classList.remove('open');
+      return;
+    }
+    document.getElementById('profile-diff-count').textContent = diffLabel(remaining);
+    summary.classList.add('open');
+  }
+
+  // Leere Felder werden direkt befüllt. Weicht ein erkannter Wert von einer
+  // vorhandenen Angabe ab, wird er weder stillschweigend übernommen noch
+  // verworfen, sondern als Vorschlag angezeigt — welcher Lebenslauf der
+  // aktuellere ist, weiß nur der Nutzer.
   function applyExtractedProfile(extracted) {
+    clearProfileDiffs();
+    const diffs = [];
+
     Object.entries(PROFILE_FIELDS).forEach(([key, elId]) => {
       const input = document.getElementById(elId);
-      if (!input.value.trim() && extracted[key]) input.value = extracted[key];
+      const found = String(extracted[key] || '').trim();
+      if (!found) return;
+
+      if (!input.value.trim()) {
+        input.value = found;
+        return;
+      }
+      if (input.value.trim() === found) return;
+
+      // PLZ und Ort stehen nebeneinander in einer schmalen Spalte — ihre
+      // Hinweise kommen unter den ganzen Block, sonst bricht der Text um.
+      const sharedBlock = document.getElementById('profile-plz-city-block');
+      const inSharedBlock = key === 'postal_code' || key === 'city';
+      const anchor = inSharedBlock ? sharedBlock : input.closest('.field');
+      const labelText = inSharedBlock
+        ? (document.querySelector('label[for="' + elId + '"]').textContent + ' aus Lebenslauf: ')
+        : 'Aus Lebenslauf: ';
+
+      const note = document.createElement('div');
+      note.className = 'profile-diff';
+      note.innerHTML = '<span>' + escapeHtml(labelText) + '<strong>' + escapeHtml(found) + '</strong></span>';
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = 'Übernehmen';
+      btn.addEventListener('click', () => {
+        input.value = found;
+        note.remove();
+        refreshDiffSummary();
+      });
+      note.appendChild(btn);
+      anchor.appendChild(note);
+      diffs.push({ input, found });
     });
+
+    if (diffs.length > 1) {
+      document.getElementById('profile-diff-apply-all').onclick = () => {
+        diffs.forEach(d => { d.input.value = d.found; });
+        clearProfileDiffs();
+      };
+      refreshDiffSummary();
+    }
   }
 
   document.getElementById('profile-btn').addEventListener('click', () => {
@@ -2067,8 +2165,14 @@ function initApp() {
     document.getElementById('profile-cv-progress').style.display = 'none';
     document.getElementById('profile-cv-file').value = '';
     document.getElementById('profile-cv-filename').textContent = 'Aus Lebenslauf übernehmen (PDF/DOCX)';
+    clearProfileDiffs();
     fillProfileForm();
-    if (pendingProfileFromCv) applyExtractedProfile(pendingProfileFromCv);
+    if (pendingProfileFromCv) {
+      applyExtractedProfile(pendingProfileFromCv);
+      // Einmal gezeigt reicht — sonst fragt es bei jedem Öffnen erneut nach,
+      // obwohl man sich längst entschieden hat.
+      pendingProfileFromCv = null;
+    }
     profileBackdrop.classList.add('open');
   });
   document.getElementById('profile-close').addEventListener('click', () => profileBackdrop.classList.remove('open'));
@@ -2154,6 +2258,7 @@ function initApp() {
     }
     currentProfile = null;
     pendingProfileFromCv = null;
+    clearProfileDiffs();
     fillProfileForm();
   });
 
