@@ -769,6 +769,16 @@
     </div>
     <p class="lead">Diese Angaben werden als Absender im Briefkopf des Anschreibens verwendet.</p>
 
+    <label for="profile-cv-file" class="dropzone" id="profile-cv-dropzone" style="display:block; cursor:pointer; padding:14px 16px; margin-bottom:20px;">
+      <div class="filename" id="profile-cv-filename">Aus Lebenslauf übernehmen (PDF/DOCX)</div>
+      <div class="hint">Befüllt die Felder unten zur Prüfung — gespeichert wird erst mit "Speichern".</div>
+    </label>
+    <input type="file" id="profile-cv-file" accept=".pdf,.docx" style="display:none;">
+    <div id="profile-cv-progress" style="display:none; margin-bottom:16px;">
+      <div class="progress-note"><span class="spinner"></span><span id="profile-cv-progress-text">Lebenslauf wird gelesen …</span></div>
+    </div>
+    <p class="modal-error" id="profile-cv-error"></p>
+
     <div class="field">
       <label for="profile-full-name">Name</label>
       <input type="text" id="profile-full-name" placeholder="Vor- und Nachname">
@@ -1501,6 +1511,65 @@ function initApp() {
     document.getElementById('import-analyze').disabled = false;
   });
 
+  // Gemeinsame Textextraktion für CV-Import und Profil-Übernahme — ein Weg,
+  // ein Fehlerverhalten, statt zweier leicht abweichender Kopien.
+  async function extractTextFromFile(file, onProgress) {
+    const name = file.name.toLowerCase();
+
+    if (name.endsWith('.pdf')) {
+      if (typeof pdfjsLib === 'undefined') {
+        throw new Error('PDF-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden oder die Datei als DOCX speichern.');
+      }
+      try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        if (onProgress) onProgress('PDF wird gelesen …');
+        const buffer = await file.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: buffer });
+        const pdf = await loadingTask.promise;
+        const pages = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          let lastY = null;
+          const lines = [];
+          let line = [];
+          content.items.forEach(item => {
+            if (!item.str) return;
+            if (lastY !== null && Math.abs(item.transform[5] - lastY) > 2) {
+              if (line.length) lines.push(line.join(' '));
+              line = [];
+            }
+            line.push(item.str);
+            lastY = item.transform[5];
+          });
+          if (line.length) lines.push(line.join(' '));
+          pages.push(lines.join('\n'));
+        }
+        const text = pages.join('\n\n').trim();
+        if (text.length < 50) {
+          throw new Error('hint:canva');
+        }
+        return text;
+      } catch (pdfErr) {
+        if (pdfErr.message === 'hint:canva') {
+          throw new Error('Aus dieser PDF konnte kein Text gelesen werden — wahrscheinlich sind Texte darin als Grafik gespeichert (kommt bei Canva-PDFs vor). Bitte in Canva unter Teilen → Als DOCX herunterladen und diese Datei dann importieren.');
+        }
+        throw new Error('Die PDF konnte nicht gelesen werden (' + (pdfErr.message || 'Unbekannt') + '). Bitte als DOCX exportieren und erneut versuchen.');
+      }
+    }
+
+    if (typeof mammoth === 'undefined') {
+      throw new Error('Word-Dateien können gerade nicht gelesen werden. Bitte den Lebenslauf als PDF speichern und erneut versuchen.');
+    }
+    const buffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+    if (!result.value || result.value.trim().length < 50) {
+      throw new Error('Aus dieser Word-Datei konnte kein Text gelesen werden.');
+    }
+    return result.value;
+  }
+
   document.getElementById('import-analyze').addEventListener('click', async () => {
     if (!selectedFile) return;
     showImportStep('progress');
@@ -1508,60 +1577,9 @@ function initApp() {
 
     try {
       const payload = { task: 'cv_import' };
-      const name = selectedFile.name.toLowerCase();
-
-      if (name.endsWith('.pdf')) {
-        if (typeof pdfjsLib === 'undefined') {
-          throw new Error('PDF-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden oder die Datei als DOCX speichern.');
-        }
-        try {
-          pdfjsLib.GlobalWorkerOptions.workerSrc =
-            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-          document.getElementById('progress-text').textContent = 'PDF wird gelesen …';
-          const buffer = await selectedFile.arrayBuffer();
-          const loadingTask = pdfjsLib.getDocument({ data: buffer });
-          const pdf = await loadingTask.promise;
-          const pages = [];
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const content = await page.getTextContent();
-            let lastY = null;
-            const lines = [];
-            let line = [];
-            content.items.forEach(item => {
-              if (!item.str) return;
-              if (lastY !== null && Math.abs(item.transform[5] - lastY) > 2) {
-                if (line.length) lines.push(line.join(' '));
-                line = [];
-              }
-              line.push(item.str);
-              lastY = item.transform[5];
-            });
-            if (line.length) lines.push(line.join(' '));
-            pages.push(lines.join('\n'));
-          }
-          const text = pages.join('\n\n').trim();
-          if (text.length < 50) {
-            throw new Error('hint:canva');
-          }
-          payload.text = text;
-        } catch (pdfErr) {
-          if (pdfErr.message === 'hint:canva') {
-            throw new Error('Aus dieser PDF konnte kein Text gelesen werden — wahrscheinlich sind Texte darin als Grafik gespeichert (kommt bei Canva-PDFs vor). Bitte in Canva unter Teilen → Als DOCX herunterladen und diese Datei dann importieren.');
-          }
-          throw new Error('Die PDF konnte nicht gelesen werden (' + (pdfErr.message || 'Unbekannt') + '). Bitte als DOCX exportieren und erneut versuchen.');
-        }
-      } else {
-        if (typeof mammoth === 'undefined') {
-          throw new Error('Word-Dateien können gerade nicht gelesen werden. Bitte den Lebenslauf als PDF speichern und erneut versuchen.');
-        }
-        const buffer = await selectedFile.arrayBuffer();
-        const result = await mammoth.extractRawText({ arrayBuffer: buffer });
-        if (!result.value || result.value.trim().length < 50) {
-          throw new Error('Aus dieser Word-Datei konnte kein Text gelesen werden.');
-        }
-        payload.text = result.value;
-      }
+      payload.text = await extractTextFromFile(selectedFile, (msg) => {
+        document.getElementById('progress-text').textContent = msg;
+      });
 
       if (!payload.text) {
         throw new Error('Kein Text aus dem Dokument gelesen. Bitte als DOCX exportieren und erneut versuchen.');
@@ -2028,11 +2046,55 @@ function initApp() {
 
   document.getElementById('profile-btn').addEventListener('click', () => {
     document.getElementById('profile-error').style.display = 'none';
+    document.getElementById('profile-cv-error').style.display = 'none';
+    document.getElementById('profile-cv-progress').style.display = 'none';
+    document.getElementById('profile-cv-file').value = '';
+    document.getElementById('profile-cv-filename').textContent = 'Aus Lebenslauf übernehmen (PDF/DOCX)';
     fillProfileForm();
     profileBackdrop.classList.add('open');
   });
   document.getElementById('profile-close').addEventListener('click', () => profileBackdrop.classList.remove('open'));
   profileBackdrop.addEventListener('click', (e) => { if (e.target === profileBackdrop) profileBackdrop.classList.remove('open'); });
+
+  document.getElementById('profile-cv-file').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    const errorEl = document.getElementById('profile-cv-error');
+    const progressEl = document.getElementById('profile-cv-progress');
+    const progressText = document.getElementById('profile-cv-progress-text');
+    errorEl.style.display = 'none';
+    if (!file) return;
+
+    if (file.size > 4 * 1024 * 1024) {
+      errorEl.textContent = 'Die Datei ist größer als 4 MB. Bitte eine kleinere Version verwenden.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    const name = file.name.toLowerCase();
+    if (!name.endsWith('.pdf') && !name.endsWith('.docx')) {
+      errorEl.textContent = 'Es werden nur PDF- und DOCX-Dateien unterstützt.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    document.getElementById('profile-cv-filename').textContent = file.name;
+    progressEl.style.display = 'block';
+    progressText.textContent = 'Lebenslauf wird gelesen …';
+
+    try {
+      const text = await extractTextFromFile(file, (msg) => { progressText.textContent = msg; });
+      progressText.textContent = 'Kontaktdaten werden herausgelesen …';
+      const extracted = await callClaude({ task: 'profile_extract', text });
+      Object.keys(PROFILE_FIELDS).forEach(key => {
+        if (extracted[key]) document.getElementById(PROFILE_FIELDS[key]).value = extracted[key];
+      });
+    } catch (err) {
+      errorEl.textContent = err.message || 'Die Kontaktdaten konnten nicht gelesen werden.';
+      errorEl.style.display = 'block';
+    } finally {
+      progressEl.style.display = 'none';
+      document.getElementById('profile-cv-file').value = '';
+    }
+  });
 
   document.getElementById('profile-save').addEventListener('click', async () => {
     const errorEl = document.getElementById('profile-error');
