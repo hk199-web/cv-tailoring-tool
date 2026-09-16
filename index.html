@@ -608,6 +608,47 @@
     <p class="login-error" id="login-error"></p>
     <p style="text-align:center; margin-top:16px;">
       <button type="button" class="link-btn" id="show-forgot-btn">Passwort vergessen?</button>
+      <span style="color:var(--color-border); margin:0 8px;">|</span>
+      <button type="button" class="link-btn" id="show-signup-btn">Konto anlegen</button>
+    </p>
+  </form>
+</div>
+
+<!-- ========== REGISTRIERUNG (nur mit Einladungscode) ========== -->
+<div id="signup-screen" class="login-screen" style="display:none;">
+  <h1>Konto anlegen</h1>
+  <p class="subtitle">Die Registrierung ist nur mit einem Einladungscode möglich.</p>
+  <form id="signup-form">
+    <div class="field">
+      <label for="signup-email">E-Mail</label>
+      <input type="email" id="signup-email" required autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="signup-password">Passwort (mindestens 8 Zeichen)</label>
+      <div class="password-wrapper">
+        <input type="password" id="signup-password" required minlength="8" autocomplete="new-password">
+        <button type="button" class="password-toggle" data-target="signup-password" aria-label="Passwort anzeigen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="signup-password-confirm">Passwort bestätigen</label>
+      <div class="password-wrapper">
+        <input type="password" id="signup-password-confirm" required minlength="8" autocomplete="new-password">
+        <button type="button" class="password-toggle" data-target="signup-password-confirm" aria-label="Passwort anzeigen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="signup-code">Einladungscode</label>
+      <input type="text" id="signup-code" required autocomplete="off" spellcheck="false">
+    </div>
+    <button type="submit" class="btn-primary" style="width:100%;" id="signup-submit">Konto anlegen</button>
+    <p class="login-error" id="signup-error"></p>
+    <p style="text-align:center; margin-top:16px;">
+      <button type="button" class="link-btn" id="signup-back-btn">Zurück zur Anmeldung</button>
     </p>
   </form>
 </div>
@@ -897,6 +938,7 @@ function initApp() {
   const loginScreen = document.getElementById('login-screen');
   const forgotScreen = document.getElementById('forgot-screen');
   const resetScreen = document.getElementById('reset-screen');
+  const signupScreen = document.getElementById('signup-screen');
   const appEl = document.getElementById('app');
 
   // ---- Passwort-Sichtbarkeit umschalten (Login, neues Passwort, Bestätigung) ----
@@ -921,6 +963,67 @@ function initApp() {
   document.getElementById('back-to-login-btn').addEventListener('click', () => {
     forgotScreen.style.display = 'none';
     loginScreen.style.display = 'block';
+  });
+
+  // ---- Registrierung ----
+  document.getElementById('show-signup-btn').addEventListener('click', () => {
+    document.getElementById('signup-error').style.display = 'none';
+    loginScreen.style.display = 'none';
+    signupScreen.style.display = 'block';
+  });
+  document.getElementById('signup-back-btn').addEventListener('click', () => {
+    signupScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
+  });
+
+  document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const passwordConfirm = document.getElementById('signup-password-confirm').value;
+    const inviteCode = document.getElementById('signup-code').value.trim();
+    const errorEl = document.getElementById('signup-error');
+    const submitBtn = document.getElementById('signup-submit');
+    errorEl.style.display = 'none';
+
+    if (password !== passwordConfirm) {
+      errorEl.textContent = 'Die Passwörter stimmen nicht überein.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Konto wird angelegt …';
+
+    try {
+      // Eigener Aufruf statt callClaude: hier gibt es naturgemäß noch keine
+      // Sitzung, deren Token mitgeschickt werden könnte.
+      const res = await fetch(CONFIG.supabaseUrl + '/functions/v1/cv-tailoring-tool', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + CONFIG.supabaseAnonKey,
+          'apikey': CONFIG.supabaseAnonKey
+        },
+        body: JSON.stringify({ task: 'signup', email, password, invite_code: inviteCode })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Das Konto konnte nicht angelegt werden.');
+
+      const { data: session, error } = await client.auth.signInWithPassword({ email, password });
+      if (error) throw new Error('Konto angelegt, aber die Anmeldung ist fehlgeschlagen: ' + error.message);
+
+      currentUser = session.user;
+      signupScreen.style.display = 'none';
+      showApp();
+
+    } catch (err) {
+      errorEl.textContent = err.message || 'Die Registrierung ist fehlgeschlagen.';
+      errorEl.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Konto anlegen';
+    }
   });
 
   document.getElementById('forgot-form').addEventListener('submit', async (e) => {
@@ -966,6 +1069,7 @@ function initApp() {
       appEl.style.display = 'none';
       resetScreen.style.display = 'none';
       forgotScreen.style.display = 'none';
+      signupScreen.style.display = 'none';
       loginScreen.style.display = 'block';
     }
   });
