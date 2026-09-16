@@ -647,6 +647,7 @@
     <button class="btn-secondary" id="import-cv-btn">CV importieren</button>
     <button class="btn-primary" id="new-block-btn">Neuer Baustein</button>
     <button class="btn-primary" id="new-job-btn" style="display:none;">Anzeige hinzufügen</button>
+    <button class="btn-secondary" id="profile-btn">Profil</button>
     <button class="logout-link" id="logout-btn">Abmelden</button>
   </div>
 
@@ -759,6 +760,58 @@
   </div>
 </div>
 
+<!-- ========== PROFIL (ABSENDERDATEN) ========== -->
+<div class="modal-backdrop" id="profile-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Profil</h2>
+      <button class="modal-close" id="profile-close" aria-label="Schließen">×</button>
+    </div>
+    <p class="lead">Diese Angaben werden als Absender im Briefkopf des Anschreibens verwendet.</p>
+
+    <div class="field">
+      <label for="profile-full-name">Name</label>
+      <input type="text" id="profile-full-name" placeholder="Vor- und Nachname">
+    </div>
+    <div class="field">
+      <label for="profile-street">Straße und Hausnummer</label>
+      <input type="text" id="profile-street">
+    </div>
+    <div style="display:flex; gap:12px;">
+      <div class="field" style="flex:0 0 140px;">
+        <label for="profile-postal-code">PLZ</label>
+        <input type="text" id="profile-postal-code">
+      </div>
+      <div class="field" style="flex:1;">
+        <label for="profile-city">Ort</label>
+        <input type="text" id="profile-city">
+      </div>
+    </div>
+    <div class="field">
+      <label for="profile-phone">Telefon</label>
+      <input type="text" id="profile-phone">
+    </div>
+    <div class="field">
+      <label for="profile-email">E-Mail</label>
+      <input type="email" id="profile-email">
+    </div>
+    <div class="field">
+      <label for="profile-linkedin">LinkedIn-URL</label>
+      <input type="url" id="profile-linkedin" placeholder="https://www.linkedin.com/in/…">
+    </div>
+    <div class="field">
+      <label for="profile-portfolio">Portfolio-/Webseiten-URL</label>
+      <input type="url" id="profile-portfolio" placeholder="https://…">
+    </div>
+
+    <p class="modal-error" id="profile-error"></p>
+    <div class="modal-footer">
+      <span></span>
+      <button class="btn-primary" id="profile-save">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // =========================================================================
 // KONFIGURATION — hier deine echten Supabase-Werte eintragen
@@ -793,6 +846,7 @@ function initApp() {
   const client = createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
 
   let currentUser = null;
+  let currentProfile = null; // Absenderdaten für den Anschreiben-Briefkopf
   let allGroups = [];       // content_groups mit verschachteltem content_blocks[0] und tags[]
   let allTags = [];
   let selectedGroupId = null;
@@ -958,6 +1012,7 @@ function initApp() {
     appEl.style.display = 'flex';
     renderCategoryFilters();
     loadData();
+    loadProfile();
   }
 
   // ---- Daten laden ----
@@ -1935,6 +1990,77 @@ function initApp() {
       errorEl.textContent = err.message || 'Die Analyse ist fehlgeschlagen.';
       errorEl.style.display = 'block';
     }
+  });
+
+  // =======================================================================
+  // PROFIL (ABSENDERDATEN)
+  // =======================================================================
+  const profileBackdrop = document.getElementById('profile-backdrop');
+  const PROFILE_FIELDS = {
+    full_name: 'profile-full-name',
+    street: 'profile-street',
+    postal_code: 'profile-postal-code',
+    city: 'profile-city',
+    phone: 'profile-phone',
+    email: 'profile-email',
+    linkedin_url: 'profile-linkedin',
+    portfolio_url: 'profile-portfolio'
+  };
+
+  async function loadProfile() {
+    const { data, error } = await client
+      .from('profile')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+    if (error) {
+      alert('Fehler beim Laden des Profils: ' + error.message);
+      return;
+    }
+    currentProfile = data || null;
+  }
+
+  function fillProfileForm() {
+    Object.entries(PROFILE_FIELDS).forEach(([key, elId]) => {
+      document.getElementById(elId).value = (currentProfile && currentProfile[key]) || '';
+    });
+  }
+
+  document.getElementById('profile-btn').addEventListener('click', () => {
+    document.getElementById('profile-error').style.display = 'none';
+    fillProfileForm();
+    profileBackdrop.classList.add('open');
+  });
+  document.getElementById('profile-close').addEventListener('click', () => profileBackdrop.classList.remove('open'));
+  profileBackdrop.addEventListener('click', (e) => { if (e.target === profileBackdrop) profileBackdrop.classList.remove('open'); });
+
+  document.getElementById('profile-save').addEventListener('click', async () => {
+    const errorEl = document.getElementById('profile-error');
+    const saveBtn = document.getElementById('profile-save');
+    errorEl.style.display = 'none';
+
+    const payload = { user_id: currentUser.id, updated_at: new Date().toISOString() };
+    Object.entries(PROFILE_FIELDS).forEach(([key, elId]) => {
+      payload[key] = document.getElementById(elId).value.trim() || null;
+    });
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Speichert …';
+    const { data, error } = await client
+      .from('profile')
+      .upsert(payload, { onConflict: 'user_id' })
+      .select()
+      .single();
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Speichern';
+
+    if (error) {
+      errorEl.textContent = 'Fehler beim Speichern: ' + error.message;
+      errorEl.style.display = 'block';
+      return;
+    }
+    currentProfile = data;
+    profileBackdrop.classList.remove('open');
   });
 
   function escapeHtml(str) {
