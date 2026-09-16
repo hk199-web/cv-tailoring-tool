@@ -1573,7 +1573,7 @@ function initApp() {
     const token = sessionData && sessionData.session ? sessionData.session.access_token : null;
     if (!token) throw new Error('Deine Sitzung ist abgelaufen. Bitte neu anmelden.');
 
-    const res = await fetch(CONFIG.supabaseUrl + '/functions/v1/claude', {
+    const res = await fetch(CONFIG.supabaseUrl + '/functions/v1/cv-tailoring-tool', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
