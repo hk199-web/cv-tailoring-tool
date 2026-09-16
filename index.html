@@ -2509,15 +2509,9 @@ function initApp() {
       // (genau das Problem, das eben aufgetreten ist).
       await loadData();
 
-      const bausteine = allGroups
-        .filter(g => g.block && g.status === 'published')
-        .map(g => ({
-          id: g.id,
-          kategorie: g.category,
-          titel: g.block.title || '',
-          text: (g.block.text_content || '').slice(0, 800),
-          tags: g.tags.map(t => t.name)
-        }));
+      // Beim Abgleich gekürzt: hier geht es um viele Bausteine gleichzeitig und
+      // um die Frage, ob sie passen — nicht um den vollen Wortlaut.
+      const bausteine = publishedBausteine(800);
       // Hinweis: Die Herkunft (explizit/abgeleitet) wird bewusst nicht mit gespeichert.
       // Sobald ein Baustein im Review veröffentlicht wurde, hat der Nutzer die Ableitung
       // bereits bestätigt — für das Matching zählt er dann wie jeder andere Baustein.
@@ -2697,14 +2691,16 @@ function initApp() {
 
   // Der Abgleich läuft gegen veröffentlichte Bausteine — Entwürfe hat der
   // Nutzer bewusst noch nicht freigegeben und gehören in keine Bewerbung.
-  function publishedBausteine() {
+  function publishedBausteine(maxTextlaenge) {
     return allGroups
       .filter(g => g.block && g.status === 'published')
       .map(g => ({
         id: g.id,
         kategorie: g.category,
         titel: g.block.title || '',
-        text: g.block.text_content || '',
+        text: maxTextlaenge
+          ? (g.block.text_content || '').slice(0, maxTextlaenge)
+          : (g.block.text_content || ''),
         von: g.date_from || '',
         bis: g.date_to || '',
         tags: g.tags.map(t => t.name)
@@ -2730,12 +2726,19 @@ function initApp() {
 
   // ---- Anschreiben ----
   let outlineDraft = null;
+  let outlineDraftJobId = null;
 
   function renderLetterTab(job, hatAbgleich) {
     if (!hatAbgleich) {
       return '<p style="color:var(--color-ink-muted); font-size:14px;">Für das Anschreiben brauchst du zuerst einen Abgleich mit dem Content-Pool — der Reiter „Anforderungen“ startet ihn.</p>';
     }
-    outlineDraft = normalizeOutline(job.cover_letter_outline);
+    // Nur neu aus der Datenbank aufbauen, wenn es um eine andere Anzeige geht.
+    // Sonst verlöre eine zwischenzeitliche Neuzeichnung der Ansicht die
+    // Umsortierung, die gerade erst von Hand vorgenommen wurde.
+    if (outlineDraftJobId !== job.id || !outlineDraft) {
+      outlineDraft = normalizeOutline(job.cover_letter_outline);
+      outlineDraftJobId = job.id;
+    }
 
     return `
       <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
