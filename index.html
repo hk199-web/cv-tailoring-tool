@@ -888,6 +888,7 @@ function initApp() {
 
   let currentUser = null;
   let currentProfile = null; // Absenderdaten für den Anschreiben-Briefkopf
+  let formStand = null;      // Stand des Lebenslaufs, aus dem die Angaben im Formular stammen
   let allGroups = [];       // content_groups mit verschachteltem content_blocks[0] und tags[]
   let allTags = [];
   let selectedGroupId = null;
@@ -2094,6 +2095,23 @@ function initApp() {
       : count + ' Angaben weichen von deinen bisherigen ab';
   }
 
+  // "2026-03" > "2026" > "2024" — lexikografisch korrekt für JJJJ und JJJJ-MM.
+  // Ist einer der beiden Stände unbekannt, wird bewusst kein Urteil gefällt:
+  // manuell eingetippte Angaben sind meist aktuell, auch ohne Datum.
+  function compareStand(a, b) {
+    if (!a || !b) return 0;
+    if (a === b) return 0;
+    return a > b ? 1 : -1;
+  }
+
+  function newerStand(a, b) {
+    if (!a) return b || null;
+    if (!b) return a;
+    return a > b ? a : b;
+  }
+
+  let lastDiffSource = '';
+
   function refreshDiffSummary() {
     const remaining = document.querySelectorAll('.profile-diff').length;
     const summary = document.getElementById('profile-diff-summary');
@@ -2101,7 +2119,8 @@ function initApp() {
       summary.classList.remove('open');
       return;
     }
-    document.getElementById('profile-diff-count').textContent = diffLabel(remaining);
+    document.getElementById('profile-diff-count').textContent =
+      diffLabel(remaining) + (lastDiffSource ? ' — ' + lastDiffSource : '');
     summary.classList.add('open');
   }
 
@@ -2113,6 +2132,16 @@ function initApp() {
     clearProfileDiffs();
     const diffs = [];
 
+    const stand = String(extracted.stand || '').trim();
+    const relation = compareStand(stand, formStand);
+    const standNote = stand ? ' (Stand ' + stand + ')' : '';
+    const sourceLabel = relation > 0
+      ? 'Aus neuerem Lebenslauf' + standNote + ': '
+      : relation < 0
+        ? 'Aus älterem Lebenslauf' + standNote + ': '
+        : 'Aus Lebenslauf' + standNote + ': ';
+    const buttonLabel = relation < 0 ? 'Trotzdem übernehmen' : 'Übernehmen';
+
     Object.entries(PROFILE_FIELDS).forEach(([key, elId]) => {
       const input = document.getElementById(elId);
       const found = String(extracted[key] || '').trim();
@@ -2120,6 +2149,7 @@ function initApp() {
 
       if (!input.value.trim()) {
         input.value = found;
+        formStand = newerStand(formStand, stand);
         return;
       }
       if (input.value.trim() === found) return;
@@ -2130,8 +2160,8 @@ function initApp() {
       const inSharedBlock = key === 'postal_code' || key === 'city';
       const anchor = inSharedBlock ? sharedBlock : input.closest('.field');
       const labelText = inSharedBlock
-        ? (document.querySelector('label[for="' + elId + '"]').textContent + ' aus Lebenslauf: ')
-        : 'Aus Lebenslauf: ';
+        ? document.querySelector('label[for="' + elId + '"]').textContent + ' — ' + sourceLabel
+        : sourceLabel;
 
       const note = document.createElement('div');
       note.className = 'profile-diff';
@@ -2139,9 +2169,10 @@ function initApp() {
 
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.textContent = 'Übernehmen';
+      btn.textContent = buttonLabel;
       btn.addEventListener('click', () => {
         input.value = found;
+        formStand = newerStand(formStand, stand);
         note.remove();
         refreshDiffSummary();
       });
@@ -2151,10 +2182,14 @@ function initApp() {
     });
 
     if (diffs.length > 1) {
-      document.getElementById('profile-diff-apply-all').onclick = () => {
+      const applyAll = document.getElementById('profile-diff-apply-all');
+      applyAll.textContent = buttonLabel === 'Übernehmen' ? 'Alle übernehmen' : 'Alle trotzdem übernehmen';
+      applyAll.onclick = () => {
         diffs.forEach(d => { d.input.value = d.found; });
+        formStand = newerStand(formStand, stand);
         clearProfileDiffs();
       };
+      lastDiffSource = sourceLabel.replace(/: $/, '');
       refreshDiffSummary();
     }
   }
@@ -2167,6 +2202,7 @@ function initApp() {
     document.getElementById('profile-cv-filename').textContent = 'Aus Lebenslauf übernehmen (PDF/DOCX)';
     clearProfileDiffs();
     fillProfileForm();
+    formStand = (currentProfile && currentProfile.source_cv_stand) || null;
     if (pendingProfileFromCv) {
       applyExtractedProfile(pendingProfileFromCv);
       // Einmal gezeigt reicht — sonst fragt es bei jedem Öffnen erneut nach,
@@ -2221,7 +2257,11 @@ function initApp() {
     const saveBtn = document.getElementById('profile-save');
     errorEl.style.display = 'none';
 
-    const payload = { user_id: currentUser.id, updated_at: new Date().toISOString() };
+    const payload = {
+      user_id: currentUser.id,
+      updated_at: new Date().toISOString(),
+      source_cv_stand: formStand || null
+    };
     Object.entries(PROFILE_FIELDS).forEach(([key, elId]) => {
       payload[key] = document.getElementById(elId).value.trim() || null;
     });
@@ -2258,6 +2298,7 @@ function initApp() {
     }
     currentProfile = null;
     pendingProfileFromCv = null;
+    formStand = null;
     clearProfileDiffs();
     fillProfileForm();
   });
