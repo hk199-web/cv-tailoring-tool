@@ -227,7 +227,7 @@
 
   .row {
     display: grid;
-    grid-template-columns: 110px 1fr 130px 90px;
+    grid-template-columns: 26px 100px 1fr 120px 80px;
     gap: 12px;
     align-items: start;
     padding: 14px 10px;
@@ -548,6 +548,164 @@
     margin: 28px 0 8px;
   }
 
+  /* ---------- Aktionsleisten über den Listen ---------- */
+  .panel-actions {
+    display: flex;
+    gap: 8px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 14px;
+  }
+
+  .bulk-check { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; }
+  .bulk-check input { width: auto; }
+
+  .bulk-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--color-accent);
+    color: #fff;
+    border-radius: 3px;
+    padding: 8px 12px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .bulk-bar.open { display: flex; }
+  .bulk-bar button {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #fff;
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+  .bulk-bar button:hover { background: rgba(255, 255, 255, 0.28); }
+  .bulk-bar button.danger { border-color: #F0C2BC; color: #FBEAE8; }
+
+  .row .row-check { display: flex; align-items: center; }
+  .row .row-check input { width: auto; }
+
+  /* ---------- Bewerbungsunterlagen ---------- */
+  .doc-modal { max-width: 900px; }
+  .doc-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 18px;
+  }
+
+  /* Das Blatt bildet DIN A4 nach, damit am Bildschirm sichtbar wird, was
+     beim Druck herauskommt. 21cm Breite, Ränder nach DIN 5008. */
+  .sheet {
+    background: #fff;
+    width: 21cm;
+    max-width: 100%;
+    min-height: 26cm;
+    margin: 0 auto;
+    padding: 2.7cm 2cm 2cm 2.41cm;
+    border: 1px solid var(--color-border);
+    font-family: var(--font-sans);
+    font-size: 11pt;
+    line-height: 1.45;
+    color: #000;
+  }
+  .sheet .absender-zeile {
+    font-size: 7pt;
+    border-bottom: 0.5pt solid #000;
+    padding-bottom: 2px;
+    margin-bottom: 4px;
+  }
+  .sheet .anschrift { min-height: 2.5cm; white-space: pre-line; }
+  .sheet .kontaktblock {
+    float: right;
+    text-align: left;
+    font-size: 10pt;
+    margin-top: -2.2cm;
+    max-width: 7cm;
+  }
+  .sheet .datum { text-align: right; margin: 0.6cm 0 1cm; }
+  .sheet .betreff { font-weight: 600; margin-bottom: 0.8cm; }
+  .sheet p { margin: 0 0 0.45cm; }
+  .sheet .gruss { margin-top: 0.8cm; }
+  .sheet .signatur-raum { height: 1.8cm; }
+
+  /* Lebenslauf: bewusst schlicht, einspaltig, ohne Tabellen oder Grafiken —
+     das ist es, was Bewerbermanagementsysteme zuverlässig auslesen können. */
+  .sheet.cv { padding: 2cm; }
+  .sheet.cv h1 { font-family: var(--font-sans); font-size: 16pt; margin-bottom: 2px; }
+  .sheet.cv .cv-kontakt { font-size: 10pt; margin-bottom: 0.8cm; }
+  .sheet.cv h2 {
+    font-family: var(--font-sans);
+    font-size: 12pt;
+    margin: 0.7cm 0 0.25cm;
+    border-bottom: 0.5pt solid #000;
+    padding-bottom: 2px;
+  }
+  .sheet.cv .cv-eintrag { margin-bottom: 0.45cm; }
+  .sheet.cv .cv-eintrag .kopf { display: flex; justify-content: space-between; gap: 12px; }
+  .sheet.cv .cv-eintrag .rolle { font-weight: 600; }
+  .sheet.cv .cv-eintrag ul { margin: 3px 0 0; padding-left: 1.1em; }
+  .sheet.cv .cv-eintrag li { margin-bottom: 2px; }
+
+  .doc-field {
+    border: 1px dashed transparent;
+    border-radius: 2px;
+    padding: 1px 3px;
+    margin: -1px -3px;
+  }
+  .doc-field:hover { border-color: var(--color-border); }
+  .doc-field:focus { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+
+  @media print {
+    body { background: #fff; }
+    /* Nur das geöffnete Dokument kommt aufs Papier — alle übrigen Dialoge
+       liegen weiterhin im DOM und würden sonst mitgedruckt. */
+    body > *:not(.modal-backdrop) { display: none !important; }
+    .modal-backdrop { display: none !important; }
+    .modal-backdrop.open { position: static; display: block !important; padding: 0; background: none; overflow: visible; }
+    .modal.doc-modal { max-width: none; width: auto; padding: 0; border-radius: 0; }
+    .no-print { display: none !important; }
+    .sheet { border: none; width: auto; min-height: 0; margin: 0; padding: 0; }
+    .doc-field { border-color: transparent !important; }
+    @page { size: A4; margin: 2cm 2cm 2cm 2.41cm; }
+  }
+
+  /* ---------- Anschreiben-Gliederung ---------- */
+  .outline-item {
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .outline-item.off { opacity: 0.45; }
+  .outline-item .grip { display: flex; flex-direction: column; gap: 2px; }
+  .outline-item .grip button {
+    border: 1px solid var(--color-border);
+    background: #fff;
+    font-size: 11px;
+    line-height: 1;
+    padding: 2px 6px;
+  }
+  .outline-item .kern { flex: 1; }
+  .outline-item .kern .quelle { font-size: 12px; color: var(--color-ink-muted); margin-top: 4px; }
+  .outline-item input[type="checkbox"] { width: auto; margin-top: 3px; }
+
+  .doc-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--color-ink-muted);
+  }
+
   /* ---------- Profil: abweichende Angaben aus einem Lebenslauf ---------- */
   .profile-diff, .profile-diff-summary {
     display: flex;
@@ -709,9 +867,6 @@
     </div>
     <input type="search" class="search" id="search-input" placeholder="Bausteine durchsuchen …">
     <div class="spacer"></div>
-    <button class="btn-secondary" id="import-cv-btn">CV importieren</button>
-    <button class="btn-primary" id="new-block-btn">Neuer Baustein</button>
-    <button class="btn-primary" id="new-job-btn" style="display:none;">Anzeige hinzufügen</button>
     <button class="btn-secondary" id="profile-btn">Profil</button>
     <button class="logout-link" id="logout-btn">Abmelden</button>
   </div>
@@ -735,9 +890,34 @@
 
     <!-- List -->
     <div class="list-panel">
-      <div class="list-header">
-        <span id="result-count" style="color:var(--color-ink-muted); font-size:13px;"></span>
+      <div class="panel-actions">
+        <button class="btn-primary" id="new-block-btn">Neuer Baustein</button>
+        <button class="btn-secondary" id="import-cv-btn">Lebenslauf importieren</button>
       </div>
+
+      <div class="list-header">
+        <label class="bulk-check">
+          <input type="checkbox" id="select-all"> <span id="result-count"></span>
+        </label>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <label for="sort-select" style="margin:0;">Sortierung</label>
+          <select id="sort-select" style="width:auto;">
+            <option value="updated">Zuletzt geändert</option>
+            <option value="newest">Neueste Station zuerst</option>
+            <option value="oldest">Älteste Station zuerst</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="bulk-bar" id="bulk-bar">
+        <span id="bulk-count"></span>
+        <div style="display:flex; gap:8px;">
+          <button type="button" id="bulk-publish">Veröffentlichen</button>
+          <button type="button" id="bulk-draft">Auf Entwurf setzen</button>
+          <button type="button" id="bulk-delete" class="danger">Löschen</button>
+        </div>
+      </div>
+
       <div id="list-content"></div>
     </div>
 
@@ -749,7 +929,12 @@
 
   <!-- Stellenanzeigen-Ansicht -->
   <div class="jobs-workspace" id="jobs-workspace" style="display:none;">
-    <div class="jobs-list" id="jobs-list"></div>
+    <div class="jobs-list">
+      <div class="panel-actions">
+        <button class="btn-primary" id="new-job-btn">Anzeige hinzufügen</button>
+      </div>
+      <div id="jobs-list"></div>
+    </div>
     <div class="job-detail" id="job-detail">
       <p class="detail-placeholder">Wähle eine Anzeige aus oder füge eine neue hinzu.</p>
     </div>
@@ -763,15 +948,43 @@
       <h2>Stellenanzeige hinzufügen</h2>
       <button class="modal-close" id="job-close" aria-label="Schließen">×</button>
     </div>
-    <p class="lead">Text der Anzeige einfügen. Claude zerlegt sie in einzelne Anforderungen und gleicht sie anschließend mit deinem Content-Pool ab.</p>
+    <p class="lead">Claude zerlegt die Anzeige in einzelne Anforderungen und gleicht sie anschließend mit deinem Content-Pool ab.</p>
 
     <div id="job-step-input">
-      <div class="field">
-        <textarea id="job-text" style="min-height:260px; resize:vertical;" placeholder="Kompletten Text der Stellenanzeige hier einfügen …"></textarea>
+      <div class="nav-tabs" style="margin-bottom:16px; border-bottom:1px solid var(--color-border);">
+        <button type="button" class="job-source-tab active" data-source="text">Text einfügen</button>
+        <button type="button" class="job-source-tab" data-source="file">PDF / Word</button>
+        <button type="button" class="job-source-tab" data-source="url">Link</button>
       </div>
+
+      <div class="job-source" id="job-source-text">
+        <div class="field">
+          <textarea id="job-text" style="min-height:240px; resize:vertical;" placeholder="Kompletten Text der Stellenanzeige hier einfügen …"></textarea>
+        </div>
+      </div>
+
+      <div class="job-source" id="job-source-file" style="display:none;">
+        <label for="job-file" class="dropzone" id="job-dropzone" style="display:block; cursor:pointer;">
+          <div class="filename" id="job-filename">Datei auswählen</div>
+          <div class="hint">PDF oder DOCX, maximal 4 MB</div>
+        </label>
+        <input type="file" id="job-file" accept=".pdf,.docx" style="display:none;">
+      </div>
+
+      <div class="job-source" id="job-source-url" style="display:none;">
+        <div class="field">
+          <label for="job-url">Adresse der Anzeige</label>
+          <input type="url" id="job-url" placeholder="https://…">
+        </div>
+        <p style="font-size:13px; color:var(--color-ink-muted); margin:0;">
+          Viele Stellenbörsen sperren automatische Zugriffe oder laden die Anzeige erst im Browser nach.
+          Klappt es nicht, nimm den Reiter „Text einfügen“.
+        </p>
+      </div>
+
       <p class="modal-error" id="job-error"></p>
       <div class="modal-footer">
-        <span style="font-size:13px; color:var(--color-ink-muted);">Je vollständiger der Text, desto präziser die Anforderungsliste.</span>
+        <span style="font-size:13px; color:var(--color-ink-muted);">Je vollständiger die Anzeige, desto präziser die Anforderungsliste.</span>
         <button class="btn-primary" id="job-analyze">Analysieren</button>
       </div>
     </div>
@@ -822,6 +1035,72 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ========== MATCHING-VORSCHLAG ÜBERNEHMEN ========== -->
+<div class="modal-backdrop" id="suggestion-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Vorschlag übernehmen</h2>
+      <button class="modal-close" id="suggestion-close" aria-label="Schließen">×</button>
+    </div>
+    <p class="lead">Claude formuliert den Baustein anhand des Hinweises um — ausschließlich mit Fakten, die schon im Baustein stehen.</p>
+
+    <div id="suggestion-progress" style="display:none;">
+      <div class="progress-note"><span class="spinner"></span><span>Baustein wird überarbeitet …</span></div>
+    </div>
+
+    <div id="suggestion-result" style="display:none;">
+      <div class="field">
+        <label>Anforderung</label>
+        <p id="suggestion-req" style="margin:0; font-size:14px;"></p>
+      </div>
+      <div class="derived-note" id="suggestion-note"></div>
+      <div class="field">
+        <label>Bisher</label>
+        <p id="suggestion-before" style="margin:0; font-size:13px; color:var(--color-ink-muted); white-space:pre-wrap;"></p>
+      </div>
+      <div class="field">
+        <label for="suggestion-after">Neu (bearbeitbar)</label>
+        <textarea id="suggestion-after" style="min-height:160px; resize:vertical;"></textarea>
+      </div>
+      <p class="modal-error" id="suggestion-error"></p>
+      <div class="modal-footer">
+        <span style="font-size:13px; color:var(--color-ink-muted);">Als neuer Baustein bleibt das Original unverändert erhalten.</span>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-secondary" id="suggestion-as-new">Als neuen Baustein</button>
+          <button class="btn-primary" id="suggestion-replace">Baustein ersetzen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== DOKUMENT-VORSCHAU (ANSCHREIBEN / LEBENSLAUF) ========== -->
+<div class="modal-backdrop" id="doc-backdrop">
+  <div class="modal doc-modal">
+    <div class="modal-header no-print">
+      <h2 id="doc-title">Vorschau</h2>
+      <button class="modal-close" id="doc-close" aria-label="Schließen">×</button>
+    </div>
+    <div class="doc-toolbar no-print">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <label for="doc-language" style="margin:0;">Fassung</label>
+        <select id="doc-language" style="width:auto;">
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-secondary" id="doc-translate">Ins Englische übersetzen</button>
+        <button class="btn-primary" id="doc-print">Drucken / als PDF sichern</button>
+      </div>
+    </div>
+    <p class="modal-error no-print" id="doc-error"></p>
+    <div id="doc-progress" class="no-print" style="display:none;">
+      <div class="progress-note"><span class="spinner"></span><span id="doc-progress-text">Wird übersetzt …</span></div>
+    </div>
+    <div id="doc-sheet"></div>
   </div>
 </div>
 
@@ -933,6 +1212,8 @@ function initApp() {
   let allGroups = [];       // content_groups mit verschachteltem content_blocks[0] und tags[]
   let allTags = [];
   let selectedGroupId = null;
+  let selectedIds = new Set();   // Mehrfachauswahl für Sammelaktionen
+  let sortMode = 'updated';
   let filters = { category: null, status: null, tag: null, search: '' };
 
   const loginScreen = document.getElementById('login-screen');
@@ -1279,11 +1560,46 @@ function initApp() {
     });
   }
 
+  // Wonach sich ein Baustein chronologisch einordnen lässt. Bevorzugt die
+  // strukturierten Felder; für Bausteine aus der Zeit vor diesen Feldern wird
+  // ersatzweise die späteste Jahreszahl aus Titel und Text gelesen.
+  function chronoKey(g) {
+    const bis = (g.date_to || '').trim();
+    const von = (g.date_from || '').trim();
+    if (bis) return bis.length === 4 ? bis + '-12' : bis;
+    if (von) return '9999-99'; // läuft noch — zählt als aktuellste Station
+    const text = ((g.block && g.block.title) || '') + ' ' + ((g.block && g.block.text_content) || '');
+    const jahre = (text.match(/\b(?:19|20)\d{2}\b/g) || []).sort();
+    return jahre.length ? jahre[jahre.length - 1] + '-12' : null;
+  }
+
+  function sortGroups(list) {
+    if (sortMode === 'updated') return list;
+    const mitDatum = [];
+    const ohneDatum = [];
+    list.forEach(g => {
+      const key = chronoKey(g);
+      (key ? mitDatum : ohneDatum).push({ g, key });
+    });
+    mitDatum.sort((a, b) => sortMode === 'newest'
+      ? b.key.localeCompare(a.key)
+      : a.key.localeCompare(b.key));
+    // Bausteine ohne Zeitbezug (Skills, Leitbild) hängen hinten an, statt die
+    // Chronologie der Stationen zu zerreißen.
+    return mitDatum.concat(ohneDatum).map(e => e.g);
+  }
+
   function renderList() {
     const listEl = document.getElementById('list-content');
     const countEl = document.getElementById('result-count');
-    const filtered = getFilteredGroups();
+    const filtered = sortGroups(getFilteredGroups());
     countEl.textContent = filtered.length + (filtered.length === 1 ? ' Baustein' : ' Bausteine');
+
+    // Auswahl auf das beschränken, was gerade sichtbar ist — sonst löscht ein
+    // Klick auf "Löschen" auch Bausteine, die der Filter längst ausblendet.
+    const sichtbar = new Set(filtered.map(g => g.id));
+    selectedIds.forEach(id => { if (!sichtbar.has(id)) selectedIds.delete(id); });
+    renderBulkBar(filtered.length);
 
     if (allGroups.length === 0) {
       listEl.innerHTML = `<div class="empty-state">
@@ -1310,6 +1626,7 @@ function initApp() {
       const updated = g.block ? new Date(g.block.updated_at).toLocaleDateString('de-DE') : '';
 
       row.innerHTML = `
+        <div class="row-check"><input type="checkbox" ${selectedIds.has(g.id) ? 'checked' : ''}></div>
         <div class="category">${catLabel}</div>
         <div class="title-block">
           <div class="title">${escapeHtml(title)}</div>
@@ -1318,6 +1635,15 @@ function initApp() {
         <div class="status-dot" style="--dot-color:${dotColor}">${statusLabel}</div>
         <div class="updated">${updated}</div>
       `;
+
+      const check = row.querySelector('input[type="checkbox"]');
+      check.addEventListener('change', (e) => {
+        e.stopPropagation();
+        if (check.checked) selectedIds.add(g.id); else selectedIds.delete(g.id);
+        renderBulkBar(filtered.length);
+      });
+      check.addEventListener('click', (e) => e.stopPropagation());
+
       row.addEventListener('click', () => {
         selectedGroupId = g.id;
         renderList();
@@ -1326,6 +1652,59 @@ function initApp() {
       listEl.appendChild(row);
     });
   }
+
+  function renderBulkBar(sichtbareAnzahl) {
+    const bar = document.getElementById('bulk-bar');
+    const alle = document.getElementById('select-all');
+    const anzahl = selectedIds.size;
+    bar.classList.toggle('open', anzahl > 0);
+    document.getElementById('bulk-count').textContent =
+      anzahl === 1 ? '1 Baustein ausgewählt' : anzahl + ' Bausteine ausgewählt';
+    alle.checked = anzahl > 0 && anzahl === sichtbareAnzahl;
+    alle.indeterminate = anzahl > 0 && anzahl < sichtbareAnzahl;
+  }
+
+  document.getElementById('sort-select').addEventListener('change', (e) => {
+    sortMode = e.target.value;
+    renderList();
+  });
+
+  document.getElementById('select-all').addEventListener('change', (e) => {
+    const sichtbar = sortGroups(getFilteredGroups());
+    selectedIds.clear();
+    if (e.target.checked) sichtbar.forEach(g => selectedIds.add(g.id));
+    renderList();
+  });
+
+  async function bulkUpdateStatus(status) {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    const { error } = await client.from('content_groups').update({ status }).in('id', ids);
+    if (error) { alert('Fehler beim Ändern des Status: ' + error.message); return; }
+    selectedIds.clear();
+    await loadData();
+  }
+
+  document.getElementById('bulk-publish').addEventListener('click', () => bulkUpdateStatus('published'));
+  document.getElementById('bulk-draft').addEventListener('click', () => bulkUpdateStatus('draft'));
+
+  document.getElementById('bulk-delete').addEventListener('click', async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    const frage = ids.length === 1
+      ? 'Diesen Baustein wirklich löschen?'
+      : ids.length + ' Bausteine wirklich löschen? Das lässt sich nicht rückgängig machen.';
+    if (!confirm(frage)) return;
+    const { error } = await client.from('content_groups').delete().in('id', ids);
+    if (error) { alert('Fehler beim Löschen: ' + error.message); return; }
+    if (selectedGroupId && ids.includes(selectedGroupId)) {
+      selectedGroupId = null;
+      document.getElementById('detail-panel').innerHTML =
+        '<p class="detail-placeholder">Wähle einen Baustein aus der Liste aus oder lege einen neuen an.</p>';
+    }
+    selectedIds.clear();
+    await loadData();
+  });
 
   // ---- Detailpanel ----
   document.getElementById('new-block-btn').addEventListener('click', () => {
@@ -1342,6 +1721,8 @@ function initApp() {
     const text = group?.block?.text_content || '';
     const status = group?.status || 'draft';
     const tags = group?.tags || [];
+    const dateFrom = group?.date_from || '';
+    const dateTo = group?.date_to || '';
 
     panel.innerHTML = `
       <div class="detail-header">
@@ -1363,6 +1744,17 @@ function initApp() {
       <div class="field">
         <label for="f-text">Text</label>
         <textarea id="f-text" class="text-content" placeholder="Inhalt dieses Bausteins …">${escapeHtml(text)}</textarea>
+      </div>
+
+      <div style="display:flex; gap:12px;">
+        <div class="field" style="flex:1;">
+          <label for="f-date-from">Zeitraum von</label>
+          <input type="text" id="f-date-from" value="${escapeAttr(dateFrom)}" placeholder="2021 oder 2021-03">
+        </div>
+        <div class="field" style="flex:1;">
+          <label for="f-date-to">bis</label>
+          <input type="text" id="f-date-to" value="${escapeAttr(dateTo)}" placeholder="leer = läuft noch">
+        </div>
       </div>
 
       <div class="field">
@@ -1455,6 +1847,8 @@ function initApp() {
         category: document.getElementById('f-category').value,
         title: document.getElementById('f-title').value.trim(),
         text_content: document.getElementById('f-text').value.trim(),
+        date_from: document.getElementById('f-date-from').value.trim(),
+        date_to: document.getElementById('f-date-to').value.trim(),
         status: currentStatus
       };
 
@@ -1521,6 +1915,8 @@ function initApp() {
         user_id: currentUser.id,
         category: payload.category,
         status: payload.status,
+        date_from: payload.date_from || null,
+        date_to: payload.date_to || null,
         source: source || 'manual'
       })
       .select()
@@ -1552,7 +1948,12 @@ function initApp() {
   async function updateGroup(groupId, blockId, payload, tagList) {
     const { error: groupError } = await client
       .from('content_groups')
-      .update({ category: payload.category, status: payload.status })
+      .update({
+        category: payload.category,
+        status: payload.status,
+        date_from: payload.date_from || null,
+        date_to: payload.date_to || null
+      })
       .eq('id', groupId);
     if (groupError) throw groupError;
 
@@ -1737,6 +2138,8 @@ function initApp() {
         tags: Array.isArray(b.tags) ? b.tags : [],
         herkunft: b.herkunft === 'abgeleitet' ? 'abgeleitet' : 'explizit',
         beleg: b.beleg || '',
+        von: b.von || '',
+        bis: b.bis || '',
         keep: true,
         duplicateOf: null
       }));
@@ -1895,7 +2298,14 @@ function initApp() {
     try {
       for (const item of toSave) {
         await createGroup(
-          { category: item.category, title: item.title, text_content: item.text, status: 'draft' },
+          {
+            category: item.category,
+            title: item.title,
+            text_content: item.text,
+            date_from: item.von,
+            date_to: item.bis,
+            status: 'draft'
+          },
           item.tags.map(name => ({ id: 'new:' + name, name })),
           'cv_import'
         );
@@ -1929,9 +2339,8 @@ function initApp() {
     document.getElementById('tab-pool').className = isPool ? 'active' : '';
     document.getElementById('tab-jobs').className = isPool ? '' : 'active';
     document.getElementById('search-input').style.display = isPool ? 'block' : 'none';
-    document.getElementById('import-cv-btn').style.display = isPool ? 'inline-block' : 'none';
-    document.getElementById('new-block-btn').style.display = isPool ? 'inline-block' : 'none';
-    document.getElementById('new-job-btn').style.display = isPool ? 'none' : 'inline-block';
+    // Die Aktionsknöpfe stecken jetzt in den jeweiligen Bereichen und werden
+    // mit diesen ein- und ausgeblendet.
     if (!isPool) loadJobs();
   }
 
@@ -1971,6 +2380,8 @@ function initApp() {
     });
   }
 
+  let activeJobTab = 'anforderungen';
+
   function renderJobDetail(job) {
     const panel = document.getElementById('job-detail');
     const a = job.analysis || {};
@@ -1984,6 +2395,7 @@ function initApp() {
 
     const mussCount = reqs.filter(r => r.prioritaet === 'muss').length;
     const coveredMuss = reqs.filter((r, i) => r.prioritaet === 'muss' && matchesFor(i).length > 0).length;
+    const hatAbgleich = treffer.length > 0 || luecken.length > 0;
 
     panel.innerHTML = `
       <h2 style="font-size:20px; margin-bottom:4px;">${escapeHtml(a.stellentitel || job.job_title || '(ohne Titel)')}</h2>
@@ -1996,48 +2408,92 @@ function initApp() {
         <div><span class="meta-label">Muss-Anforderungen abgedeckt</span>${coveredMuss} von ${mussCount}</div>
       </div>
 
-      <div style="display:flex; gap:8px; margin-bottom:16px;">
-        <button class="btn-primary" id="run-matching">${Object.keys(matching).length ? 'Abgleich erneut ausführen' : 'Mit Content-Pool abgleichen'}</button>
-        <button class="btn-danger-text" id="delete-job">Anzeige löschen</button>
-      </div>
-      <p class="modal-error" id="matching-error"></p>
-      <div id="matching-progress" style="display:none;">
-        <div class="progress-note"><span class="spinner"></span><span>Abgleich läuft …</span></div>
+      <div class="nav-tabs" style="border-bottom:1px solid var(--color-border); margin-bottom:18px;">
+        <button type="button" class="job-tab" data-tab="anforderungen">Anforderungen</button>
+        <button type="button" class="job-tab" data-tab="anschreiben">Anschreiben</button>
+        <button type="button" class="job-tab" data-tab="lebenslauf">Lebenslauf</button>
       </div>
 
-      <h3 class="section-title">Anforderungen</h3>
-      ${reqs.length === 0 ? '<p style="color:var(--color-ink-muted); font-size:14px;">Keine Anforderungen erkannt.</p>' : reqs.map((r, i) => {
-        const ms = matchesFor(i);
-        const gap = gapFor(i);
-        return `
-          <div class="req-item">
-            <div class="req-head">
-              <span class="req-badge ${r.prioritaet === 'muss' ? 'muss' : 'kann'}">${r.prioritaet === 'muss' ? 'Muss' : 'Kann'}</span>
-              <span>${escapeHtml(r.text || '')}</span>
-            </div>
-            ${ms.length ? `<div class="req-matches">${ms.map(m => {
-              const block = allGroups.find(g => g.id === m.baustein_id);
-              const title = block && block.block ? (block.block.title || '(ohne Titel)') : 'Baustein nicht mehr vorhanden';
-              return `<div class="match-line">
-                <span class="match-strength ${m.staerke === 'stark' ? 'stark' : 'teilweise'}">${m.staerke === 'stark' ? 'stark' : 'teilweise'}</span>
-                <span>${escapeHtml(title)}${m.begruendung ? ' — ' + escapeHtml(m.begruendung) : ''}</span>
+      <div class="job-tab-panel" id="job-tab-anforderungen">
+        <div style="display:flex; gap:8px; margin-bottom:16px;">
+          <button class="btn-primary" id="run-matching">${hatAbgleich ? 'Abgleich erneut ausführen' : 'Mit Content-Pool abgleichen'}</button>
+          <button class="btn-danger-text" id="delete-job">Anzeige löschen</button>
+        </div>
+        <p class="modal-error" id="matching-error"></p>
+        <div id="matching-progress" style="display:none;">
+          <div class="progress-note"><span class="spinner"></span><span>Abgleich läuft …</span></div>
+        </div>
+
+        <h3 class="section-title">Anforderungen</h3>
+        ${reqs.length === 0 ? '<p style="color:var(--color-ink-muted); font-size:14px;">Keine Anforderungen erkannt.</p>' : reqs.map((r, i) => {
+          const ms = matchesFor(i);
+          const gap = gapFor(i);
+          return `
+            <div class="req-item">
+              <div class="req-head">
+                <span class="req-badge ${r.prioritaet === 'muss' ? 'muss' : 'kann'}">${r.prioritaet === 'muss' ? 'Muss' : 'Kann'}</span>
+                <span>${escapeHtml(r.text || '')}</span>
               </div>
-              ${m.vorschlag ? `<div class="suggestion-line"><strong>Vorschlag:</strong> ${escapeHtml(m.vorschlag)}</div>` : ''}`;
-            }).join('')}</div>` : ''}
-            ${gap ? `<div class="gap-line">Keine Entsprechung im Pool${gap.hinweis ? ': ' + escapeHtml(gap.hinweis) : '.'}</div>` : ''}
-          </div>
-        `;
-      }).join('')}
+              ${ms.length ? `<div class="req-matches">${ms.map(m => {
+                const block = allGroups.find(g => g.id === m.baustein_id);
+                const title = block && block.block ? (block.block.title || '(ohne Titel)') : 'Baustein nicht mehr vorhanden';
+                return `<div class="match-line">
+                  <span class="match-strength ${m.staerke === 'stark' ? 'stark' : 'teilweise'}">${m.staerke === 'stark' ? 'stark' : 'teilweise'}</span>
+                  <span>${escapeHtml(title)}${m.begruendung ? ' — ' + escapeHtml(m.begruendung) : ''}</span>
+                </div>
+                ${m.vorschlag ? `<div class="suggestion-line">
+                  <strong>Vorschlag:</strong> ${escapeHtml(m.vorschlag)}
+                  ${block ? `<div style="margin-top:6px;">
+                    <button type="button" class="btn-secondary take-suggestion"
+                      style="padding:4px 10px; font-size:12px;"
+                      data-block="${escapeAttr(m.baustein_id)}"
+                      data-req="${escapeAttr(r.text || '')}"
+                      data-suggestion="${escapeAttr(m.vorschlag)}">In Baustein übernehmen</button>
+                  </div>` : ''}
+                </div>` : ''}`;
+              }).join('')}</div>` : ''}
+              ${gap ? `<div class="gap-line">Keine Entsprechung im Pool${gap.hinweis ? ': ' + escapeHtml(gap.hinweis) : '.'}</div>` : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <div class="job-tab-panel" id="job-tab-anschreiben">${renderLetterTab(job, hatAbgleich)}</div>
+      <div class="job-tab-panel" id="job-tab-lebenslauf">${renderCvTab(job, hatAbgleich)}</div>
     `;
+
+    panel.querySelectorAll('.job-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        activeJobTab = tab.dataset.tab;
+        showJobTab(panel);
+      });
+    });
+    showJobTab(panel);
 
     document.getElementById('run-matching').addEventListener('click', () => runMatching(job));
     document.getElementById('delete-job').addEventListener('click', async () => {
-      if (!confirm('Diese Anzeige wirklich löschen?')) return;
+      if (!confirm('Diese Anzeige wirklich löschen? Anschreiben und Lebenslauf dazu gehen mit verloren.')) return;
       const { error } = await client.from('job_postings').delete().eq('id', job.id);
       if (error) { alert('Fehler beim Löschen: ' + error.message); return; }
       selectedJobId = null;
       await loadJobs();
       panel.innerHTML = '<p class="detail-placeholder">Wähle eine Anzeige aus oder füge eine neue hinzu.</p>';
+    });
+
+    panel.querySelectorAll('.take-suggestion').forEach(btn => {
+      btn.addEventListener('click', () => openSuggestion(btn.dataset.block, btn.dataset.req, btn.dataset.suggestion));
+    });
+
+    wireLetterTab(job);
+    wireCvTab(job);
+  }
+
+  function showJobTab(panel) {
+    panel.querySelectorAll('.job-tab').forEach(tab => {
+      tab.className = 'job-tab' + (tab.dataset.tab === activeJobTab ? ' active' : '');
+    });
+    panel.querySelectorAll('.job-tab-panel').forEach(p => {
+      p.style.display = p.id === 'job-tab-' + activeJobTab ? 'block' : 'none';
     });
   }
 
@@ -2100,8 +2556,53 @@ function initApp() {
   // ---- Neue Anzeige erfassen ----
   const jobBackdrop = document.getElementById('job-backdrop');
 
+  let jobSource = 'text';
+  let jobFile = null;
+
+  function setJobSource(source) {
+    jobSource = source;
+    document.querySelectorAll('.job-source-tab').forEach(tab => {
+      tab.className = 'job-source-tab' + (tab.dataset.source === source ? ' active' : '');
+    });
+    document.getElementById('job-source-text').style.display = source === 'text' ? 'block' : 'none';
+    document.getElementById('job-source-file').style.display = source === 'file' ? 'block' : 'none';
+    document.getElementById('job-source-url').style.display = source === 'url' ? 'block' : 'none';
+  }
+
+  document.querySelectorAll('.job-source-tab').forEach(tab => {
+    tab.addEventListener('click', () => setJobSource(tab.dataset.source));
+  });
+
+  document.getElementById('job-file').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    const errorEl = document.getElementById('job-error');
+    errorEl.style.display = 'none';
+    if (!file) return;
+
+    if (file.size > 4 * 1024 * 1024) {
+      errorEl.textContent = 'Die Datei ist größer als 4 MB. Bitte eine kleinere Version verwenden.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    const name = file.name.toLowerCase();
+    if (!name.endsWith('.pdf') && !name.endsWith('.docx')) {
+      errorEl.textContent = 'Es werden nur PDF- und DOCX-Dateien unterstützt.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    jobFile = file;
+    document.getElementById('job-filename').textContent = file.name;
+    document.getElementById('job-dropzone').classList.add('has-file');
+  });
+
   document.getElementById('new-job-btn').addEventListener('click', () => {
     document.getElementById('job-text').value = '';
+    document.getElementById('job-url').value = '';
+    document.getElementById('job-file').value = '';
+    document.getElementById('job-filename').textContent = 'Datei auswählen';
+    document.getElementById('job-dropzone').classList.remove('has-file');
+    jobFile = null;
+    setJobSource('text');
     document.getElementById('job-error').style.display = 'none';
     document.getElementById('job-step-input').style.display = 'block';
     document.getElementById('job-step-progress').style.display = 'none';
@@ -2111,21 +2612,60 @@ function initApp() {
   jobBackdrop.addEventListener('click', (e) => { if (e.target === jobBackdrop) jobBackdrop.classList.remove('open'); });
 
   document.getElementById('job-analyze').addEventListener('click', async () => {
-    const text = document.getElementById('job-text').value.trim();
     const errorEl = document.getElementById('job-error');
+    const progressText = document.getElementById('job-progress-text');
     errorEl.style.display = 'none';
 
-    if (text.length < 100) {
-      errorEl.textContent = 'Der Text ist sehr kurz. Bitte die vollständige Anzeige einfügen.';
+    const zeigeFehler = (msg) => {
+      document.getElementById('job-step-input').style.display = 'block';
+      document.getElementById('job-step-progress').style.display = 'none';
+      errorEl.textContent = msg;
+      errorEl.style.display = 'block';
+    };
+
+    const payload = { task: 'job_extract' };
+
+    if (jobSource === 'text') {
+      const text = document.getElementById('job-text').value.trim();
+      if (text.length < 100) {
+        errorEl.textContent = 'Der Text ist sehr kurz. Bitte die vollständige Anzeige einfügen.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      payload.text = text;
+    } else if (jobSource === 'url') {
+      const url = document.getElementById('job-url').value.trim();
+      if (!url) {
+        errorEl.textContent = 'Bitte die Adresse der Anzeige angeben.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      payload.url = url;
+    } else if (!jobFile) {
+      errorEl.textContent = 'Bitte zuerst eine PDF- oder Word-Datei auswählen.';
       errorEl.style.display = 'block';
       return;
     }
 
     document.getElementById('job-step-input').style.display = 'none';
     document.getElementById('job-step-progress').style.display = 'block';
+    progressText.textContent = jobSource === 'url'
+      ? 'Anzeige wird geladen …'
+      : 'Anzeige wird analysiert …';
 
     try {
-      const a = await callClaude({ task: 'job_extract', text });
+      if (jobSource === 'file') {
+        payload.text = await extractTextFromFile(jobFile, (msg) => { progressText.textContent = msg; });
+        if (!payload.text || payload.text.trim().length < 100) {
+          throw new Error('Aus dieser Datei konnte kaum Text gelesen werden. Bitte den Text der Anzeige einfügen.');
+        }
+        progressText.textContent = 'Anzeige wird analysiert …';
+      }
+
+      const a = await callClaude(payload);
+      // Bei einer URL liefert die Function den geladenen Seitentext mit, damit
+      // die Anzeige später auch ohne erneuten Abruf nachlesbar bleibt.
+      const rohtext = a.raw_text || payload.text || document.getElementById('job-url').value.trim();
 
       const { data, error } = await client
         .from('job_postings')
@@ -2133,7 +2673,7 @@ function initApp() {
           user_id: currentUser.id,
           company: a.unternehmen || null,
           job_title: a.stellentitel || null,
-          raw_text: text,
+          raw_text: rohtext,
           language: a.sprache === 'en' ? 'en' : 'de',
           analysis: a
         })
@@ -2147,12 +2687,608 @@ function initApp() {
       renderJobDetail(data);
 
     } catch (err) {
-      document.getElementById('job-step-input').style.display = 'block';
-      document.getElementById('job-step-progress').style.display = 'none';
-      errorEl.textContent = err.message || 'Die Analyse ist fehlgeschlagen.';
+      zeigeFehler(err.message || 'Die Analyse ist fehlgeschlagen.');
+    }
+  });
+
+  // =======================================================================
+  // BEWERBUNGSUNTERLAGEN: ANSCHREIBEN, LEBENSLAUF, ÜBERSETZUNG
+  // =======================================================================
+
+  // Der Abgleich läuft gegen veröffentlichte Bausteine — Entwürfe hat der
+  // Nutzer bewusst noch nicht freigegeben und gehören in keine Bewerbung.
+  function publishedBausteine() {
+    return allGroups
+      .filter(g => g.block && g.status === 'published')
+      .map(g => ({
+        id: g.id,
+        kategorie: g.category,
+        titel: g.block.title || '',
+        text: g.block.text_content || '',
+        von: g.date_from || '',
+        bis: g.date_to || '',
+        tags: g.tags.map(t => t.name)
+      }));
+  }
+
+  function stelleKontext(job) {
+    const a = job.analysis || {};
+    return {
+      stellentitel: a.stellentitel || job.job_title || '',
+      unternehmen: a.unternehmen || job.company || '',
+      branche: a.branche || '',
+      tonalitaet: a.tonalitaet || '',
+      sprache: a.sprache || job.language || 'de',
+      ansprechpartner: a.ansprechpartner || ''
+    };
+  }
+
+  function bausteinTitel(id) {
+    const g = allGroups.find(x => x.id === id);
+    return g && g.block ? (g.block.title || '(ohne Titel)') : 'Baustein nicht mehr vorhanden';
+  }
+
+  // ---- Anschreiben ----
+  let outlineDraft = null;
+
+  function renderLetterTab(job, hatAbgleich) {
+    if (!hatAbgleich) {
+      return '<p style="color:var(--color-ink-muted); font-size:14px;">Für das Anschreiben brauchst du zuerst einen Abgleich mit dem Content-Pool — der Reiter „Anforderungen“ startet ihn.</p>';
+    }
+    outlineDraft = normalizeOutline(job.cover_letter_outline);
+
+    return `
+      <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+        <button class="btn-primary" id="run-outline">${outlineDraft ? 'Gliederung neu erstellen' : 'Gliederung erstellen'}</button>
+        ${job.cover_letter ? '<button class="btn-secondary" id="open-letter">Anschreiben ansehen und drucken</button>' : ''}
+      </div>
+      <p class="modal-error" id="letter-error"></p>
+      <div id="letter-progress" style="display:none;">
+        <div class="progress-note"><span class="spinner"></span><span id="letter-progress-text">Gliederung wird erstellt …</span></div>
+      </div>
+      <div id="outline-box">${outlineDraft ? renderOutline() : '<p style="color:var(--color-ink-muted); font-size:14px;">Claude wählt aus den Treffern die stärksten Argumente aus. Du prüfst sie, bevor der Text entsteht.</p>'}</div>
+    `;
+  }
+
+  function normalizeOutline(raw) {
+    if (!raw || !Array.isArray(raw.argumente)) return null;
+    return {
+      einstieg: raw.einstieg || '',
+      schluss: raw.schluss || '',
+      luecken_hinweis: raw.luecken_hinweis || '',
+      argumente: raw.argumente.map(arg => ({
+        anforderung_index: typeof arg.anforderung_index === 'number' ? arg.anforderung_index : -1,
+        baustein_id: arg.baustein_id || '',
+        kernaussage: arg.kernaussage || '',
+        aktiv: arg.aktiv !== false
+      }))
+    };
+  }
+
+  function renderOutline() {
+    const job = allJobs.find(j => j.id === selectedJobId) || {};
+    const reqs = (job.analysis && job.analysis.anforderungen) || [];
+    const aktive = outlineDraft.argumente.filter(x => x.aktiv).length;
+
+    return `
+      <h3 class="section-title">Gliederung</h3>
+      ${outlineDraft.luecken_hinweis ? `<div class="gap-line" style="margin:0 0 12px;">${escapeHtml(outlineDraft.luecken_hinweis)}</div>` : ''}
+
+      <div class="field">
+        <label for="outline-einstieg">Einstieg</label>
+        <textarea id="outline-einstieg" style="min-height:60px; resize:vertical;">${escapeHtml(outlineDraft.einstieg)}</textarea>
+      </div>
+
+      <label style="margin-bottom:8px;">Argumente (Reihenfolge bestimmt den Aufbau)</label>
+      ${outlineDraft.argumente.map((arg, i) => `
+        <div class="outline-item ${arg.aktiv ? '' : 'off'}">
+          <input type="checkbox" class="outline-active" data-idx="${i}" ${arg.aktiv ? 'checked' : ''}>
+          <div class="grip">
+            <button type="button" class="outline-move" data-idx="${i}" data-dir="-1" ${i === 0 ? 'disabled' : ''}>▲</button>
+            <button type="button" class="outline-move" data-idx="${i}" data-dir="1" ${i === outlineDraft.argumente.length - 1 ? 'disabled' : ''}>▼</button>
+          </div>
+          <div class="kern">
+            <input type="text" class="outline-kern" data-idx="${i}" value="${escapeAttr(arg.kernaussage)}">
+            <div class="quelle">
+              ${arg.anforderung_index >= 0 && reqs[arg.anforderung_index]
+                ? 'Anforderung: ' + escapeHtml(reqs[arg.anforderung_index].text || '')
+                : 'Ohne Bezug zu einer Anforderung'}
+              · Beleg: ${escapeHtml(bausteinTitel(arg.baustein_id))}
+            </div>
+          </div>
+        </div>
+      `).join('')}
+
+      <div class="field" style="margin-top:16px;">
+        <label for="outline-schluss">Schluss</label>
+        <textarea id="outline-schluss" style="min-height:60px; resize:vertical;">${escapeHtml(outlineDraft.schluss)}</textarea>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="btn-primary" id="run-draft" ${aktive === 0 ? 'disabled' : ''}>Anschreiben schreiben</button>
+        <span class="doc-status">${aktive} von ${outlineDraft.argumente.length} Argumenten aktiv</span>
+      </div>
+    `;
+  }
+
+  function wireOutline(job) {
+    const box = document.getElementById('outline-box');
+    if (!box || !outlineDraft) return;
+
+    const einstieg = document.getElementById('outline-einstieg');
+    if (einstieg) einstieg.addEventListener('input', () => { outlineDraft.einstieg = einstieg.value; });
+    const schluss = document.getElementById('outline-schluss');
+    if (schluss) schluss.addEventListener('input', () => { outlineDraft.schluss = schluss.value; });
+
+    box.querySelectorAll('.outline-active').forEach(cb => {
+      cb.addEventListener('change', () => {
+        outlineDraft.argumente[Number(cb.dataset.idx)].aktiv = cb.checked;
+        box.innerHTML = renderOutline();
+        wireOutline(job);
+      });
+    });
+
+    box.querySelectorAll('.outline-kern').forEach(input => {
+      input.addEventListener('input', () => {
+        outlineDraft.argumente[Number(input.dataset.idx)].kernaussage = input.value;
+      });
+    });
+
+    box.querySelectorAll('.outline-move').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.idx);
+        const ziel = i + Number(btn.dataset.dir);
+        if (ziel < 0 || ziel >= outlineDraft.argumente.length) return;
+        const liste = outlineDraft.argumente;
+        [liste[i], liste[ziel]] = [liste[ziel], liste[i]];
+        box.innerHTML = renderOutline();
+        wireOutline(job);
+      });
+    });
+
+    const draftBtn = document.getElementById('run-draft');
+    if (draftBtn) draftBtn.addEventListener('click', () => runDraft(job));
+  }
+
+  function wireLetterTab(job) {
+    const outlineBtn = document.getElementById('run-outline');
+    if (outlineBtn) outlineBtn.addEventListener('click', () => runOutline(job));
+    const openBtn = document.getElementById('open-letter');
+    if (openBtn) openBtn.addEventListener('click', () => openDoc(job, 'cover_letter'));
+    wireOutline(job);
+  }
+
+  function letterBusy(an, text) {
+    const progress = document.getElementById('letter-progress');
+    if (!progress) return;
+    progress.style.display = an ? 'block' : 'none';
+    if (text) document.getElementById('letter-progress-text').textContent = text;
+  }
+
+  function letterError(msg) {
+    const el = document.getElementById('letter-error');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = msg ? 'block' : 'none';
+  }
+
+  async function runOutline(job) {
+    letterError('');
+    letterBusy(true, 'Gliederung wird erstellt …');
+    try {
+      await loadData();
+      const bausteine = publishedBausteine();
+      if (bausteine.length === 0) {
+        throw new Error('Es sind keine veröffentlichten Bausteine im Pool. Entwürfe werden nicht verwendet.');
+      }
+
+      const ergebnis = await callClaude({
+        task: 'cover_letter_outline',
+        stelle: stelleKontext(job),
+        anforderungen: (job.analysis && job.analysis.anforderungen) || [],
+        treffer: (job.matching && job.matching.treffer) || [],
+        bausteine: bausteine.filter(b => b.kategorie !== 'leitbild'),
+        leitbild: bausteine.filter(b => b.kategorie === 'leitbild')
+      });
+
+      const { error } = await client
+        .from('job_postings')
+        .update({ cover_letter_outline: ergebnis })
+        .eq('id', job.id);
+      if (error) throw error;
+
+      job.cover_letter_outline = ergebnis;
+      outlineDraft = normalizeOutline(ergebnis);
+      document.getElementById('outline-box').innerHTML = renderOutline();
+      wireOutline(job);
+    } catch (err) {
+      letterError(err.message || 'Die Gliederung konnte nicht erstellt werden.');
+    } finally {
+      letterBusy(false);
+    }
+  }
+
+  async function runDraft(job) {
+    letterError('');
+    letterBusy(true, 'Anschreiben wird geschrieben …');
+    try {
+      const gliederung = {
+        einstieg: outlineDraft.einstieg,
+        schluss: outlineDraft.schluss,
+        argumente: outlineDraft.argumente.filter(arg => arg.aktiv)
+      };
+      if (gliederung.argumente.length === 0) throw new Error('Es ist kein Argument ausgewählt.');
+
+      const entwurf = await callClaude({
+        task: 'cover_letter_draft',
+        stelle: stelleKontext(job),
+        gliederung,
+        anforderungen: (job.analysis && job.analysis.anforderungen) || [],
+        bausteine: publishedBausteine()
+      });
+
+      const { error } = await client
+        .from('job_postings')
+        .update({ cover_letter_outline: outlineDraft, cover_letter: entwurf })
+        .eq('id', job.id);
+      if (error) throw error;
+
+      job.cover_letter_outline = outlineDraft;
+      job.cover_letter = entwurf;
+      renderJobDetail(job);
+      activeJobTab = 'anschreiben';
+      showJobTab(document.getElementById('job-detail'));
+      openDoc(job, 'cover_letter');
+    } catch (err) {
+      letterError(err.message || 'Das Anschreiben konnte nicht geschrieben werden.');
+    } finally {
+      letterBusy(false);
+    }
+  }
+
+  // ---- Lebenslauf ----
+  function renderCvTab(job, hatAbgleich) {
+    if (!hatAbgleich) {
+      return '<p style="color:var(--color-ink-muted); font-size:14px;">Für den zugeschnittenen Lebenslauf brauchst du zuerst einen Abgleich mit dem Content-Pool.</p>';
+    }
+    const cv = job.cv_document;
+    return `
+      <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+        <button class="btn-primary" id="run-cv">${cv ? 'Lebenslauf neu zuschneiden' : 'Lebenslauf zuschneiden'}</button>
+        ${cv ? '<button class="btn-secondary" id="open-cv">Lebenslauf ansehen und drucken</button>' : ''}
+      </div>
+      <p class="modal-error" id="cv-error"></p>
+      <div id="cv-progress" style="display:none;">
+        <div class="progress-note"><span class="spinner"></span><span>Lebenslauf wird zusammengestellt …</span></div>
+      </div>
+      ${cv
+        ? `<h3 class="section-title">Kurzprofil</h3><p style="font-size:14px;">${escapeHtml(cv.kurzprofil || '')}</p>
+           <h3 class="section-title">Abschnitte</h3>
+           <ul style="font-size:14px; padding-left:1.2em;">${(cv.abschnitte || []).map(s =>
+             `<li>${escapeHtml(s.titel || '')} — ${(s.eintraege || []).length} Einträge</li>`).join('')}</ul>`
+        : '<p style="color:var(--color-ink-muted); font-size:14px;">Claude wählt aus deinen veröffentlichten Bausteinen aus, was für diese Stelle zählt, und ordnet es ATS-sicher an — einspaltig, ohne Tabellen und Grafiken.</p>'}
+    `;
+  }
+
+  function wireCvTab(job) {
+    const runBtn = document.getElementById('run-cv');
+    if (runBtn) runBtn.addEventListener('click', () => runCvTailor(job));
+    const openBtn = document.getElementById('open-cv');
+    if (openBtn) openBtn.addEventListener('click', () => openDoc(job, 'cv_document'));
+  }
+
+  async function runCvTailor(job) {
+    const errorEl = document.getElementById('cv-error');
+    const progressEl = document.getElementById('cv-progress');
+    errorEl.style.display = 'none';
+    progressEl.style.display = 'block';
+    try {
+      await loadData();
+      const bausteine = publishedBausteine();
+      if (bausteine.length === 0) {
+        throw new Error('Es sind keine veröffentlichten Bausteine im Pool. Entwürfe werden nicht verwendet.');
+      }
+
+      const dokument = await callClaude({
+        task: 'cv_tailor',
+        stelle: stelleKontext(job),
+        anforderungen: (job.analysis && job.analysis.anforderungen) || [],
+        treffer: (job.matching && job.matching.treffer) || [],
+        bausteine
+      });
+
+      const { error } = await client
+        .from('job_postings')
+        .update({ cv_document: dokument })
+        .eq('id', job.id);
+      if (error) throw error;
+
+      job.cv_document = dokument;
+      renderJobDetail(job);
+      activeJobTab = 'lebenslauf';
+      showJobTab(document.getElementById('job-detail'));
+      openDoc(job, 'cv_document');
+    } catch (err) {
+      progressEl.style.display = 'none';
+      errorEl.textContent = err.message || 'Der Lebenslauf konnte nicht erstellt werden.';
+      errorEl.style.display = 'block';
+    }
+  }
+
+  // ---- Dokument-Vorschau, Bearbeitung, Übersetzung, Druck ----
+  const docBackdrop = document.getElementById('doc-backdrop');
+  let docState = null;
+
+  function setByPath(obj, path, value) {
+    const teile = path.split('.');
+    let ziel = obj;
+    for (let i = 0; i < teile.length - 1; i++) ziel = ziel[teile[i]];
+    ziel[teile[teile.length - 1]] = value;
+  }
+
+  function docQuelle(job, kind, lang) {
+    if (lang === 'de') return job[kind] || null;
+    const t = job.translations || {};
+    return (t[lang] && t[lang][kind]) || null;
+  }
+
+  function openDoc(job, kind, lang) {
+    const sprache = lang || 'de';
+    const daten = docQuelle(job, kind, sprache);
+    if (!daten) return;
+
+    docState = { job, kind, lang: sprache, data: JSON.parse(JSON.stringify(daten)) };
+
+    document.getElementById('doc-title').textContent =
+      kind === 'cover_letter' ? 'Anschreiben' : 'Lebenslauf';
+    document.getElementById('doc-error').style.display = 'none';
+    document.getElementById('doc-progress').style.display = 'none';
+
+    const select = document.getElementById('doc-language');
+    const vorhanden = ['de'].concat(Object.keys(job.translations || {}).filter(l => docQuelle(job, kind, l)));
+    select.innerHTML = vorhanden.map(l =>
+      `<option value="${l}" ${l === sprache ? 'selected' : ''}>${l === 'de' ? 'Deutsch' : 'Englisch'}</option>`).join('');
+
+    document.getElementById('doc-translate').style.display = sprache === 'de' ? 'inline-block' : 'none';
+    renderDocSheet();
+    docBackdrop.classList.add('open');
+  }
+
+  function renderDocSheet() {
+    const sheet = document.getElementById('doc-sheet');
+    sheet.innerHTML = docState.kind === 'cover_letter' ? letterSheetHtml() : cvSheetHtml();
+
+    sheet.querySelectorAll('[data-path]').forEach(el => {
+      el.addEventListener('input', () => setByPath(docState.data, el.dataset.path, el.textContent.trim()));
+    });
+  }
+
+  function profilZeilen() {
+    const p = currentProfile || {};
+    return {
+      name: p.full_name || '',
+      strasse: p.street || '',
+      ort: [p.postal_code, p.city].filter(Boolean).join(' '),
+      kontakt: [p.phone, p.email, p.linkedin_url, p.portfolio_url].filter(Boolean)
+    };
+  }
+
+  function letterSheetHtml() {
+    const d = docState.data;
+    const job = docState.job;
+    const a = job.analysis || {};
+    const p = profilZeilen();
+    const heute = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const absender = [p.name, p.strasse, p.ort].filter(Boolean).join(' · ');
+    const empfaenger = [a.unternehmen || job.company || '', a.ansprechpartner ? 'z. Hd. ' + a.ansprechpartner : '']
+      .filter(Boolean).join('\n');
+
+    return `
+      <div class="sheet">
+        <div class="kontaktblock">${p.kontakt.map(z => escapeHtml(z)).join('<br>')}</div>
+        <div class="absender-zeile">${escapeHtml(absender) || '<span style="color:#999;">Absenderdaten fehlen — bitte im Profil ergänzen</span>'}</div>
+        <div class="anschrift">${escapeHtml(empfaenger)}</div>
+        <div class="datum">${escapeHtml(p.ort ? p.ort.replace(/^\d+\s*/, '') + ', ' : '')}${heute}</div>
+        <div class="betreff doc-field" contenteditable="true" data-path="betreff">${escapeHtml(d.betreff || '')}</div>
+        <p class="doc-field" contenteditable="true" data-path="anrede">${escapeHtml(d.anrede || '')}</p>
+        ${(d.absaetze || []).map((abs, i) =>
+          `<p class="doc-field" contenteditable="true" data-path="absaetze.${i}.text">${escapeHtml(abs.text || '')}</p>`).join('')}
+        <p class="gruss doc-field" contenteditable="true" data-path="grussformel">${escapeHtml(d.grussformel || '')}</p>
+        <div class="signatur-raum"></div>
+        <p>${escapeHtml(p.name)}</p>
+      </div>
+    `;
+  }
+
+  function cvSheetHtml() {
+    const d = docState.data;
+    const p = profilZeilen();
+    const kopfzeile = [p.strasse, p.ort].concat(p.kontakt).filter(Boolean).join(' · ');
+
+    return `
+      <div class="sheet cv">
+        <h1>${escapeHtml(p.name) || 'Name fehlt — bitte im Profil ergänzen'}</h1>
+        <div class="cv-kontakt">${escapeHtml(kopfzeile)}</div>
+        ${d.kurzprofil ? `<h2>Kurzprofil</h2><p class="doc-field" contenteditable="true" data-path="kurzprofil">${escapeHtml(d.kurzprofil)}</p>` : ''}
+        ${(d.abschnitte || []).map((abschnitt, si) => `
+          <h2>${escapeHtml(abschnitt.titel || '')}</h2>
+          ${(abschnitt.eintraege || []).map((e, ei) => `
+            <div class="cv-eintrag">
+              <div class="kopf">
+                <span class="rolle doc-field" contenteditable="true" data-path="abschnitte.${si}.eintraege.${ei}.titel">${escapeHtml(e.titel || '')}</span>
+                <span>${escapeHtml(e.zeitraum || '')}</span>
+              </div>
+              ${e.organisation ? `<div class="doc-field" contenteditable="true" data-path="abschnitte.${si}.eintraege.${ei}.organisation">${escapeHtml(e.organisation)}</div>` : ''}
+              ${(e.punkte || []).length ? `<ul>${e.punkte.map((punkt, pi) =>
+                `<li class="doc-field" contenteditable="true" data-path="abschnitte.${si}.eintraege.${ei}.punkte.${pi}">${escapeHtml(punkt)}</li>`).join('')}</ul>` : ''}
+            </div>
+          `).join('')}
+        `).join('')}
+      </div>
+    `;
+  }
+
+  async function saveDoc() {
+    const { job, kind, lang, data } = docState;
+    let update;
+    if (lang === 'de') {
+      update = { [kind]: data };
+      job[kind] = data;
+    } else {
+      const t = JSON.parse(JSON.stringify(job.translations || {}));
+      t[lang] = t[lang] || {};
+      t[lang][kind] = data;
+      update = { translations: t };
+      job.translations = t;
+    }
+    const { error } = await client.from('job_postings').update(update).eq('id', job.id);
+    if (error) throw error;
+  }
+
+  document.getElementById('doc-close').addEventListener('click', async () => {
+    try {
+      await saveDoc();
+    } catch (err) {
+      alert('Die Änderungen konnten nicht gespeichert werden: ' + err.message);
+    }
+    docBackdrop.classList.remove('open');
+    const job = docState && docState.job;
+    docState = null;
+    if (job) renderJobDetail(job);
+  });
+
+  document.getElementById('doc-language').addEventListener('change', (e) => {
+    openDoc(docState.job, docState.kind, e.target.value);
+  });
+
+  document.getElementById('doc-print').addEventListener('click', () => window.print());
+
+  document.getElementById('doc-translate').addEventListener('click', async () => {
+    const errorEl = document.getElementById('doc-error');
+    const progressEl = document.getElementById('doc-progress');
+    errorEl.style.display = 'none';
+    progressEl.style.display = 'block';
+    document.getElementById('doc-progress-text').textContent = 'Wird übersetzt …';
+
+    try {
+      // Erst den aktuellen Stand sichern, sonst übersetzt Claude eine Fassung,
+      // die der Nutzer im Vorschaufenster längst überarbeitet hat.
+      await saveDoc();
+
+      const uebersetzt = await callClaude({
+        task: 'translate',
+        zielsprache: 'en',
+        dokument: docState.data
+      });
+
+      const job = docState.job;
+      const t = JSON.parse(JSON.stringify(job.translations || {}));
+      t.en = t.en || {};
+      t.en[docState.kind] = uebersetzt;
+
+      const { error } = await client.from('job_postings').update({ translations: t }).eq('id', job.id);
+      if (error) throw error;
+      job.translations = t;
+
+      progressEl.style.display = 'none';
+      openDoc(job, docState.kind, 'en');
+      alert('Die Übersetzung ist erstellt. Bitte vor dem Versenden prüfen — automatische Übersetzungen sind ein Entwurf, keine fertige Bewerbung.');
+    } catch (err) {
+      progressEl.style.display = 'none';
+      errorEl.textContent = err.message || 'Die Übersetzung ist fehlgeschlagen.';
       errorEl.style.display = 'block';
     }
   });
+
+  // ---- Matching-Vorschlag in einen Baustein übernehmen ----
+  const suggestionBackdrop = document.getElementById('suggestion-backdrop');
+  let suggestionState = null;
+
+  async function openSuggestion(blockId, anforderung, vorschlag) {
+    const gruppe = allGroups.find(g => g.id === blockId);
+    if (!gruppe || !gruppe.block) {
+      alert('Dieser Baustein ist nicht mehr vorhanden.');
+      return;
+    }
+
+    suggestionState = { gruppe, anforderung, vorschlag };
+    document.getElementById('suggestion-error').style.display = 'none';
+    document.getElementById('suggestion-result').style.display = 'none';
+    document.getElementById('suggestion-progress').style.display = 'block';
+    suggestionBackdrop.classList.add('open');
+
+    try {
+      const ergebnis = await callClaude({
+        task: 'apply_suggestion',
+        anforderung,
+        vorschlag,
+        text: gruppe.block.text_content || ''
+      });
+
+      document.getElementById('suggestion-req').textContent = anforderung;
+      document.getElementById('suggestion-before').textContent = gruppe.block.text_content || '';
+      document.getElementById('suggestion-after').value = ergebnis.text || gruppe.block.text_content || '';
+      document.getElementById('suggestion-note').textContent = ergebnis.geaendert === false
+        ? 'Nicht umsetzbar ohne zu erfinden: ' + (ergebnis.hinweis || 'Der Baustein enthält die nötige Angabe nicht.')
+        : (ergebnis.hinweis || 'Text wurde überarbeitet.');
+      document.getElementById('suggestion-progress').style.display = 'none';
+      document.getElementById('suggestion-result').style.display = 'block';
+    } catch (err) {
+      document.getElementById('suggestion-progress').style.display = 'none';
+      document.getElementById('suggestion-result').style.display = 'block';
+      document.getElementById('suggestion-error').textContent = err.message || 'Der Vorschlag konnte nicht verarbeitet werden.';
+      document.getElementById('suggestion-error').style.display = 'block';
+    }
+  }
+
+  document.getElementById('suggestion-close').addEventListener('click', () => suggestionBackdrop.classList.remove('open'));
+  suggestionBackdrop.addEventListener('click', (e) => { if (e.target === suggestionBackdrop) suggestionBackdrop.classList.remove('open'); });
+
+  async function speichereVorschlag(alsNeu) {
+    const errorEl = document.getElementById('suggestion-error');
+    errorEl.style.display = 'none';
+    const text = document.getElementById('suggestion-after').value.trim();
+    if (!text) {
+      errorEl.textContent = 'Der Text darf nicht leer sein.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    const { gruppe } = suggestionState;
+    try {
+      if (alsNeu) {
+        await createGroup(
+          {
+            category: gruppe.category,
+            title: (gruppe.block.title || '(ohne Titel)') + ' (zugeschnitten)',
+            text_content: text,
+            date_from: gruppe.date_from,
+            date_to: gruppe.date_to,
+            status: 'draft'
+          },
+          gruppe.tags.map(t => ({ id: t.id, name: t.name })),
+          'manual'
+        );
+      } else {
+        const { error } = await client
+          .from('content_blocks')
+          .update({ text_content: text, updated_at: new Date().toISOString() })
+          .eq('id', gruppe.block.id);
+        if (error) throw error;
+      }
+      await loadData();
+      suggestionBackdrop.classList.remove('open');
+      alert(alsNeu
+        ? 'Als neuer Baustein im Status „Entwurf“ gespeichert. Für den nächsten Abgleich musst du ihn noch veröffentlichen.'
+        : 'Der Baustein wurde aktualisiert.');
+    } catch (err) {
+      errorEl.textContent = 'Speichern fehlgeschlagen: ' + err.message;
+      errorEl.style.display = 'block';
+    }
+  }
+
+  document.getElementById('suggestion-replace').addEventListener('click', () => speichereVorschlag(false));
+  document.getElementById('suggestion-as-new').addEventListener('click', () => speichereVorschlag(true));
 
   // =======================================================================
   // PROFIL (ABSENDERDATEN)
