@@ -1448,6 +1448,7 @@ function initApp() {
   const importBackdrop = document.getElementById('import-backdrop');
   let selectedFile = null;
   let reviewItems = [];
+  let pendingProfileFromCv = null; // aus dem CV-Import mitgelesene Kontaktdaten, wartet auf Profil-Öffnung
 
   document.getElementById('import-cv-btn').addEventListener('click', openImport);
   document.getElementById('import-close').addEventListener('click', closeImport);
@@ -1584,6 +1585,13 @@ function initApp() {
       if (!payload.text) {
         throw new Error('Kein Text aus dem Dokument gelesen. Bitte als DOCX exportieren und erneut versuchen.');
       }
+
+      // Kontaktdaten fürs Profil bei dieser Gelegenheit gleich mit auslesen —
+      // derselbe bereits extrahierte Text, kein zweiter Upload nötig. Ein
+      // Fehlschlag hier darf den eigentlichen CV-Import nicht blockieren.
+      callClaude({ task: 'profile_extract', text: payload.text })
+        .then(extracted => { pendingProfileFromCv = extracted; })
+        .catch(err => console.warn('Kontaktdaten-Erkennung übersprungen:', err));
 
       const suggestions = await callClaude(payload);
       let items = (suggestions.bausteine || []).map(b => ({
@@ -2044,6 +2052,15 @@ function initApp() {
     });
   }
 
+  // Trägt nur in Felder ein, die noch leer sind — bewusst eingegebene oder
+  // schon gespeicherte Angaben werden nie stillschweigend überschrieben.
+  function applyExtractedProfile(extracted) {
+    Object.entries(PROFILE_FIELDS).forEach(([key, elId]) => {
+      const input = document.getElementById(elId);
+      if (!input.value.trim() && extracted[key]) input.value = extracted[key];
+    });
+  }
+
   document.getElementById('profile-btn').addEventListener('click', () => {
     document.getElementById('profile-error').style.display = 'none';
     document.getElementById('profile-cv-error').style.display = 'none';
@@ -2051,6 +2068,7 @@ function initApp() {
     document.getElementById('profile-cv-file').value = '';
     document.getElementById('profile-cv-filename').textContent = 'Aus Lebenslauf übernehmen (PDF/DOCX)';
     fillProfileForm();
+    if (pendingProfileFromCv) applyExtractedProfile(pendingProfileFromCv);
     profileBackdrop.classList.add('open');
   });
   document.getElementById('profile-close').addEventListener('click', () => profileBackdrop.classList.remove('open'));
@@ -2084,9 +2102,7 @@ function initApp() {
       const text = await extractTextFromFile(file, (msg) => { progressText.textContent = msg; });
       progressText.textContent = 'Kontaktdaten werden herausgelesen …';
       const extracted = await callClaude({ task: 'profile_extract', text });
-      Object.keys(PROFILE_FIELDS).forEach(key => {
-        if (extracted[key]) document.getElementById(PROFILE_FIELDS[key]).value = extracted[key];
-      });
+      applyExtractedProfile(extracted);
     } catch (err) {
       errorEl.textContent = err.message || 'Die Kontaktdaten konnten nicht gelesen werden.';
       errorEl.style.display = 'block';
