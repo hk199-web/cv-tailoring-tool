@@ -3860,7 +3860,7 @@ function initApp() {
   // Startpunkte, abgeleitet aus den häufigsten Vorlagen-Typen.
   const DZ_VORLAGEN = {
     klar: { label: 'Klar', info: 'Einspaltig, eine Farbe', werte: { layout: 'einspaltig', kopf: 'links', foto: 'rund', fotoPos: 'links', name: 'normal', titelzeile: true, dokumenttitel: false, kontakt: 'icons', ueberschrift: 'unterstrichen', stationen: 'datum-links', listen: 'zweispaltig', schrift: 'zilla', akzent: '#123763', leisteFarbe: '#123763', dichte: 'normal', rahmen: true, unterschrift: false } },
-    seitenleiste: { label: 'Seitenleiste', info: 'Dunkle Leiste, Zeitleiste', werte: { layout: 'leiste-links', leiste: { kontakt: true, kurzprofil: true, ausbildung: true, listen: true }, kopf: 'links', foto: 'rund', name: 'versal', titelzeile: true, dokumenttitel: false, kontakt: 'icons', ueberschrift: 'versal', stationen: 'zeitleiste', listen: 'aufzaehlung', schrift: 'bebas-lato', akzent: '#A28848', leisteFarbe: '#2C3A4B', dichte: 'kompakt', rahmen: false, unterschrift: false, briefLeiste: true } },
+    seitenleiste: { label: 'Seitenleiste', info: 'Dunkle Leiste, Zeitleiste', werte: { layout: 'leiste-links', leiste: { kontakt: true, kurzprofil: false, ausbildung: false, listen: true }, kopf: 'links', foto: 'rund', name: 'versal', titelzeile: true, dokumenttitel: false, kontakt: 'icons', ueberschrift: 'versal', stationen: 'zeitleiste', listen: 'aufzaehlung', schrift: 'bebas-lato', akzent: '#A28848', leisteFarbe: '#2C3A4B', dichte: 'kompakt', rahmen: false, unterschrift: false, briefLeiste: true } },
     klassisch: { label: 'Klassisch deutsch', info: '„Lebenslauf“, Foto rechts', werte: { layout: 'einspaltig', kopf: 'links', foto: 'eckig', fotoPos: 'rechts', name: 'normal', titelzeile: false, dokumenttitel: true, kontakt: 'zeile', ueberschrift: 'linie', stationen: 'datum-links', listen: 'aufzaehlung', schrift: 'source', akzent: '#3A3A3A', leisteFarbe: '#2B2B2B', dichte: 'normal', rahmen: false, unterschrift: true } },
     kopfband: { label: 'Kopfband', info: 'Farbiges Band oben', werte: { layout: 'einspaltig', kopf: 'band', foto: 'rund', fotoPos: 'rechts', name: 'versal', titelzeile: true, dokumenttitel: false, kontakt: 'icons', ueberschrift: 'balken', stationen: 'datum-rechts', listen: 'tags', schrift: 'inter', akzent: '#2B6777', leisteFarbe: '#1F4E5B', dichte: 'normal', rahmen: false, unterschrift: false } },
     hell: { label: 'Hell zweispaltig', info: 'Helle Leiste, elegant', werte: { layout: 'leiste-rechts', leiste: { kontakt: true, kurzprofil: false, ausbildung: false, listen: true }, kopf: 'links', foto: 'rund', fotoPos: 'links', name: 'versal', titelzeile: true, dokumenttitel: false, kontakt: 'icons', ueberschrift: 'versal', stationen: 'datum-rechts', listen: 'tags', schrift: 'playfair-lato', akzent: '#7A2E3A', leisteFarbe: '#F3EEEA', dichte: 'normal', rahmen: false, unterschrift: false, briefLeiste: false } },
@@ -3965,7 +3965,7 @@ function initApp() {
 
   async function loadSettings() {
     // Nicht überschreiben, was gerade noch auf dem Weg in die Datenbank ist.
-    if (settingsTimer) return;
+    if (settingsTimer || !currentUser) return;
     const { data, error } = await client
       .from('user_settings')
       .select('design, doc_fassung')
@@ -4098,6 +4098,27 @@ function initApp() {
     return /ausbildung|bildung|studium|education/i.test(abschnitt.titel || '');
   }
 
+  // Die Leiste ist nur gut 4,5 cm breit — rund 30 Zeichen pro Zeile. Was
+  // länger ist, bleibt im Hauptbereich, auch wenn der Nutzer es für die
+  // Leiste angehakt hat. Sonst entstehen schmale, kaum lesbare Textsäulen.
+  const LEISTE_GRENZEN = { profil: 280, punktSchnitt: 38, punktMax: 55, gruppentitel: 32, stationText: 70 };
+
+  function passtInLeiste(abschnitt) {
+    const eintraege = abschnitt.eintraege || [];
+    if (istListenAbschnitt(abschnitt)) {
+      const punkte = eintraege.flatMap(e => e.punkte || []).map(p => String(p).length);
+      if (punkte.length === 0) return false;
+      const schnitt = punkte.reduce((a, b) => a + b, 0) / punkte.length;
+      return schnitt <= LEISTE_GRENZEN.punktSchnitt &&
+        Math.max(...punkte) <= LEISTE_GRENZEN.punktMax &&
+        eintraege.every(e => String(e.titel || '').length <= LEISTE_GRENZEN.gruppentitel);
+    }
+    // Stationen (z. B. Ausbildung) nur ohne Aufzählung und mit kurzen Angaben.
+    return eintraege.every(e =>
+      (e.punkte || []).length <= 1 &&
+      [e.titel, e.organisation, ...(e.punkte || [])].every(t => String(t || '').length <= LEISTE_GRENZEN.stationText));
+  }
+
   function dzFeld(ctx, tag, pfad, text, klasse) {
     const klassen = [klasse, ctx.editierbar ? 'doc-field' : ''].filter(Boolean).join(' ');
     const attr = ctx.editierbar ? ` contenteditable="true" data-path="${pfad}"` : '';
@@ -4162,7 +4183,9 @@ function initApp() {
   function dzListe(ctx, abschnitt, si) {
     return (abschnitt.eintraege || []).map((e, ei) => {
       const basis = `abschnitte.${si}.eintraege.${ei}`;
-      const titel = e.titel ? dzFeld(ctx, 'div', basis + '.titel', e.titel, 'gruppentitel') : '';
+      // „Sprachen“ unter der Überschrift „Sprachen“ wäre doppelt.
+      const doppelt = String(e.titel || '').trim().toLowerCase() === String(abschnitt.titel || '').trim().toLowerCase();
+      const titel = e.titel && !doppelt ? dzFeld(ctx, 'div', basis + '.titel', e.titel, 'gruppentitel') : '';
       const punkte = (e.punkte || []).map((punkt, pi) => dzFeld(ctx, 'li', `${basis}.punkte.${pi}`, punkt)).join('');
       return `<div class="dz-listgruppe">${titel}${punkte ? `<ul class="dz-liste">${punkte}</ul>` : ''}</div>`;
     }).join('');
@@ -4219,12 +4242,14 @@ function initApp() {
 
     if (d.kurzprofil) {
       const profil = dzAbschnitt(t.profil, dzFeld(ctx, 'p', 'kurzprofil', d.kurzprofil, 'dz-profil'));
-      (mitLeiste && g.leiste.kurzprofil ? side : main).push(profil);
+      const profilInLeiste = mitLeiste && g.leiste.kurzprofil && d.kurzprofil.length <= LEISTE_GRENZEN.profil;
+      (profilInLeiste ? side : main).push(profil);
     }
 
     (d.abschnitte || []).forEach((abschnitt, si) => {
       const liste = istListenAbschnitt(abschnitt);
-      const inLeiste = mitLeiste && ((liste && g.leiste.listen) || (!liste && g.leiste.ausbildung && istAusbildung(abschnitt)));
+      const gewuenscht = (liste && g.leiste.listen) || (!liste && g.leiste.ausbildung && istAusbildung(abschnitt));
+      const inLeiste = mitLeiste && gewuenscht && passtInLeiste(abschnitt);
       const inhalt = liste
         ? dzListe(ctx, abschnitt, si)
         : (abschnitt.eintraege || []).map((e, ei) => dzStation(ctx, e, `abschnitte.${si}.eintraege.${ei}`, inLeiste)).join('');
@@ -4335,6 +4360,7 @@ function initApp() {
         ${dzCheck('kurzprofil', 'Profil', 'leiste')}
         ${dzCheck('ausbildung', 'Ausbildung', 'leiste')}
         ${dzCheck('listen', 'Kenntnisse und Sprachen', 'leiste')}
+        <p class="design-hint" style="margin:0 0 10px;">Nur was kurz genug ist, kommt tatsächlich in die Leiste. Lange Texte bleiben automatisch rechts im Hauptbereich, damit die schmale Leiste lesbar bleibt.</p>
         ${dzCheck('briefLeiste', 'Seitenleiste auch im Anschreiben')}
       ` : ''}
       ${dzSelect('dichte', 'Schriftgröße und Abstände')}
