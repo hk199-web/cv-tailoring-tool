@@ -83,6 +83,10 @@
   }
   .btn-secondary:hover { border-color: var(--color-ink-muted); }
 
+  .btn-danger-outline { color: var(--color-danger); }
+  .btn-danger-outline:hover:not(:disabled) { border-color: var(--color-danger); }
+  .btn-danger-outline:disabled { color: var(--color-ink-muted); opacity: 0.55; cursor: not-allowed; }
+
   .btn-danger-text {
     background: none;
     border: none;
@@ -561,6 +565,7 @@
   /* ---------- Aktionsleisten über den Listen ---------- */
   .panel-actions {
     display: flex;
+    flex-wrap: wrap; /* die Anzeigenspalte ist nur 300px breit */
     gap: 8px;
     padding-bottom: 14px;
     border-bottom: 1px solid var(--color-border);
@@ -877,7 +882,7 @@
     </div>
     <input type="search" class="search" id="search-input" placeholder="Bausteine durchsuchen …">
     <div class="spacer"></div>
-    <button class="btn-secondary" id="profile-btn">Profil</button>
+    <button class="btn-secondary" id="profile-btn">Kontaktdaten</button>
     <button class="logout-link" id="logout-btn">Abmelden</button>
   </div>
 
@@ -913,8 +918,8 @@
           <label for="sort-select" style="margin:0;">Sortierung</label>
           <select id="sort-select" style="width:auto;">
             <option value="updated">Zuletzt geändert</option>
-            <option value="newest">Neueste Station zuerst</option>
-            <option value="oldest">Älteste Station zuerst</option>
+            <option value="newest">Neueste zuerst (nach Zeitraum)</option>
+            <option value="oldest">Älteste zuerst (nach Zeitraum)</option>
           </select>
         </div>
       </div>
@@ -922,7 +927,7 @@
       <div class="bulk-bar" id="bulk-bar">
         <span id="bulk-count"></span>
         <div style="display:flex; gap:8px;">
-          <button type="button" id="bulk-publish">Veröffentlichen</button>
+          <button type="button" id="bulk-publish">Freigeben</button>
           <button type="button" id="bulk-draft">Auf Entwurf setzen</button>
           <button type="button" id="bulk-delete" class="danger">Löschen</button>
         </div>
@@ -943,12 +948,13 @@
   <div class="jobs-workspace" id="jobs-workspace" style="display:none;">
     <div class="jobs-list">
       <div class="panel-actions">
-        <button class="btn-primary" id="new-job-btn">Anzeige hinzufügen</button>
+        <button class="btn-primary" id="new-job-btn">Stellenanzeige hinzufügen</button>
+        <button class="btn-secondary btn-danger-outline" id="delete-job-btn" disabled title="Zuerst links eine Stellenanzeige auswählen">Stellenanzeige löschen</button>
       </div>
       <div id="jobs-list"></div>
     </div>
     <div class="job-detail" id="job-detail">
-      <p class="detail-placeholder">Wähle eine Anzeige aus oder füge eine neue hinzu.</p>
+      <p class="detail-placeholder">Wähle eine Stellenanzeige aus oder füge eine neue hinzu.</p>
     </div>
   </div>
 </div>
@@ -960,7 +966,7 @@
       <h2>Stellenanzeige hinzufügen</h2>
       <button class="modal-close" id="job-close" aria-label="Schließen">×</button>
     </div>
-    <p class="lead">Claude zerlegt die Anzeige in einzelne Anforderungen und gleicht sie anschließend mit deinem Content-Pool ab.</p>
+    <p class="lead">Claude zerlegt die Stellenanzeige in einzelne Anforderungen und gleicht sie anschließend mit deinem Content-Pool ab.</p>
 
     <div id="job-step-input">
       <div class="nav-tabs" style="margin-bottom:16px; border-bottom:1px solid var(--color-border);">
@@ -985,24 +991,24 @@
 
       <div class="job-source" id="job-source-url" style="display:none;">
         <div class="field">
-          <label for="job-url">Adresse der Anzeige</label>
+          <label for="job-url">Link zur Stellenanzeige</label>
           <input type="url" id="job-url" placeholder="https://…">
         </div>
         <p style="font-size:13px; color:var(--color-ink-muted); margin:0;">
-          Viele Stellenbörsen sperren automatische Zugriffe oder laden die Anzeige erst im Browser nach.
+          Viele Stellenbörsen sperren automatische Zugriffe oder laden die Stellenanzeige erst im Browser nach.
           Klappt es nicht, nimm den Reiter „Text einfügen“.
         </p>
       </div>
 
       <p class="modal-error" id="job-error"></p>
       <div class="modal-footer">
-        <span style="font-size:13px; color:var(--color-ink-muted);">Je vollständiger die Anzeige, desto präziser die Anforderungsliste.</span>
+        <span style="font-size:13px; color:var(--color-ink-muted);">Je vollständiger die Stellenanzeige, desto präziser die Anforderungsliste.</span>
         <button class="btn-primary" id="job-analyze">Analysieren</button>
       </div>
     </div>
 
     <div id="job-step-progress" style="display:none;">
-      <div class="progress-note"><span class="spinner"></span><span id="job-progress-text">Anzeige wird analysiert …</span></div>
+      <div class="progress-note"><span class="spinner"></span><span id="job-progress-text">Stellenanzeige wird analysiert …</span></div>
     </div>
   </div>
 </div>
@@ -1070,19 +1076,19 @@
       </div>
       <div class="derived-note" id="suggestion-note"></div>
       <div class="field">
-        <label>Bisher</label>
+        <label>Bisherige Fassung</label>
         <p id="suggestion-before" style="margin:0; font-size:13px; color:var(--color-ink-muted); white-space:pre-wrap;"></p>
       </div>
       <div class="field">
-        <label for="suggestion-after">Neu (bearbeitbar)</label>
+        <label for="suggestion-after">Neue Fassung (bearbeitbar)</label>
         <textarea id="suggestion-after" style="min-height:160px; resize:vertical;"></textarea>
       </div>
       <p class="modal-error" id="suggestion-error"></p>
       <div class="modal-footer">
         <span style="font-size:13px; color:var(--color-ink-muted);">Als neuer Baustein bleibt das Original unverändert erhalten.</span>
         <div style="display:flex; gap:8px;">
-          <button class="btn-secondary" id="suggestion-as-new">Als neuen Baustein</button>
-          <button class="btn-primary" id="suggestion-replace">Baustein ersetzen</button>
+          <button class="btn-secondary" id="suggestion-as-new">Als neuen Baustein speichern</button>
+          <button class="btn-primary" id="suggestion-replace">Bestehenden Baustein ersetzen</button>
         </div>
       </div>
     </div>
@@ -1098,7 +1104,7 @@
     </div>
     <div class="doc-toolbar no-print">
       <div style="display:flex; gap:8px; align-items:center;">
-        <label for="doc-language" style="margin:0;">Fassung</label>
+        <label for="doc-language" style="margin:0;">Sprache</label>
         <select id="doc-language" style="width:auto;">
           <option value="de">Deutsch</option>
         </select>
@@ -1120,7 +1126,7 @@
 <div class="modal-backdrop" id="profile-backdrop">
   <div class="modal">
     <div class="modal-header">
-      <h2>Profil</h2>
+      <h2>Kontaktdaten</h2>
       <button class="modal-close" id="profile-close" aria-label="Schließen">×</button>
     </div>
     <p class="lead">Diese Angaben werden als Absender im Briefkopf des Anschreibens verwendet.</p>
@@ -1179,7 +1185,7 @@
 
     <p class="modal-error" id="profile-error"></p>
     <div class="modal-footer">
-      <button class="btn-danger-text" id="profile-delete">Profil löschen</button>
+      <button class="btn-danger-text" id="profile-delete">Kontaktdaten löschen</button>
       <button class="btn-primary" id="profile-save">Speichern</button>
     </div>
   </div>
@@ -1198,7 +1204,7 @@ const CATEGORIES = [
   { value: 'erfahrung', label: 'Berufserfahrung' },
   { value: 'skill', label: 'Fähigkeiten' },
   { value: 'ausbildung', label: 'Ausbildung' },
-  { value: 'leitbild', label: 'Leitbild' }
+  { value: 'leitbild', label: 'Über mich' }
 ];
 
 // -------------------------------------------------------------------------
@@ -1516,7 +1522,7 @@ function initApp() {
 
     const statusEl = document.getElementById('status-filters');
     statusEl.innerHTML = '';
-    [['draft', 'Entwurf'], ['published', 'Veröffentlicht']].forEach(([val, label]) => {
+    [['draft', 'Entwurf'], ['published', 'Freigegeben']].forEach(([val, label]) => {
       statusEl.appendChild(filterItem(label, filters.status === val, () => {
         filters.status = filters.status === val ? null : val;
         renderAll();
@@ -1633,7 +1639,7 @@ function initApp() {
       const catLabel = CATEGORIES.find(c => c.value === g.category)?.label || g.category;
       const title = (g.block && g.block.title) || '(ohne Titel)';
       const tagNames = g.tags.map(t => t.name).join(', ');
-      const statusLabel = g.status === 'published' ? 'Veröffentlicht' : 'Entwurf';
+      const statusLabel = g.status === 'published' ? 'Freigegeben' : 'Entwurf';
       const dotColor = g.status === 'published' ? 'var(--color-published)' : 'var(--color-draft)';
       const updated = g.block ? new Date(g.block.updated_at).toLocaleDateString('de-DE') : '';
 
@@ -1836,7 +1842,7 @@ function initApp() {
         <label>Status</label>
         <div class="status-toggle">
           <button type="button" id="f-status-draft" class="${status === 'draft' ? 'active-draft' : ''}">Entwurf</button>
-          <button type="button" id="f-status-published" class="${status === 'published' ? 'active-published' : ''}">Veröffentlicht</button>
+          <button type="button" id="f-status-published" class="${status === 'published' ? 'active-published' : ''}">Freigegeben</button>
         </div>
       </div>
 
@@ -2408,10 +2414,29 @@ function initApp() {
     renderJobsList();
   }
 
+  const deleteJobBtn = document.getElementById('delete-job-btn');
+
+  deleteJobBtn.addEventListener('click', async () => {
+    const job = allJobs.find(j => j.id === selectedJobId);
+    if (!job) return;
+    const name = job.job_title || job.company || 'diese Stellenanzeige';
+    if (!confirm('„' + name + '“ wirklich löschen? Anschreiben, Lebenslauf und Übersetzungen dazu gehen mit verloren.')) return;
+    const { error } = await client.from('job_postings').delete().eq('id', job.id);
+    if (error) { alert('Fehler beim Löschen: ' + error.message); return; }
+    selectedJobId = null;
+    await loadJobs();
+    document.getElementById('job-detail').innerHTML =
+      '<p class="detail-placeholder">Wähle eine Stellenanzeige aus oder füge eine neue hinzu.</p>';
+  });
+
   function renderJobsList() {
     const el = document.getElementById('jobs-list');
+    // Löschen bezieht sich immer auf die links markierte Anzeige.
+    const auswahlVorhanden = allJobs.some(j => j.id === selectedJobId);
+    deleteJobBtn.disabled = !auswahlVorhanden;
+    deleteJobBtn.title = auswahlVorhanden ? '' : 'Zuerst links eine Stellenanzeige auswählen';
     if (allJobs.length === 0) {
-      el.innerHTML = '<p style="font-size:13px; color:var(--color-ink-muted); padding:12px 0;">Noch keine Anzeigen erfasst.</p>';
+      el.innerHTML = '<p style="font-size:13px; color:var(--color-ink-muted); padding:12px 0;">Noch keine Stellenanzeigen erfasst.</p>';
       return;
     }
     el.innerHTML = '';
@@ -2469,7 +2494,6 @@ function initApp() {
       <div class="job-tab-panel" id="job-tab-anforderungen">
         <div style="display:flex; gap:8px; margin-bottom:16px;">
           <button class="btn-primary" id="run-matching">${hatAbgleich ? 'Abgleich erneut ausführen' : 'Mit Content-Pool abgleichen'}</button>
-          <button class="btn-danger-text" id="delete-job">Anzeige löschen</button>
         </div>
         <p class="modal-error" id="matching-error"></p>
         <div id="matching-progress" style="display:none;">
@@ -2515,7 +2539,7 @@ function initApp() {
       <div class="job-tab-panel" id="job-tab-original">
         ${job.raw_text
           ? `<div style="white-space:pre-wrap; font-size:14px; line-height:1.6; background:var(--color-panel); border:1px solid var(--color-border); border-radius:4px; padding:18px 20px;">${escapeHtml(job.raw_text)}</div>`
-          : '<p style="color:var(--color-ink-muted); font-size:14px;">Zu dieser Anzeige ist kein Originaltext gespeichert.</p>'}
+          : '<p style="color:var(--color-ink-muted); font-size:14px;">Zu dieser Stellenanzeige ist kein Originaltext gespeichert.</p>'}
       </div>
     `;
 
@@ -2528,15 +2552,6 @@ function initApp() {
     showJobTab(panel);
 
     document.getElementById('run-matching').addEventListener('click', () => runMatching(job));
-    document.getElementById('delete-job').addEventListener('click', async () => {
-      if (!confirm('Diese Anzeige wirklich löschen? Anschreiben und Lebenslauf dazu gehen mit verloren.')) return;
-      const { error } = await client.from('job_postings').delete().eq('id', job.id);
-      if (error) { alert('Fehler beim Löschen: ' + error.message); return; }
-      selectedJobId = null;
-      await loadJobs();
-      panel.innerHTML = '<p class="detail-placeholder">Wähle eine Anzeige aus oder füge eine neue hinzu.</p>';
-    });
-
     panel.querySelectorAll('.take-suggestion').forEach(btn => {
       btn.addEventListener('click', () => openSuggestion(btn.dataset.block, btn.dataset.req, btn.dataset.suggestion));
     });
@@ -2574,7 +2589,7 @@ function initApp() {
       // bereits bestätigt — für das Matching zählt er dann wie jeder andere Baustein.
 
       if (bausteine.length === 0) {
-        throw new Error('Es sind noch keine veröffentlichten Bausteine im Pool. Entwürfe werden beim Abgleich nicht berücksichtigt — setze die gewünschten Bausteine zuerst auf "Veröffentlicht".');
+        throw new Error('Es sind noch keine freigegebenen Bausteine im Pool. Entwürfe werden beim Abgleich nicht berücksichtigt — setze die gewünschten Bausteine zuerst auf "Freigegeben".');
       }
 
       const result = await callClaude({
@@ -2679,7 +2694,7 @@ function initApp() {
     if (jobSource === 'text') {
       const text = document.getElementById('job-text').value.trim();
       if (text.length < 100) {
-        errorEl.textContent = 'Der Text ist sehr kurz. Bitte die vollständige Anzeige einfügen.';
+        errorEl.textContent = 'Der Text ist sehr kurz. Bitte die vollständige Stellenanzeige einfügen.';
         errorEl.style.display = 'block';
         return;
       }
@@ -2687,7 +2702,7 @@ function initApp() {
     } else if (jobSource === 'url') {
       const url = document.getElementById('job-url').value.trim();
       if (!url) {
-        errorEl.textContent = 'Bitte die Adresse der Anzeige angeben.';
+        errorEl.textContent = 'Bitte den Link zur Stellenanzeige angeben.';
         errorEl.style.display = 'block';
         return;
       }
@@ -2701,16 +2716,16 @@ function initApp() {
     document.getElementById('job-step-input').style.display = 'none';
     document.getElementById('job-step-progress').style.display = 'block';
     progressText.textContent = jobSource === 'url'
-      ? 'Anzeige wird geladen …'
-      : 'Anzeige wird analysiert …';
+      ? 'Stellenanzeige wird geladen …'
+      : 'Stellenanzeige wird analysiert …';
 
     try {
       if (jobSource === 'file') {
         payload.text = await extractTextFromFile(jobFile, (msg) => { progressText.textContent = msg; });
         if (!payload.text || payload.text.trim().length < 100) {
-          throw new Error('Aus dieser Datei konnte kaum Text gelesen werden. Bitte den Text der Anzeige einfügen.');
+          throw new Error('Aus dieser Datei konnte kaum Text gelesen werden. Bitte den Text der Stellenanzeige einfügen.');
         }
-        progressText.textContent = 'Anzeige wird analysiert …';
+        progressText.textContent = 'Stellenanzeige wird analysiert …';
       }
 
       const a = await callClaude(payload);
@@ -2799,12 +2814,12 @@ function initApp() {
 
     return `
       <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
-        <button class="btn-primary" id="run-outline">${outlineDraft ? 'Gliederung neu erstellen' : 'Gliederung erstellen'}</button>
+        <button class="btn-primary" id="run-outline">${outlineDraft ? 'Gliederung neu generieren' : 'Gliederung generieren'}</button>
         ${job.cover_letter ? '<button class="btn-secondary" id="open-letter">Anschreiben ansehen und drucken</button>' : ''}
       </div>
       <p class="modal-error" id="letter-error"></p>
       <div id="letter-progress" style="display:none;">
-        <div class="progress-note"><span class="spinner"></span><span id="letter-progress-text">Gliederung wird erstellt …</span></div>
+        <div class="progress-note"><span class="spinner"></span><span id="letter-progress-text">Gliederung wird generiert …</span></div>
       </div>
       <div id="outline-box">${outlineDraft ? renderOutline() : '<p style="color:var(--color-ink-muted); font-size:14px;">Claude wählt aus den Treffern die stärksten Argumente aus. Du prüfst sie, bevor der Text entsteht.</p>'}</div>
     `;
@@ -2844,8 +2859,8 @@ function initApp() {
         <div class="outline-item ${arg.aktiv ? '' : 'off'}">
           <input type="checkbox" class="outline-active" data-idx="${i}" ${arg.aktiv ? 'checked' : ''}>
           <div class="grip">
-            <button type="button" class="outline-move" data-idx="${i}" data-dir="-1" ${i === 0 ? 'disabled' : ''}>▲</button>
-            <button type="button" class="outline-move" data-idx="${i}" data-dir="1" ${i === outlineDraft.argumente.length - 1 ? 'disabled' : ''}>▼</button>
+            <button type="button" class="outline-move" data-idx="${i}" data-dir="-1" title="Nach oben" ${i === 0 ? 'disabled' : ''}>▲</button>
+            <button type="button" class="outline-move" data-idx="${i}" data-dir="1" title="Nach unten" ${i === outlineDraft.argumente.length - 1 ? 'disabled' : ''}>▼</button>
           </div>
           <div class="kern">
             <input type="text" class="outline-kern" data-idx="${i}" value="${escapeAttr(arg.kernaussage)}">
@@ -2865,7 +2880,7 @@ function initApp() {
       </div>
 
       <div style="display:flex; align-items:center; gap:12px;">
-        <button class="btn-primary" id="run-draft" ${aktive === 0 ? 'disabled' : ''}>Anschreiben schreiben</button>
+        <button class="btn-primary" id="run-draft" ${aktive === 0 ? 'disabled' : ''}>Anschreiben generieren</button>
         <span class="doc-status">${aktive} von ${outlineDraft.argumente.length} Argumenten aktiv</span>
       </div>
     `;
@@ -2934,12 +2949,12 @@ function initApp() {
 
   async function runOutline(job) {
     letterError('');
-    letterBusy(true, 'Gliederung wird erstellt …');
+    letterBusy(true, 'Gliederung wird generiert …');
     try {
       await loadData();
       const bausteine = publishedBausteine();
       if (bausteine.length === 0) {
-        throw new Error('Es sind keine veröffentlichten Bausteine im Pool. Entwürfe werden nicht verwendet.');
+        throw new Error('Es sind keine freigegebenen Bausteine im Pool. Entwürfe werden nicht verwendet.');
       }
 
       const ergebnis = await callClaude({
@@ -2970,7 +2985,7 @@ function initApp() {
 
   async function runDraft(job) {
     letterError('');
-    letterBusy(true, 'Anschreiben wird geschrieben …');
+    letterBusy(true, 'Anschreiben wird generiert …');
     try {
       const gliederung = {
         einstieg: outlineDraft.einstieg,
@@ -3014,19 +3029,19 @@ function initApp() {
     const cv = job.cv_document;
     return `
       <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
-        <button class="btn-primary" id="run-cv">${cv ? 'Lebenslauf neu zuschneiden' : 'Lebenslauf zuschneiden'}</button>
+        <button class="btn-primary" id="run-cv">${cv ? 'Lebenslauf neu generieren' : 'Lebenslauf generieren'}</button>
         ${cv ? '<button class="btn-secondary" id="open-cv">Lebenslauf ansehen und drucken</button>' : ''}
       </div>
       <p class="modal-error" id="cv-error"></p>
       <div id="cv-progress" style="display:none;">
-        <div class="progress-note"><span class="spinner"></span><span>Lebenslauf wird zusammengestellt …</span></div>
+        <div class="progress-note"><span class="spinner"></span><span>Lebenslauf wird generiert …</span></div>
       </div>
       ${cv
         ? `<h3 class="section-title">Kurzprofil</h3><p style="font-size:14px;">${escapeHtml(cv.kurzprofil || '')}</p>
            <h3 class="section-title">Abschnitte</h3>
            <ul style="font-size:14px; padding-left:1.2em;">${(cv.abschnitte || []).map(s =>
              `<li>${escapeHtml(s.titel || '')} — ${(s.eintraege || []).length} Einträge</li>`).join('')}</ul>`
-        : '<p style="color:var(--color-ink-muted); font-size:14px;">Claude wählt aus deinen veröffentlichten Bausteinen aus, was für diese Stelle zählt, und ordnet es ATS-sicher an — einspaltig, ohne Tabellen und Grafiken.</p>'}
+        : '<p style="color:var(--color-ink-muted); font-size:14px;">Claude wählt aus deinen freigegebenen Bausteinen aus, was für diese Stelle zählt, und ordnet es ATS-sicher an — einspaltig, ohne Tabellen und Grafiken.</p>'}
     `;
   }
 
@@ -3046,7 +3061,7 @@ function initApp() {
       await loadData();
       const bausteine = publishedBausteine();
       if (bausteine.length === 0) {
-        throw new Error('Es sind keine veröffentlichten Bausteine im Pool. Entwürfe werden nicht verwendet.');
+        throw new Error('Es sind keine freigegebenen Bausteine im Pool. Entwürfe werden nicht verwendet.');
       }
 
       const dokument = await callClaude({
@@ -3146,7 +3161,7 @@ function initApp() {
     return `
       <div class="sheet">
         <div class="kontaktblock">${p.kontakt.map(z => escapeHtml(z)).join('<br>')}</div>
-        <div class="absender-zeile">${escapeHtml(absender) || '<span style="color:#999;">Absenderdaten fehlen — bitte im Profil ergänzen</span>'}</div>
+        <div class="absender-zeile">${escapeHtml(absender) || '<span style="color:#999;">Absenderdaten fehlen — bitte unter „Kontaktdaten“ ergänzen</span>'}</div>
         <div class="anschrift">${escapeHtml(empfaenger)}</div>
         <div class="datum">${escapeHtml(p.ort ? p.ort.replace(/^\d+\s*/, '') + ', ' : '')}${heute}</div>
         <div class="betreff doc-field" contenteditable="true" data-path="betreff">${escapeHtml(d.betreff || '')}</div>
@@ -3167,7 +3182,7 @@ function initApp() {
 
     return `
       <div class="sheet cv">
-        <h1>${escapeHtml(p.name) || 'Name fehlt — bitte im Profil ergänzen'}</h1>
+        <h1>${escapeHtml(p.name) || 'Name fehlt — bitte unter „Kontaktdaten“ ergänzen'}</h1>
         <div class="cv-kontakt">${escapeHtml(kopfzeile)}</div>
         ${d.kurzprofil ? `<h2>Kurzprofil</h2><p class="doc-field" contenteditable="true" data-path="kurzprofil">${escapeHtml(d.kurzprofil)}</p>` : ''}
         ${(d.abschnitte || []).map((abschnitt, si) => `
@@ -3339,7 +3354,7 @@ function initApp() {
       await loadData();
       suggestionBackdrop.classList.remove('open');
       alert(alsNeu
-        ? 'Als neuer Baustein im Status „Entwurf“ gespeichert. Für den nächsten Abgleich musst du ihn noch veröffentlichen.'
+        ? 'Als neuer Baustein im Status „Entwurf“ gespeichert. Für den nächsten Abgleich musst du ihn noch freigeben.'
         : 'Der Baustein wurde aktualisiert.');
     } catch (err) {
       errorEl.textContent = 'Speichern fehlgeschlagen: ' + err.message;
@@ -3586,7 +3601,7 @@ function initApp() {
   });
 
   document.getElementById('profile-delete').addEventListener('click', async () => {
-    if (!confirm('Alle Profildaten wirklich löschen? Das kann nicht rückgängig gemacht werden.')) return;
+    if (!confirm('Alle Kontaktdaten wirklich löschen? Das kann nicht rückgängig gemacht werden.')) return;
     const errorEl = document.getElementById('profile-error');
     errorEl.style.display = 'none';
 
