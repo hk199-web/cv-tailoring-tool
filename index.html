@@ -1745,6 +1745,7 @@ function initApp() {
     renderCategoryFilters();
     loadData();
     loadProfile();
+    loadSettings();
   }
 
   // ---- Daten laden ----
@@ -3737,7 +3738,7 @@ function initApp() {
 
   document.getElementById('doc-fassung').addEventListener('change', (e) => {
     docState.fassung = e.target.value === 'ats' ? 'ats' : 'gestaltet';
-    try { localStorage.setItem(FASSUNG_KEY + docState.kind, docState.fassung); } catch (err) { /* nicht kritisch */ }
+    speichereFassung(docState.kind, docState.fassung);
     renderDocSheet();
   });
 
@@ -3948,24 +3949,106 @@ function initApp() {
     return g;
   }
 
+  // ---- Speicherort ----
+  // Maßgeblich ist die Tabelle user_settings, damit das Design auf jedem
+  // Gerät gilt. Der Browserspeicher dient nur noch als Zwischenlager, falls
+  // die Datenbank gerade nicht erreichbar ist, und für die einmalige
+  // Übernahme eines Designs, das vor der Datenbank-Anbindung entstand.
+  let designCache = null;
+  let fassungCache = {};
+  let settingsTimer = null;
+  let settingsStatus = '';
+
+  function lokal(key) {
+    try { return localStorage.getItem(key); } catch (err) { return null; }
+  }
+
+  async function loadSettings() {
+    // Nicht überschreiben, was gerade noch auf dem Weg in die Datenbank ist.
+    if (settingsTimer) return;
+    const { data, error } = await client
+      .from('user_settings')
+      .select('design, doc_fassung')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+    if (error) {
+      console.warn('Einstellungen konnten nicht geladen werden:', error.message);
+      settingsStatus = 'Design konnte nicht aus deinem Konto geladen werden — es wird der Stand dieses Browsers gezeigt.';
+      return;
+    }
+
+    let uebernehmen = false;
+    if (data && data.design) {
+      designCache = normalisiereDesign(data.design);
+    } else {
+      try {
+        const alt = JSON.parse(lokal(DESIGN_KEY) || 'null');
+        if (alt) { designCache = normalisiereDesign(alt); uebernehmen = true; }
+      } catch (err) { /* kein altes Design */ }
+    }
+
+    fassungCache = {};
+    const gespeichert = (data && data.doc_fassung) || {};
+    ['cover_letter', 'cv_document'].forEach(kind => {
+      const wert = gespeichert[kind] || lokal(FASSUNG_KEY + kind);
+      if (wert === 'ats' || wert === 'gestaltet') {
+        fassungCache[kind] = wert;
+        if (!gespeichert[kind]) uebernehmen = true;
+      }
+    });
+
+    if (uebernehmen) speichereSettings();
+  }
+
+  function speichereSettings() {
+    clearTimeout(settingsTimer);
+    settingsStatus = 'Wird gespeichert …';
+    zeigeSettingsStatus();
+    // Kurz sammeln: Beim Ziehen im Farbwähler entstehen sonst Dutzende Aufrufe.
+    settingsTimer = setTimeout(async () => {
+      const { error } = await client.from('user_settings').upsert({
+        user_id: currentUser.id,
+        design: designCache,
+        doc_fassung: fassungCache,
+        updated_at: new Date().toISOString()
+      });
+      settingsTimer = null;
+      settingsStatus = error
+        ? 'Speichern fehlgeschlagen: ' + error.message + ' — deine Einstellungen gelten vorerst nur in diesem Browser.'
+        : 'In deinem Konto gespeichert — gilt auf allen Geräten.';
+      zeigeSettingsStatus();
+    }, 700);
+  }
+
+  function zeigeSettingsStatus() {
+    const el = document.getElementById('dz-speicherstatus');
+    if (el) el.textContent = settingsStatus;
+  }
+
   function ladeDesign() {
+    if (designCache) return normalisiereDesign(designCache);
     try {
-      return normalisiereDesign(JSON.parse(localStorage.getItem(DESIGN_KEY) || 'null') || DZ_VORLAGEN.klar.werte);
+      return normalisiereDesign(JSON.parse(lokal(DESIGN_KEY) || 'null') || DZ_VORLAGEN.klar.werte);
     } catch (err) {
       return normalisiereDesign(DZ_VORLAGEN.klar.werte);
     }
   }
 
   function speichereDesign(g) {
+    designCache = g;
     try { localStorage.setItem(DESIGN_KEY, JSON.stringify(g)); } catch (err) { /* nicht kritisch */ }
+    speichereSettings();
   }
 
   function ladeFassung(kind) {
-    try {
-      return localStorage.getItem(FASSUNG_KEY + kind) === 'ats' ? 'ats' : 'gestaltet';
-    } catch (err) {
-      return 'gestaltet';
-    }
+    const wert = fassungCache[kind] || lokal(FASSUNG_KEY + kind);
+    return wert === 'ats' ? 'ats' : 'gestaltet';
+  }
+
+  function speichereFassung(kind, wert) {
+    fassungCache[kind] = wert;
+    try { localStorage.setItem(FASSUNG_KEY + kind, wert); } catch (err) { /* nicht kritisch */ }
+    speichereSettings();
   }
 
   function leuchtdichte(hex) {
@@ -4196,6 +4279,9 @@ function initApp() {
 
   async function openDesigner() {
     ladeDesignSchriften();
+    // Frisch aus dem Konto holen — das Design kann auf einem anderen Gerät
+    // geändert worden sein.
+    await loadSettings();
     designAktuell = ladeDesign();
     renderDesignControls();
     renderDesignPreview();
@@ -4297,7 +4383,8 @@ function initApp() {
         </div>
       </div>
 
-      <p class="design-hint" style="margin-top:18px;">Das Design gilt für die Fassung „Gestaltet“ im Vorschaufenster von Anschreiben und Lebenslauf. Gespeichert wird es vorerst nur in diesem Browser.</p>
+      <p class="design-hint" style="margin-top:18px;">Das Design gilt für die Fassung „Gestaltet“ im Vorschaufenster von Anschreiben und Lebenslauf.</p>
+      <p class="design-hint" id="dz-speicherstatus">${escapeHtml(settingsStatus)}</p>
     `;
   }
 
