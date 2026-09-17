@@ -330,6 +330,7 @@
   }
   .status-toggle button.active-draft { background: var(--color-draft); color: #fff; border-color: var(--color-draft); }
   .status-toggle button.active-published { background: var(--color-published); color: #fff; border-color: var(--color-published); }
+  .status-toggle button.active-archived { background: var(--color-ink-muted); color: #fff; border-color: var(--color-ink-muted); }
 
   .detail-actions {
     display: flex;
@@ -715,6 +716,76 @@
     @page { size: A4; margin: 2cm 2cm 2cm 2.41cm; }
   }
 
+  /* ---------- Bewerbungsfotos ---------- */
+  .foto-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+  .foto-karte {
+    width: 112px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 6px;
+    text-align: center;
+    font-size: 12px;
+    background: #fff;
+  }
+  .foto-karte img { width: 100%; height: 124px; object-fit: cover; border-radius: 3px; display: block; margin-bottom: 4px; }
+  .foto-karte.standard { border-color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
+  .foto-karte button { font-size: 11px; padding: 2px 6px; margin-top: 3px; width: 100%; }
+  .foto-upload { display: inline-block; padding: 7px 14px; font-size: 14px; color: var(--color-ink); cursor: pointer; border-radius: 3px; margin: 0; }
+
+  /* ---------- Firma & Kontakt, Bewerbungsstatus, Versionen ---------- */
+  .status-badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 10px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    color: var(--color-ink-muted);
+    margin-top: 4px;
+  }
+  .status-badge.beworben, .status-badge.gespraech { color: var(--color-accent); border-color: var(--color-accent); }
+  .status-badge.zusage { color: var(--color-published); border-color: var(--color-published); }
+  .status-badge.absage { color: var(--color-danger); border-color: var(--color-danger); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .form-grid .breit { grid-column: 1 / -1; }
+  .farb-wahl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .farb-wahl button { width: 30px; height: 30px; border-radius: 50%; padding: 0; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--color-border); }
+  .farb-wahl button.active { box-shadow: 0 0 0 2px var(--color-ink); }
+  .farb-wahl input[type="color"] { width: 44px; height: 32px; padding: 2px; }
+  .versionen-box { margin-top: 18px; border-top: 1px solid var(--color-border); padding-top: 10px; font-size: 13px; }
+  .versionen-box summary { cursor: pointer; color: var(--color-ink-muted); }
+  .version-zeile { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--color-border); }
+  .version-zeile .datum { white-space: nowrap; color: var(--color-ink-muted); }
+  .version-zeile .auszug { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .version-zeile button { padding: 3px 10px; font-size: 12px; }
+  .doc-status.warn { color: var(--color-danger); }
+
+  /* ---------- Baustein im Dialog schärfen ---------- */
+  .refine-baustein {
+    font-size: 13px;
+    white-space: pre-wrap;
+    background: var(--color-bg);
+    border-left: 3px solid var(--color-accent);
+    padding: 8px 12px;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  .refine-chat {
+    max-height: 340px;
+    min-height: 120px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 12px;
+    margin: 12px 0;
+  }
+  .refine-msg { margin-bottom: 10px; padding: 8px 12px; border-radius: 6px; max-width: 85%; white-space: pre-wrap; font-size: 14px; width: fit-content; }
+  .refine-msg.claude { background: var(--color-bg); }
+  .refine-msg.nutzer { background: var(--color-accent); color: #fff; margin-left: auto; }
+  .refine-vorschlag { border: 1px solid var(--color-published); background: #F2F6F1; padding: 10px 12px; border-radius: 6px; margin: 0 0 12px; font-size: 14px; }
+  .refine-knoepfe { display: flex; gap: 8px; margin-top: 8px; }
+  #refine-mic.aktiv { border-color: var(--color-danger); color: var(--color-danger); }
+
   /* ---------- Design-Baukasten: Bedienbereich ---------- */
   .design-workspace {
     flex: 1;
@@ -794,7 +865,7 @@
     align-items: stretch;
     font-family: var(--d-text-font);
     font-size: var(--d-size);
-    line-height: var(--d-lh);
+    line-height: calc(var(--d-lh) * var(--d-lh-faktor, 1));
     color: #222;
     --d-akzent-hell: color-mix(in srgb, var(--d-akzent) 10%, #fff);
     --d-akzent-mittel: color-mix(in srgb, var(--d-akzent) 35%, #fff);
@@ -803,7 +874,7 @@
   }
   .sheet.dz.dz-rahmen { border: 0.3cm solid var(--d-akzent); }
   .dz.dz-leiste-rechts { flex-direction: row-reverse; }
-  .dz .dz-main { flex: 1; min-width: 0; padding: 1.5cm 1.7cm; }
+  .dz .dz-main { flex: 1; min-width: 0; padding: calc(1.5cm * var(--d-rand, 1)) calc(1.7cm * var(--d-rand, 1)); }
   .dz .dz-side {
     width: 6.2cm;
     flex-shrink: 0;
@@ -815,7 +886,7 @@
   .dz h1, .dz h2 { font-family: var(--d-kopf-font); margin: 0; }
 
   .dz .dz-dokumenttitel { font-size: 1.7em; font-weight: 600; color: var(--d-akzent); margin-bottom: 0.5cm; letter-spacing: 0.03em; }
-  .dz .dz-kopf { display: flex; align-items: center; gap: 0.6cm; margin-bottom: 0.7cm; }
+  .dz .dz-kopf { display: flex; align-items: center; gap: 0.6cm; margin-bottom: calc(0.7cm * var(--d-gap, 1)); }
   .dz .dz-kopf.foto-rechts { flex-direction: row-reverse; }
   .dz .dz-kopftext { flex: 1; min-width: 0; }
   .dz-kopf-zentriert .dz-kopf { flex-direction: column; text-align: center; }
@@ -834,7 +905,7 @@
   .dz-kopf-band .dz-kopf {
     background: var(--d-leiste);
     color: var(--d-leiste-text);
-    margin: -1.5cm -1.7cm 0.8cm;
+    margin: calc(-1.5cm * var(--d-rand, 1)) calc(-1.7cm * var(--d-rand, 1)) calc(0.8cm * var(--d-gap, 1));
     padding: 1cm 1.7cm;
   }
   .dz-kopf-band .dz-kopf .dz-name { color: inherit; }
@@ -855,6 +926,8 @@
     font-size: 1cm;
     font-weight: 600;
   }
+  .dz .dz-foto { overflow: hidden; }
+  .dz .dz-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .dz .dz-foto.rund { border-radius: 50%; }
   .dz .dz-foto.eckig { height: 3.9cm; border-radius: 2px; }
   .dz-kopf-band .dz-kopf .dz-foto { background: color-mix(in srgb, var(--d-leiste-text) 15%, transparent); color: var(--d-leiste-text); }
@@ -867,7 +940,7 @@
   }
   .dz .dz-side .dz-foto.eckig { height: 4.7cm; }
 
-  .dz .dz-abschnitt { margin-bottom: 0.55cm; }
+  .dz .dz-abschnitt { margin-bottom: calc(0.55cm * var(--d-gap, 1)); }
   .dz h2.dz-ue { font-size: 1.1em; font-weight: 700; color: var(--d-akzent); margin-bottom: 0.3cm; }
   .dz .dz-side h2.dz-ue { color: var(--d-leiste-akzent); }
   .dz-ue-linie h2.dz-ue { border-bottom: 0.75pt solid currentColor; padding-bottom: 3px; }
@@ -883,7 +956,7 @@
   .dz-schrift-bebas-lato h2.dz-ue { font-size: 1.35em; }
 
   .dz .dz-profil { margin: 0; }
-  .dz .dz-station { margin-bottom: 0.4cm; break-inside: avoid; }
+  .dz .dz-station { margin-bottom: calc(0.4cm * var(--d-gap, 1)); break-inside: avoid; }
   .dz .dz-station .rolle { font-weight: 700; }
   .dz .dz-station .org,
   .dz .dz-station .zeit { color: #555; }
@@ -901,7 +974,7 @@
   .dz-st-zeitleiste .dz-main .dz-station .inhalt {
     position: relative;
     border-left: 1.2pt solid var(--d-akzent-mittel);
-    padding: 0 0 0.4cm 0.5cm;
+    padding: 0 0 calc(0.4cm * var(--d-gap, 1)) 0.5cm;
   }
   .dz-st-zeitleiste .dz-main .dz-station .inhalt::before {
     content: '';
@@ -940,10 +1013,10 @@
   .dz .dz-unterschrift div { width: 5.5cm; border-top: 0.5pt solid #777; padding-top: 3px; font-size: 0.85em; color: #555; }
 
   .dz .dz-brief .absender-zeile { display: inline-block; border-bottom-color: #999; margin-top: 0.2cm; }
-  .dz .dz-brief .anschrift { min-height: 2.6cm; }
-  .dz .dz-brief .datum { margin: 0.3cm 0 0.8cm; }
-  .dz .dz-brief .betreff { font-weight: 700; color: var(--d-akzent); margin-bottom: 0.7cm; }
-  .dz .dz-brief p { margin: 0 0 0.4cm; }
+  .dz .dz-brief .anschrift { min-height: 2.6cm; white-space: pre-line; }
+  .dz .dz-brief .datum { margin: 0.3cm 0 calc(0.8cm * var(--d-gap, 1)); }
+  .dz .dz-brief .betreff { font-weight: 700; color: var(--d-akzent); margin-bottom: calc(0.7cm * var(--d-gap, 1)); }
+  .dz .dz-brief p { margin: 0 0 calc(0.4cm * var(--d-gap, 1)); }
   .dz .dz-brief .signatur-raum { height: 1.5cm; }
 
   @media print {
@@ -1193,6 +1266,7 @@
         <div style="display:flex; gap:8px;">
           <button type="button" id="bulk-publish">Freigeben</button>
           <button type="button" id="bulk-draft">Auf Entwurf setzen</button>
+          <button type="button" id="bulk-archive">Archivieren</button>
           <button type="button" id="bulk-delete" class="danger">Löschen</button>
         </div>
       </div>
@@ -1214,6 +1288,16 @@
       <div class="panel-actions">
         <button class="btn-primary" id="new-job-btn">Stellenanzeige hinzufügen</button>
         <button class="btn-secondary btn-danger-outline" id="delete-job-btn" disabled title="Zuerst links eine Stellenanzeige auswählen">Stellenanzeige löschen</button>
+        <select id="job-status-filter" aria-label="Stellenanzeigen nach Status filtern" style="width:100%;">
+          <option value="aktiv">Alle außer archivierte</option>
+          <option value="alle">Alle, auch archivierte</option>
+          <option value="offen">Offen</option>
+          <option value="beworben">Beworben</option>
+          <option value="gespraech">Im Gespräch</option>
+          <option value="zusage">Zusage</option>
+          <option value="absage">Absage</option>
+          <option value="archiviert">Archiviert</option>
+        </select>
       </div>
       <div id="jobs-list"></div>
     </div>
@@ -1233,6 +1317,7 @@
         </div>
         <label for="dz-quelle">Vorschau mit</label>
         <select id="dz-quelle" style="width:auto; max-width:320px;"></select>
+        <span class="doc-status" id="dz-seiten"></span>
         <span class="design-hint" id="dz-quelle-hinweis" style="margin:0;"></span>
       </div>
       <div id="design-sheet"></div>
@@ -1394,6 +1479,7 @@
           <option value="gestaltet">Gestaltet</option>
           <option value="ats">ATS (schlicht)</option>
         </select>
+        <span class="doc-status" id="doc-seiten" style="margin-left:12px;"></span>
       </div>
       <div style="display:flex; gap:8px;">
         <button class="btn-secondary" id="doc-translate">Ins Englische übersetzen</button>
@@ -1470,6 +1556,16 @@
       <input type="url" id="profile-portfolio" placeholder="https://…">
     </div>
 
+    <h3 class="section-title">Bewerbungsfotos</h3>
+    <p style="font-size:13px; color:var(--color-ink-muted); margin:0 0 10px;">Das Standardfoto erscheint in der gestalteten Fassung, nie in der ATS-Fassung. Die Fotos liegen privat in deinem Konto. Beim Hochladen werden sie auf 1200 Pixel verkleinert, Kameradaten wie der Aufnahmeort werden dabei entfernt.</p>
+    <div class="foto-grid" id="foto-grid"></div>
+    <label for="foto-file" class="btn-secondary foto-upload" id="foto-upload-label">Foto hochladen</label>
+    <input type="file" id="foto-file" accept="image/jpeg,image/png,image/webp" style="display:none;">
+    <div id="foto-progress" style="display:none; margin-top:8px;">
+      <div class="progress-note"><span class="spinner"></span><span>Foto wird hochgeladen …</span></div>
+    </div>
+    <p class="modal-error" id="foto-error"></p>
+
     <p class="modal-error" id="profile-error"></p>
     <div class="modal-footer">
       <button class="btn-danger-text" id="profile-delete">Kontaktdaten löschen</button>
@@ -1477,6 +1573,40 @@
     </div>
   </div>
 </div>
+
+<!-- ========== BAUSTEIN IM DIALOG SCHÄRFEN ========== -->
+<div class="modal-backdrop" id="refine-backdrop">
+  <div class="modal" style="max-width:720px;">
+    <div class="modal-header">
+      <h2>Baustein mit Claude schärfen</h2>
+      <button class="modal-close" id="refine-close" aria-label="Schließen">×</button>
+    </div>
+    <p class="lead">Claude stellt Rückfragen, damit der Baustein konkreter wird. In einen Vorschlag kommt nur, was schon im Baustein steht oder was du selbst sagst.</p>
+    <div class="refine-baustein" id="refine-baustein"></div>
+    <div class="refine-chat" id="refine-chat"></div>
+    <div id="refine-progress" style="display:none;">
+      <div class="progress-note"><span class="spinner"></span><span>Claude denkt nach …</span></div>
+    </div>
+    <p class="modal-error" id="refine-error"></p>
+    <textarea id="refine-input" rows="3" style="resize:vertical;" placeholder="Deine Antwort … (Strg + Enter sendet)"></textarea>
+    <div class="refine-knoepfe">
+      <button type="button" class="btn-secondary" id="refine-mic">Diktieren</button>
+      <span style="flex:1;"></span>
+      <button type="button" class="btn-secondary" id="refine-proposal">Vorschlag erstellen</button>
+      <button type="button" class="btn-primary" id="refine-send">Senden</button>
+    </div>
+  </div>
+</div>
+
+<datalist id="sprach-niveaus">
+  <option value="Muttersprache"></option>
+  <option value="C2 – annähernd muttersprachlich"></option>
+  <option value="C1 – verhandlungssicher"></option>
+  <option value="B2 – fließend"></option>
+  <option value="B1 – gute Kenntnisse"></option>
+  <option value="A2 – Grundkenntnisse"></option>
+  <option value="A1 – Anfänger"></option>
+</datalist>
 
 <script>
 // =========================================================================
@@ -1491,7 +1621,23 @@ const CATEGORIES = [
   { value: 'erfahrung', label: 'Berufserfahrung' },
   { value: 'skill', label: 'Fähigkeiten' },
   { value: 'ausbildung', label: 'Ausbildung' },
-  { value: 'leitbild', label: 'Über mich' }
+  { value: 'leitbild', label: 'Über mich' },
+  { value: 'sprache', label: 'Sprachen' }
+];
+
+// Archiviert: nicht mehr aktuell, aber nicht verloren. Zählt wie ein Entwurf
+// nicht für Abgleich und Bewerbungen und ist in der Liste standardmäßig
+// ausgeblendet. Getrennt von „Entwurf“ (= noch nicht geprüft).
+const STATUS_LABELS = { draft: 'Entwurf', published: 'Freigegeben', archived: 'Archiviert' };
+
+const SPRACH_NIVEAUS = [
+  'Muttersprache',
+  'C2 – annähernd muttersprachlich',
+  'C1 – verhandlungssicher',
+  'B2 – fließend',
+  'B1 – gute Kenntnisse',
+  'A2 – Grundkenntnisse',
+  'A1 – Anfänger'
 ];
 
 // -------------------------------------------------------------------------
@@ -1746,6 +1892,7 @@ function initApp() {
     loadData();
     loadProfile();
     loadSettings();
+    loadPhotos();
   }
 
   // ---- Daten laden ----
@@ -1810,7 +1957,7 @@ function initApp() {
 
     const statusEl = document.getElementById('status-filters');
     statusEl.innerHTML = '';
-    [['draft', 'Entwurf'], ['published', 'Freigegeben']].forEach(([val, label]) => {
+    Object.entries(STATUS_LABELS).forEach(([val, label]) => {
       statusEl.appendChild(filterItem(label, filters.status === val, () => {
         filters.status = filters.status === val ? null : val;
         renderAll();
@@ -1857,6 +2004,8 @@ function initApp() {
     return allGroups.filter(g => {
       if (filters.category && g.category !== filters.category) return false;
       if (filters.status && g.status !== filters.status) return false;
+      // Archiviertes nur zeigen, wenn ausdrücklich danach gefiltert wird.
+      if (!filters.status && g.status === 'archived') return false;
       if (filters.tag && !g.tags.some(t => t.id === filters.tag)) return false;
       if (filters.search) {
         const haystack = ((g.block && g.block.title) || '') + ' ' + ((g.block && g.block.text_content) || '');
@@ -1925,10 +2074,10 @@ function initApp() {
       const row = document.createElement('div');
       row.className = 'row' + (g.id === selectedGroupId ? ' selected' : '');
       const catLabel = CATEGORIES.find(c => c.value === g.category)?.label || g.category;
-      const title = (g.block && g.block.title) || '(ohne Titel)';
+      const title = ((g.block && g.block.title) || '(ohne Titel)') + (g.category === 'sprache' && g.language_level ? ' – ' + g.language_level : '');
       const tagNames = g.tags.map(t => t.name).join(', ');
-      const statusLabel = g.status === 'published' ? 'Freigegeben' : 'Entwurf';
-      const dotColor = g.status === 'published' ? 'var(--color-published)' : 'var(--color-draft)';
+      const statusLabel = STATUS_LABELS[g.status] || 'Entwurf';
+      const dotColor = { published: 'var(--color-published)', archived: 'var(--color-ink-muted)' }[g.status] || 'var(--color-draft)';
       const updated = g.block ? new Date(g.block.updated_at).toLocaleDateString('de-DE') : '';
 
       row.innerHTML = `
@@ -2040,6 +2189,7 @@ function initApp() {
 
   document.getElementById('bulk-publish').addEventListener('click', () => bulkUpdateStatus('published'));
   document.getElementById('bulk-draft').addEventListener('click', () => bulkUpdateStatus('draft'));
+  document.getElementById('bulk-archive').addEventListener('click', () => bulkUpdateStatus('archived'));
 
   document.getElementById('bulk-delete').addEventListener('click', async () => {
     const ids = Array.from(selectedIds);
@@ -2077,16 +2227,27 @@ function initApp() {
     const tags = group?.tags || [];
     const dateFrom = group?.date_from || '';
     const dateTo = group?.date_to || '';
+    const level = group?.language_level || '';
+    const levelOptionen = SPRACH_NIVEAUS.includes(level) || !level ? SPRACH_NIVEAUS : [level].concat(SPRACH_NIVEAUS);
 
     panel.innerHTML = `
       <div class="detail-header">
         <h2>${isNew ? 'Neuer Baustein' : 'Baustein bearbeiten'}</h2>
+        ${!isNew ? '<button type="button" class="btn-secondary" id="f-refine" style="padding:5px 12px; font-size:13px;">Mit Claude schärfen</button>' : ''}
       </div>
 
       <div class="field">
         <label for="f-category">Kategorie</label>
         <select id="f-category">
           ${CATEGORIES.map(c => `<option value="${c.value}" ${c.value === category ? 'selected' : ''}>${c.label}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="field" id="f-level-field" style="${category === 'sprache' ? '' : 'display:none;'}">
+        <label for="f-level">Niveau</label>
+        <select id="f-level">
+          <option value="">— bitte wählen —</option>
+          ${levelOptionen.map(n => `<option value="${escapeAttr(n)}" ${n === level ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
         </select>
       </div>
 
@@ -2128,9 +2289,9 @@ function initApp() {
 
       <div class="field">
         <label>Status</label>
-        <div class="status-toggle">
-          <button type="button" id="f-status-draft" class="${status === 'draft' ? 'active-draft' : ''}">Entwurf</button>
-          <button type="button" id="f-status-published" class="${status === 'published' ? 'active-published' : ''}">Freigegeben</button>
+        <div class="status-toggle" id="f-status-toggle">
+          ${Object.entries(STATUS_LABELS).map(([wert, label]) =>
+            `<button type="button" data-status="${wert}" class="${status === wert ? 'active-' + wert : ''}">${label}</button>`).join('')}
         </div>
       </div>
 
@@ -2148,16 +2309,22 @@ function initApp() {
     let currentStatus = status;
     let currentTags = tags.map(t => ({ id: t.id, name: t.name }));
 
-    document.getElementById('f-status-draft').addEventListener('click', () => {
-      currentStatus = 'draft';
-      document.getElementById('f-status-draft').className = 'active-draft';
-      document.getElementById('f-status-published').className = '';
+    document.querySelectorAll('#f-status-toggle button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentStatus = btn.dataset.status;
+        document.querySelectorAll('#f-status-toggle button').forEach(b => {
+          b.className = b === btn ? 'active-' + b.dataset.status : '';
+        });
+      });
     });
-    document.getElementById('f-status-published').addEventListener('click', () => {
-      currentStatus = 'published';
-      document.getElementById('f-status-published').className = 'active-published';
-      document.getElementById('f-status-draft').className = '';
+
+    document.getElementById('f-category').addEventListener('change', (e) => {
+      document.getElementById('f-level-field').style.display = e.target.value === 'sprache' ? '' : 'none';
     });
+
+    if (!isNew) {
+      document.getElementById('f-refine').addEventListener('click', () => openRefine(group));
+    }
 
     const tagWrap = document.getElementById('tag-wrap');
     tagWrap.addEventListener('click', (e) => {
@@ -2203,6 +2370,7 @@ function initApp() {
         text_content: document.getElementById('f-text').value.trim(),
         date_from: document.getElementById('f-date-from').value.trim(),
         date_to: document.getElementById('f-date-to').value.trim(),
+        language_level: document.getElementById('f-level').value,
         status: currentStatus
       };
 
@@ -2271,6 +2439,7 @@ function initApp() {
         status: payload.status,
         date_from: payload.date_from || null,
         date_to: payload.date_to || null,
+        language_level: payload.category === 'sprache' ? (payload.language_level || null) : null,
         source: source || 'manual'
       })
       .select()
@@ -2306,7 +2475,8 @@ function initApp() {
         category: payload.category,
         status: payload.status,
         date_from: payload.date_from || null,
-        date_to: payload.date_to || null
+        date_to: payload.date_to || null,
+        language_level: payload.category === 'sprache' ? (payload.language_level || null) : null
       })
       .eq('id', groupId);
     if (groupError) throw groupError;
@@ -2492,6 +2662,7 @@ function initApp() {
         tags: Array.isArray(b.tags) ? b.tags : [],
         herkunft: b.herkunft === 'abgeleitet' ? 'abgeleitet' : 'explizit',
         beleg: b.beleg || '',
+        niveau: b.niveau || '',
         von: b.von || '',
         bis: b.bis || '',
         keep: true,
@@ -2590,6 +2761,10 @@ function initApp() {
           <label>Titel</label>
           <input type="text" class="review-title" data-idx="${idx}" value="${escapeAttr(item.title)}">
         </div>
+        ${item.category === 'sprache' ? `<div class="field">
+          <label>Niveau (wie im Lebenslauf angegeben)</label>
+          <input type="text" class="review-niveau" data-idx="${idx}" value="${escapeAttr(item.niveau)}" list="sprach-niveaus">
+        </div>` : ''}
         <div class="field">
           <label>Text</label>
           <textarea class="review-text" data-idx="${idx}">${escapeHtml(item.text)}</textarea>
@@ -2602,6 +2777,10 @@ function initApp() {
       listEl.appendChild(div);
     });
 
+    // Wechselt die Kategorie auf „Sprachen“, braucht die Karte das Niveau-Feld.
+    listEl.querySelectorAll('.review-category').forEach(sel => {
+      sel.addEventListener('change', () => { syncReviewFields(); renderReview(); });
+    });
     listEl.querySelectorAll('.review-keep').forEach(btn => {
       btn.addEventListener('click', () => { syncReviewFields(); reviewItems[btn.dataset.idx].keep = true; renderReview(); });
     });
@@ -2616,6 +2795,7 @@ function initApp() {
     document.querySelectorAll('.review-title').forEach(el => { reviewItems[el.dataset.idx].title = el.value; });
     document.querySelectorAll('.review-text').forEach(el => { reviewItems[el.dataset.idx].text = el.value; });
     document.querySelectorAll('.review-category').forEach(el => { reviewItems[el.dataset.idx].category = el.value; });
+    document.querySelectorAll('.review-niveau').forEach(el => { reviewItems[el.dataset.idx].niveau = el.value; });
     document.querySelectorAll('.review-tags').forEach(el => {
       reviewItems[el.dataset.idx].tags = el.value.split(',').map(t => t.trim()).filter(Boolean);
     });
@@ -2649,6 +2829,7 @@ function initApp() {
             text_content: item.text,
             date_from: item.von,
             date_to: item.bis,
+            language_level: item.niveau,
             status: 'draft'
           },
           item.tags.map(name => ({ id: 'new:' + name, name })),
@@ -2673,6 +2854,19 @@ function initApp() {
   // =======================================================================
   let allJobs = [];
   let selectedJobId = null;
+
+  // Bewerbungsstatus statt reinem Archiv-Häkchen: so entsteht nebenbei ein
+  // Überblick über laufende Bewerbungen.
+  const JOB_STATUS = {
+    offen: 'Offen',
+    beworben: 'Beworben',
+    gespraech: 'Im Gespräch',
+    zusage: 'Zusage',
+    absage: 'Absage',
+    archiviert: 'Archiviert'
+  };
+
+  document.getElementById('job-status-filter').addEventListener('change', renderJobsList);
 
   document.getElementById('tab-pool').addEventListener('click', () => switchView('pool'));
   document.getElementById('tab-jobs').addEventListener('click', () => switchView('jobs'));
@@ -2730,13 +2924,26 @@ function initApp() {
       el.innerHTML = '<p style="font-size:13px; color:var(--color-ink-muted); padding:12px 0;">Noch keine Stellenanzeigen erfasst.</p>';
       return;
     }
+    const filter = document.getElementById('job-status-filter').value;
+    const sichtbar = allJobs.filter(job => {
+      const status = job.application_status || 'offen';
+      if (filter === 'alle') return true;
+      if (filter === 'aktiv') return status !== 'archiviert';
+      return status === filter;
+    });
+    if (sichtbar.length === 0) {
+      el.innerHTML = '<p style="font-size:13px; color:var(--color-ink-muted); padding:12px 0;">Keine Stellenanzeigen mit diesem Status.</p>';
+      return;
+    }
     el.innerHTML = '';
-    allJobs.forEach(job => {
+    sichtbar.forEach(job => {
+      const status = job.application_status || 'offen';
       const row = document.createElement('div');
       row.className = 'job-row' + (job.id === selectedJobId ? ' selected' : '');
       row.innerHTML = `
         <div class="job-title">${escapeHtml(job.job_title || '(ohne Titel)')}</div>
         <div class="job-company">${escapeHtml(job.company || '')}</div>
+        ${status !== 'offen' ? `<span class="status-badge ${status}">${escapeHtml(JOB_STATUS[status] || status)}</span>` : ''}
       `;
       row.addEventListener('click', () => {
         selectedJobId = job.id;
@@ -2765,8 +2972,18 @@ function initApp() {
     const hatAbgleich = treffer.length > 0 || luecken.length > 0;
 
     panel.innerHTML = `
-      <h2 style="font-size:20px; margin-bottom:4px;">${escapeHtml(a.stellentitel || job.job_title || '(ohne Titel)')}</h2>
-      <p style="color:var(--color-ink-muted); margin:0;">${escapeHtml(a.unternehmen || job.company || '')}</p>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px;">
+        <div>
+          <h2 style="font-size:20px; margin-bottom:4px;">${escapeHtml(a.stellentitel || job.job_title || '(ohne Titel)')}</h2>
+          <p style="color:var(--color-ink-muted); margin:0;">${escapeHtml(a.unternehmen || job.company || '')}</p>
+        </div>
+        <div style="flex-shrink:0;">
+          <label for="job-status" style="margin-bottom:2px;">Bewerbungsstatus</label>
+          <select id="job-status" style="width:auto;">
+            ${Object.entries(JOB_STATUS).map(([wert, label]) => `<option value="${wert}" ${(job.application_status || 'offen') === wert ? 'selected' : ''}>${label}</option>`).join('')}
+          </select>
+        </div>
+      </div>
 
       <div class="job-meta">
         <div><span class="meta-label">Branche</span>${escapeHtml(a.branche || '—')}</div>
@@ -2777,6 +2994,7 @@ function initApp() {
 
       <div class="nav-tabs" style="border-bottom:1px solid var(--color-border); margin-bottom:18px;">
         <button type="button" class="job-tab" data-tab="anforderungen">Anforderungen</button>
+        <button type="button" class="job-tab" data-tab="kontakt">Firma &amp; Kontakt</button>
         <button type="button" class="job-tab" data-tab="anschreiben">Anschreiben</button>
         <button type="button" class="job-tab" data-tab="lebenslauf">Lebenslauf</button>
         <button type="button" class="job-tab" data-tab="original">Original</button>
@@ -2825,6 +3043,7 @@ function initApp() {
         }).join('')}
       </div>
 
+      <div class="job-tab-panel" id="job-tab-kontakt">${renderKontaktTab(job)}</div>
       <div class="job-tab-panel" id="job-tab-anschreiben">${renderLetterTab(job, hatAbgleich)}</div>
       <div class="job-tab-panel" id="job-tab-lebenslauf">${renderCvTab(job, hatAbgleich)}</div>
       <div class="job-tab-panel" id="job-tab-original">
@@ -2847,8 +3066,19 @@ function initApp() {
       btn.addEventListener('click', () => openSuggestion(btn.dataset.block, btn.dataset.req, btn.dataset.suggestion));
     });
 
+    document.getElementById('job-status').addEventListener('change', async (e) => {
+      const neu = e.target.value;
+      const { error } = await client.from('job_postings').update({ application_status: neu }).eq('id', job.id);
+      if (error) { alert('Status konnte nicht gespeichert werden: ' + error.message); return; }
+      job.application_status = neu;
+      renderJobsList();
+    });
+
+    wireKontaktTab(job);
     wireLetterTab(job);
     wireCvTab(job);
+    ladeVersionen(job, 'cover_letter');
+    ladeVersionen(job, 'cv_document');
   }
 
   function showJobTab(panel) {
@@ -2907,6 +3137,277 @@ function initApp() {
       progressEl.style.display = 'none';
       errorEl.textContent = err.message || 'Der Abgleich ist fehlgeschlagen.';
       errorEl.style.display = 'block';
+    }
+  }
+
+  // =======================================================================
+  // FIRMA & KONTAKT (Anschrift, Ansprechpartner, Farben und Werte)
+  // =======================================================================
+  const KONTAKT_FELDER = ['firma', 'abteilung', 'strasse', 'plz', 'ort', 'land'];
+  const PERSON_FELDER = ['anrede', 'titel', 'vorname', 'nachname', 'position', 'email', 'telefon'];
+  const istHexFarbe = wert => /^#[0-9a-f]{6}$/i.test(wert || '');
+
+  function normalisiereKontakt(roh) {
+    const r = roh && typeof roh === 'object' ? roh : {};
+    const p = r.ansprechpartner && typeof r.ansprechpartner === 'object' ? r.ansprechpartner : {};
+    const text = v => (typeof v === 'string' ? v.trim() : '');
+    const kontakt = { ansprechpartner: {} };
+    KONTAKT_FELDER.forEach(f => { kontakt[f] = text(r[f]); });
+    PERSON_FELDER.forEach(f => { kontakt.ansprechpartner[f] = text(p[f]); });
+    if (!['Frau', 'Herr'].includes(kontakt.ansprechpartner.anrede)) kontakt.ansprechpartner.anrede = '';
+    return kontakt;
+  }
+
+  // „Frau Dr. Anna Muster“ — für Anschriftfeld und Anrede. Ältere Anzeigen
+  // ohne ausgelesenen Kontakt haben nur den Namen aus der Analyse.
+  function ansprechpartnerText(job) {
+    const p = (job.contact && job.contact.ansprechpartner) || {};
+    const name = [p.titel, p.vorname, p.nachname].filter(Boolean).join(' ');
+    if (name) return [p.anrede, name].filter(Boolean).join(' ');
+    return (job.analysis && job.analysis.ansprechpartner) || '';
+  }
+
+  // Anschriftfeld nach DIN 5008: Firma, Abteilung, Person, Straße, PLZ Ort, Land.
+  function anschriftZeilen(job) {
+    const a = job.analysis || {};
+    const c = job.contact || {};
+    const p = c.ansprechpartner || {};
+    const mitKontakt = [p.titel, p.vorname, p.nachname].some(Boolean);
+    const person = mitKontakt
+      ? ansprechpartnerText(job)
+      : (a.ansprechpartner ? 'z. Hd. ' + a.ansprechpartner : '');
+    return [
+      c.firma || a.unternehmen || job.company || '',
+      c.abteilung || '',
+      person,
+      c.strasse || '',
+      [c.plz, c.ort].filter(Boolean).join(' '),
+      c.land && !/^(deutschland|germany)$/i.test(c.land) ? c.land.toUpperCase() : ''
+    ].filter(Boolean).join('\n');
+  }
+
+  function renderKontaktTab(job) {
+    const c = normalisiereKontakt(job.contact || { firma: (job.analysis || {}).unternehmen || job.company || '' });
+    const p = c.ansprechpartner;
+    const cp = job.company_profile || {};
+    const feld = (id, label, wert, klasse, typ) => `
+      <div class="field ${klasse || ''}">
+        <label for="ct-${id}">${label}</label>
+        <input type="${typ || 'text'}" id="ct-${id}" value="${escapeAttr(wert || '')}">
+      </div>`;
+    const hinweis = text => `<p style="font-size:13px; color:var(--color-ink-muted); margin:0 0 12px;">${text}</p>`;
+
+    return `
+      <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+        <button class="btn-primary" id="ct-save">Speichern</button>
+        <button class="btn-secondary" id="ct-read">Aus Stellenanzeige auslesen</button>
+        <span class="doc-status" id="ct-status"></span>
+      </div>
+      <p class="modal-error" id="ct-error"></p>
+
+      <h3 class="section-title">Anschrift</h3>
+      ${hinweis('Für das Anschriftfeld des Anschreibens. Steht in der Stellenanzeige keine Anschrift, trag sie von Hand ein — zum Beispiel aus dem Impressum der Firmenseite.')}
+      <div class="form-grid">
+        ${feld('firma', 'Firma', c.firma, 'breit')}
+        ${feld('abteilung', 'Abteilung', c.abteilung, 'breit')}
+        ${feld('strasse', 'Straße und Hausnummer', c.strasse, 'breit')}
+        ${feld('plz', 'PLZ', c.plz)}
+        ${feld('ort', 'Ort', c.ort)}
+        ${feld('land', 'Land (nur außerhalb Deutschlands)', c.land, 'breit')}
+      </div>
+
+      <h3 class="section-title">Ansprechpartner</h3>
+      <div class="form-grid">
+        <div class="field">
+          <label for="ct-anrede">Anrede</label>
+          <select id="ct-anrede">
+            <option value="">— keine —</option>
+            <option value="Frau" ${p.anrede === 'Frau' ? 'selected' : ''}>Frau</option>
+            <option value="Herr" ${p.anrede === 'Herr' ? 'selected' : ''}>Herr</option>
+          </select>
+        </div>
+        ${feld('titel', 'Titel (z. B. Dr.)', p.titel)}
+        ${feld('vorname', 'Vorname', p.vorname)}
+        ${feld('nachname', 'Nachname', p.nachname)}
+        ${feld('position', 'Position', p.position, 'breit')}
+        ${feld('email', 'E-Mail', p.email, '', 'email')}
+        ${feld('telefon', 'Telefon', p.telefon)}
+      </div>
+      ${hinweis('Mit Anrede beginnt das Anschreiben mit „Sehr geehrte Frau …“ bzw. „Sehr geehrter Herr …“, ohne Anrede mit „Guten Tag Vorname Nachname“. Das Geschlecht wird nie aus dem Vornamen geraten.')}
+
+      <h3 class="section-title">Farben und Werte des Unternehmens</h3>
+      ${hinweis('Von der Unternehmensseite, am besten die Karriere- oder Über-uns-Seite. Die Farbe kann in der gestalteten Fassung die Akzentfarbe ersetzen, die Werte nutzt die Gliederung des Anschreibens für den Einstieg.')}
+      <div style="display:flex; gap:8px; align-items:flex-end;">
+        <div class="field" style="flex:1; margin-bottom:12px;">
+          <label for="ct-url">Adresse der Unternehmensseite</label>
+          <input type="url" id="ct-url" value="${escapeAttr(cp.url || '')}" placeholder="https://…">
+        </div>
+        <button class="btn-secondary" id="ct-company-read" style="margin-bottom:12px; white-space:nowrap;">Farben und Werte abrufen</button>
+      </div>
+      <div id="ct-company-progress" style="display:none;">
+        <div class="progress-note"><span class="spinner"></span><span>Seite wird gelesen …</span></div>
+      </div>
+      <label>Firmenfarbe</label>
+      <div class="farb-wahl" id="ct-farben"></div>
+      <label style="display:flex; align-items:center; gap:8px; color:var(--color-ink); font-size:14px;">
+        <input type="checkbox" id="ct-farbe-verwenden" style="width:auto;" ${cp.farbe_verwenden ? 'checked' : ''}>
+        Firmenfarbe als Akzentfarbe in der gestalteten Fassung verwenden
+      </label>
+      <div class="field" style="margin-top:14px;">
+        <label for="ct-werte">Werte und Leitsätze (eine Zeile je Punkt)</label>
+        <textarea id="ct-werte" style="min-height:90px; resize:vertical;">${escapeHtml((cp.werte || []).join('\n'))}</textarea>
+      </div>
+      <div class="field">
+        <label for="ct-kurz">Kurzbeschreibung des Unternehmens</label>
+        <input type="text" id="ct-kurz" value="${escapeAttr(cp.kurzbeschreibung || '')}">
+      </div>
+    `;
+  }
+
+  function wireKontaktTab(job) {
+    if (!document.getElementById('ct-save')) return;
+    const cp = job.company_profile || {};
+    const farbState = {
+      farben: (Array.isArray(cp.farben) ? cp.farben : []).filter(istHexFarbe),
+      farbe: istHexFarbe(cp.farbe) ? cp.farbe : ''
+    };
+    const statusEl = document.getElementById('ct-status');
+    const errorEl = document.getElementById('ct-error');
+    const wert = id => document.getElementById('ct-' + id).value.trim();
+
+    function renderFarben() {
+      const el = document.getElementById('ct-farben');
+      el.innerHTML = farbState.farben.map(f =>
+        `<button type="button" data-farbe="${f}" class="${f === farbState.farbe ? 'active' : ''}" style="background:${f};" title="${f}"></button>`).join('') +
+        `<input type="color" id="ct-farbe-hand" value="${farbState.farbe || '#2B6777'}" title="Farbe von Hand wählen">` +
+        `<span style="font-size:13px; color:var(--color-ink-muted);">${farbState.farbe ? 'Gewählt: ' + farbState.farbe : 'Noch keine Farbe gewählt'}</span>`;
+      el.querySelectorAll('[data-farbe]').forEach(btn => {
+        btn.addEventListener('click', () => { farbState.farbe = btn.dataset.farbe; renderFarben(); });
+      });
+      document.getElementById('ct-farbe-hand').addEventListener('change', (e) => {
+        farbState.farbe = e.target.value.toUpperCase();
+        renderFarben();
+      });
+    }
+    renderFarben();
+
+    document.getElementById('ct-save').addEventListener('click', async () => {
+      errorEl.style.display = 'none';
+      const contact = normalisiereKontakt({
+        ...Object.fromEntries(KONTAKT_FELDER.map(f => [f, wert(f)])),
+        ansprechpartner: Object.fromEntries(PERSON_FELDER.map(f => [f, wert(f)]))
+      });
+      const company_profile = {
+        url: wert('url'),
+        farben: farbState.farben,
+        farbe: farbState.farbe,
+        farbe_verwenden: document.getElementById('ct-farbe-verwenden').checked && istHexFarbe(farbState.farbe),
+        werte: document.getElementById('ct-werte').value.split('\n').map(z => z.trim()).filter(Boolean),
+        kurzbeschreibung: wert('kurz')
+      };
+      const { error } = await client.from('job_postings').update({ contact, company_profile }).eq('id', job.id);
+      if (error) {
+        errorEl.textContent = 'Speichern fehlgeschlagen: ' + error.message;
+        errorEl.style.display = 'block';
+        return;
+      }
+      job.contact = contact;
+      job.company_profile = company_profile;
+      const inListe = allJobs.find(j => j.id === job.id);
+      if (inListe && inListe !== job) { inListe.contact = contact; inListe.company_profile = company_profile; }
+      statusEl.textContent = 'Gespeichert.';
+    });
+
+    document.getElementById('ct-read').addEventListener('click', () => leseKontaktAus(job, false));
+
+    document.getElementById('ct-company-read').addEventListener('click', async () => {
+      const url = wert('url');
+      errorEl.style.display = 'none';
+      if (!url) {
+        errorEl.textContent = 'Bitte zuerst die Adresse der Unternehmensseite eintragen.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      const progress = document.getElementById('ct-company-progress');
+      progress.style.display = 'block';
+      try {
+        const ergebnis = await callClaude({ task: 'company_profile', url });
+        farbState.farben = (Array.isArray(ergebnis.farben) ? ergebnis.farben : []).filter(istHexFarbe);
+        if (!farbState.farbe && farbState.farben[0]) farbState.farbe = farbState.farben[0];
+        renderFarben();
+        const werteEl = document.getElementById('ct-werte');
+        const werte = Array.isArray(ergebnis.werte) ? ergebnis.werte.filter(w => typeof w === 'string') : [];
+        if (!werteEl.value.trim() && werte.length) werteEl.value = werte.join('\n');
+        const kurzEl = document.getElementById('ct-kurz');
+        if (!kurzEl.value.trim() && ergebnis.kurzbeschreibung) kurzEl.value = ergebnis.kurzbeschreibung;
+        statusEl.textContent = (ergebnis.hinweis ? ergebnis.hinweis + ' ' : '') +
+          (farbState.farben.length ? farbState.farben.length + ' Farben gefunden. ' : 'Keine Farben im Quelltext gefunden — bitte von Hand wählen. ') +
+          'Bitte prüfen und speichern.';
+      } catch (err) {
+        errorEl.textContent = err.message || 'Die Seite konnte nicht gelesen werden.';
+        errorEl.style.display = 'block';
+      } finally {
+        progress.style.display = 'none';
+      }
+    });
+  }
+
+  async function leseKontaktAus(job, automatisch) {
+    const btn = document.getElementById('ct-read');
+    const statusEl = document.getElementById('ct-status');
+    const errorEl = document.getElementById('ct-error');
+    if (!job.raw_text) {
+      if (!automatisch && errorEl) {
+        errorEl.textContent = 'Zu dieser Stellenanzeige ist kein Originaltext gespeichert.';
+        errorEl.style.display = 'block';
+      }
+      return;
+    }
+    if (!automatisch) {
+      btn.disabled = true;
+      errorEl.style.display = 'none';
+      statusEl.textContent = 'Wird ausgelesen …';
+    }
+    try {
+      const kontakt = normalisiereKontakt(await callClaude({ task: 'job_contact', text: job.raw_text }));
+
+      if (automatisch) {
+        if (job.contact) return;
+        const { error } = await client.from('job_postings').update({ contact: kontakt }).eq('id', job.id);
+        if (error) throw error;
+        job.contact = kontakt;
+        const inListe = allJobs.find(j => j.id === job.id);
+        if (inListe && inListe !== job) inListe.contact = kontakt;
+        const panel = document.getElementById('job-tab-kontakt');
+        if (panel && selectedJobId === job.id) {
+          panel.innerHTML = renderKontaktTab(job);
+          wireKontaktTab(job);
+        }
+        return;
+      }
+
+      // Von Hand ausgelöst: nur leere Felder füllen, nichts überschreiben —
+      // gespeichert wird erst mit „Speichern“.
+      let ergaenzt = 0;
+      const fuellen = (id, neu) => {
+        const el = document.getElementById('ct-' + id);
+        if (el && !el.value.trim() && neu) { el.value = neu; ergaenzt++; }
+      };
+      KONTAKT_FELDER.forEach(f => fuellen(f, kontakt[f]));
+      PERSON_FELDER.forEach(f => fuellen(f, kontakt.ansprechpartner[f]));
+      statusEl.textContent = ergaenzt
+        ? (ergaenzt === 1 ? '1 Feld' : ergaenzt + ' Felder') + ' ergänzt — bitte prüfen und speichern.'
+        : 'Keine weiteren Angaben in der Stellenanzeige gefunden.';
+    } catch (err) {
+      if (automatisch) {
+        console.warn('Kontaktdaten der Stellenanzeige übersprungen:', err);
+      } else {
+        statusEl.textContent = '';
+        errorEl.textContent = err.message || 'Das Auslesen ist fehlgeschlagen.';
+        errorEl.style.display = 'block';
+      }
+    } finally {
+      if (!automatisch && btn) btn.disabled = false;
     }
   }
 
@@ -3042,6 +3543,9 @@ function initApp() {
       selectedJobId = data.id;
       await loadJobs();
       renderJobDetail(data);
+      // Anschrift und Ansprechpartner im Hintergrund nachlesen — ein eigener
+      // Schritt, damit die Anforderungen dafür nicht neu extrahiert werden.
+      leseKontaktAus(data, true);
 
     } catch (err) {
       zeigeFehler(err.message || 'Die Analyse ist fehlgeschlagen.');
@@ -3066,6 +3570,7 @@ function initApp() {
           : (g.block.text_content || ''),
         von: g.date_from || '',
         bis: g.date_to || '',
+        ...(g.category === 'sprache' ? { niveau: g.language_level || '' } : {}),
         tags: g.tags.map(t => t.name)
       }));
   }
@@ -3078,8 +3583,102 @@ function initApp() {
       branche: a.branche || '',
       tonalitaet: a.tonalitaet || '',
       sprache: a.sprache || job.language || 'de',
-      ansprechpartner: a.ansprechpartner || ''
+      ansprechpartner: ansprechpartnerText(job),
+      werte: (job.company_profile && job.company_profile.werte) || [],
+      unternehmensbeschreibung: (job.company_profile && job.company_profile.kurzbeschreibung) || ''
     };
+  }
+
+  // „ansehen und drucken“ je vorhandener Sprachfassung — die englische
+  // Fassung soll nicht erst im Vorschaufenster zu finden sein.
+  function docOeffnenKnoepfe(job, kind) {
+    if (!job[kind]) return '';
+    const label = kind === 'cover_letter' ? 'Anschreiben' : 'Lebenslauf';
+    const englisch = job.translations && job.translations.en && job.translations.en[kind];
+    return `<button class="btn-secondary doc-open" data-kind="${kind}" data-lang="de">${englisch ? 'Deutsch' : label} ansehen und drucken</button>` +
+      (englisch ? `<button class="btn-secondary doc-open" data-kind="${kind}" data-lang="en">Englisch ansehen und drucken</button>` : '');
+  }
+
+  function wireDocOeffnen(job, container) {
+    if (!container) return;
+    container.querySelectorAll('.doc-open').forEach(btn => {
+      btn.addEventListener('click', () => openDoc(job, btn.dataset.kind, btn.dataset.lang));
+    });
+  }
+
+  // ---- Frühere Fassungen ----
+  async function sichereVersion(job, kind) {
+    if (!job[kind]) return;
+    const { error } = await client.from('document_versions').insert({
+      job_id: job.id,
+      kind,
+      data: job[kind],
+      fact_check: (job.fact_check || {})[kind] || null
+    });
+    if (error) throw error;
+  }
+
+  async function ladeVersionen(job, kind) {
+    const el = document.getElementById('versionen-' + kind);
+    if (!el) return;
+    const { data, error } = await client
+      .from('document_versions')
+      .select('id, data, fact_check, created_at')
+      .eq('job_id', job.id)
+      .eq('kind', kind)
+      .order('created_at', { ascending: false });
+    if (error || !data || data.length === 0) { el.innerHTML = ''; return; }
+    // Die Ansicht könnte inzwischen eine andere Anzeige zeigen.
+    if (selectedJobId !== job.id) return;
+
+    el.innerHTML = `
+      <details class="versionen-box">
+        <summary>Frühere Fassungen (${data.length})</summary>
+        ${data.map(v => {
+          const d = v.data || {};
+          const auszug = kind === 'cover_letter'
+            ? [d.betreff, d.absaetze && d.absaetze[0] && d.absaetze[0].text].filter(Boolean).join(' — ')
+            : d.kurzprofil || '';
+          const datum = new Date(v.created_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+          return `
+            <div class="version-zeile">
+              <span class="datum">${datum}</span>
+              <span class="auszug" title="${escapeAttr(auszug)}">${escapeHtml(auszug)}</span>
+              <button type="button" class="btn-secondary version-restore" data-id="${v.id}">Wiederherstellen</button>
+              <button type="button" class="btn-danger-text version-delete" data-id="${v.id}">Löschen</button>
+            </div>`;
+        }).join('')}
+        <p style="font-size:12px; color:var(--color-ink-muted); margin:8px 0 0;">Beim Neu-Generieren landet die bisherige Fassung automatisch hier. Übersetzungen werden nicht mitversioniert.</p>
+      </details>`;
+
+    el.querySelectorAll('.version-restore').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const version = data.find(v => v.id === btn.dataset.id);
+        if (!confirm('Diese frühere Fassung wiederherstellen? Die aktuelle Fassung wird dafür unter „Frühere Fassungen“ abgelegt.')) return;
+        try {
+          await sichereVersion(job, kind);
+          const fc = JSON.parse(JSON.stringify(job.fact_check || {}));
+          if (version.fact_check) fc[kind] = version.fact_check; else delete fc[kind];
+          const { error: upErr } = await client.from('job_postings').update({ [kind]: version.data, fact_check: fc }).eq('id', job.id);
+          if (upErr) throw upErr;
+          await client.from('document_versions').delete().eq('id', version.id);
+          job[kind] = version.data;
+          job.fact_check = fc;
+          if (kind === 'cover_letter') outlineDraftJobId = null;
+          renderJobDetail(job);
+        } catch (err) {
+          alert('Wiederherstellen fehlgeschlagen: ' + err.message);
+        }
+      });
+    });
+    el.querySelectorAll('.version-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Diese frühere Fassung endgültig löschen?')) return;
+        const { error: delErr } = await client.from('document_versions').delete().eq('id', btn.dataset.id);
+        if (delErr) { alert('Löschen fehlgeschlagen: ' + delErr.message); return; }
+        ladeVersionen(job, kind);
+      });
+    });
   }
 
   function bausteinTitel(id) {
@@ -3103,16 +3702,19 @@ function initApp() {
       outlineDraftJobId = job.id;
     }
 
+    const aktive = outlineDraft ? outlineDraft.argumente.filter(x => x.aktiv).length : 0;
     return `
       <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
-        <button class="btn-primary" id="run-outline">${outlineDraft ? 'Gliederung neu generieren' : 'Gliederung generieren'}</button>
-        ${job.cover_letter ? '<button class="btn-secondary" id="open-letter">Anschreiben ansehen und drucken</button>' : ''}
+        <button class="${outlineDraft ? 'btn-secondary' : 'btn-primary'}" id="run-outline">${outlineDraft ? 'Gliederung neu generieren' : 'Gliederung generieren'}</button>
+        ${outlineDraft ? `<button class="btn-primary" id="run-draft" ${aktive === 0 ? 'disabled' : ''}>${job.cover_letter ? 'Anschreiben neu generieren' : 'Anschreiben generieren'}</button>` : ''}
+        ${docOeffnenKnoepfe(job, 'cover_letter')}
       </div>
       <p class="modal-error" id="letter-error"></p>
       <div id="letter-progress" style="display:none;">
         <div class="progress-note"><span class="spinner"></span><span id="letter-progress-text">Gliederung wird generiert …</span></div>
       </div>
       <div id="outline-box">${outlineDraft ? renderOutline() : '<p style="color:var(--color-ink-muted); font-size:14px;">Claude wählt aus den Treffern die stärksten Argumente aus. Du prüfst sie, bevor der Text entsteht.</p>'}</div>
+      <div id="versionen-cover_letter"></div>
     `;
   }
 
@@ -3170,10 +3772,7 @@ function initApp() {
         <textarea id="outline-schluss" style="min-height:60px; resize:vertical;">${escapeHtml(outlineDraft.schluss)}</textarea>
       </div>
 
-      <div style="display:flex; align-items:center; gap:12px;">
-        <button class="btn-primary" id="run-draft" ${aktive === 0 ? 'disabled' : ''}>Anschreiben generieren</button>
-        <span class="doc-status">${aktive} von ${outlineDraft.argumente.length} Argumenten aktiv</span>
-      </div>
+      <span class="doc-status">${aktive} von ${outlineDraft.argumente.length} Argumenten aktiv — der Text entsteht über „Anschreiben generieren“ oben.</span>
     `;
   }
 
@@ -3212,16 +3811,27 @@ function initApp() {
       });
     });
 
+    // Der Knopf steht oben im Reiter; er ist nur aktiv, solange mindestens
+    // ein Argument ausgewählt ist.
     const draftBtn = document.getElementById('run-draft');
-    if (draftBtn) draftBtn.addEventListener('click', () => runDraft(job));
+    if (draftBtn) draftBtn.disabled = outlineDraft.argumente.filter(x => x.aktiv).length === 0;
   }
 
   function wireLetterTab(job) {
     const outlineBtn = document.getElementById('run-outline');
     if (outlineBtn) outlineBtn.addEventListener('click', () => runOutline(job));
-    const openBtn = document.getElementById('open-letter');
-    if (openBtn) openBtn.addEventListener('click', () => openDoc(job, 'cover_letter'));
+    const draftBtn = document.getElementById('run-draft');
+    if (draftBtn) draftBtn.addEventListener('click', () => runDraft(job));
+    wireDocOeffnen(job, document.getElementById('job-tab-anschreiben'));
     wireOutline(job);
+  }
+
+  function neuZeichnenLetterTab(job) {
+    const panel = document.getElementById('job-tab-anschreiben');
+    if (!panel) return;
+    panel.innerHTML = renderLetterTab(job, true);
+    wireLetterTab(job);
+    ladeVersionen(job, 'cover_letter');
   }
 
   function letterBusy(an, text) {
@@ -3265,8 +3875,9 @@ function initApp() {
 
       job.cover_letter_outline = ergebnis;
       outlineDraft = normalizeOutline(ergebnis);
-      document.getElementById('outline-box').innerHTML = renderOutline();
-      wireOutline(job);
+      outlineDraftJobId = job.id;
+      // Ganzer Reiter neu, damit „Anschreiben generieren“ oben erscheint.
+      neuZeichnenLetterTab(job);
     } catch (err) {
       letterError(err.message || 'Die Gliederung konnte nicht erstellt werden.');
     } finally {
@@ -3293,7 +3904,9 @@ function initApp() {
         bausteine: publishedBausteine()
       });
 
-      // Die alte Prüfung gehört zum alten Text und wird mit ihm verworfen.
+      // Die bisherige Fassung nicht überschreiben, sondern ablegen.
+      await sichereVersion(job, 'cover_letter');
+      // Die alte Prüfung gehört zum alten Text und wandert mit ihm in die Version.
       const fc = ohnePruefung(job, 'cover_letter');
       const { error } = await client
         .from('job_postings')
@@ -3323,9 +3936,10 @@ function initApp() {
     }
     const cv = job.cv_document;
     return `
-      <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+      <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
         <button class="btn-primary" id="run-cv">${cv ? 'Lebenslauf neu generieren' : 'Lebenslauf generieren'}</button>
-        ${cv ? '<button class="btn-secondary" id="open-cv">Lebenslauf ansehen und drucken</button>' : ''}
+        ${docOeffnenKnoepfe(job, 'cv_document')}
+        <span class="doc-status">Ziel: höchstens ${ladeDesign().zielSeitenCv} ${ladeDesign().zielSeitenCv === '1' ? 'Seite' : 'Seiten'} (einstellbar im Reiter „Design“)</span>
       </div>
       <p class="modal-error" id="cv-error"></p>
       <div id="cv-progress" style="display:none;">
@@ -3337,14 +3951,14 @@ function initApp() {
            <ul style="font-size:14px; padding-left:1.2em;">${(cv.abschnitte || []).map(s =>
              `<li>${escapeHtml(s.titel || '')} — ${(s.eintraege || []).length} Einträge</li>`).join('')}</ul>`
         : '<p style="color:var(--color-ink-muted); font-size:14px;">Claude wählt aus deinen freigegebenen Bausteinen aus, was für diese Stelle zählt, und ordnet es ATS-sicher an — einspaltig, ohne Tabellen und Grafiken.</p>'}
+      <div id="versionen-cv_document"></div>
     `;
   }
 
   function wireCvTab(job) {
     const runBtn = document.getElementById('run-cv');
     if (runBtn) runBtn.addEventListener('click', () => runCvTailor(job));
-    const openBtn = document.getElementById('open-cv');
-    if (openBtn) openBtn.addEventListener('click', () => openDoc(job, 'cv_document'));
+    wireDocOeffnen(job, document.getElementById('job-tab-lebenslauf'));
   }
 
   async function runCvTailor(job) {
@@ -3364,9 +3978,11 @@ function initApp() {
         stelle: stelleKontext(job),
         anforderungen: (job.analysis && job.analysis.anforderungen) || [],
         treffer: (job.matching && job.matching.treffer) || [],
-        bausteine
+        bausteine,
+        zielseiten: Number(ladeDesign().zielSeitenCv)
       });
 
+      await sichereVersion(job, 'cv_document');
       const fc = ohnePruefung(job, 'cv_document');
       const { error } = await client
         .from('job_postings')
@@ -3427,6 +4043,14 @@ function initApp() {
     renderDocSheet();
     renderFactCheck();
     docBackdrop.classList.add('open');
+
+    // Fotolinks gelten eine Stunde. Frisch holen, damit Vorschau und Druck
+    // nicht an einem abgelaufenen Link scheitern.
+    const state = docState;
+    const vorher = standardFotoUrl;
+    loadPhotos().then(() => {
+      if (docState === state && state.fassung === 'gestaltet' && standardFotoUrl !== vorher) renderDocSheet();
+    });
   }
 
   // ---- Faktenprüfung ----
@@ -3616,15 +4240,20 @@ function initApp() {
 
   function renderDocSheet() {
     const sheet = document.getElementById('doc-sheet');
+    const design = ladeDesign();
     if (docState.fassung === 'gestaltet') {
       ladeDesignSchriften();
+      // Firmenfarbe aus „Firma & Kontakt“ ersetzt auf Wunsch die Akzentfarbe.
+      const cp = docState.job.company_profile;
+      if (cp && cp.farbe_verwenden && istHexFarbe(cp.farbe)) design.akzent = cp.farbe;
       const ctx = {
-        design: ladeDesign(),
+        design,
         daten: docState.data,
         profil: currentProfile,
         job: docState.job,
         stellentitel: stelleKontext(docState.job).stellentitel,
         lang: docState.lang,
+        fotoUrl: standardFotoUrl,
         text: mitMarken,
         editierbar: true
       };
@@ -3633,8 +4262,30 @@ function initApp() {
       sheet.innerHTML = docState.kind === 'cover_letter' ? letterSheetHtml() : cvSheetHtml();
     }
 
+    let einpassTimer = null;
     sheet.querySelectorAll('[data-path]').forEach(el => {
-      el.addEventListener('input', () => setByPath(docState.data, el.dataset.path, el.textContent.trim()));
+      el.addEventListener('input', () => {
+        setByPath(docState.data, el.dataset.path, el.textContent.trim());
+        // Nach dem Tippen die Seitenzahl neu prüfen, ohne das Blatt neu zu zeichnen.
+        clearTimeout(einpassTimer);
+        einpassTimer = setTimeout(docSeitenPruefen, 600);
+      });
+    });
+    docSeitenPruefen();
+  }
+
+  function docSeitenPruefen() {
+    const state = docState;
+    // Erst messen, wenn die Schriften geladen sind — sonst stimmen die Höhen nicht.
+    document.fonts.ready.then(() => {
+      const blatt = document.querySelector('#doc-sheet .sheet');
+      const info = document.getElementById('doc-seiten');
+      if (!blatt || !info || docState !== state) return;
+      const design = ladeDesign();
+      const ziel = state.kind === 'cover_letter' ? 1 : Number(design.zielSeitenCv) || 2;
+      const ergebnis = seitenText(passeBlattAn(blatt, design, ziel), ziel, state.kind);
+      info.textContent = ergebnis.text;
+      info.classList.toggle('warn', ergebnis.warn);
     });
   }
 
@@ -3655,8 +4306,7 @@ function initApp() {
     const p = profilZeilen();
     const heute = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const absender = [p.name, p.strasse, p.ort].filter(Boolean).join(' · ');
-    const empfaenger = [a.unternehmen || job.company || '', a.ansprechpartner ? 'z. Hd. ' + a.ansprechpartner : '']
-      .filter(Boolean).join('\n');
+    const empfaenger = anschriftZeilen(job);
 
     return `
       <div class="sheet">
@@ -3831,7 +4481,8 @@ function initApp() {
     ueberschrift: [['unterstrichen', 'Kurz unterstrichen'], ['linie', 'Linie über die ganze Breite'], ['balken', 'Farbbalken links'], ['flaeche', 'Farbfläche'], ['versal', 'Großbuchstaben, gesperrt'], ['schlicht', 'Nur fett']],
     stationen: [['datum-links', 'Zeitraum links als Spalte'], ['datum-rechts', 'Zeitraum rechts neben der Rolle'], ['zeitleiste', 'Zeitleiste mit Punkten']],
     listen: [['zweispaltig', 'Aufzählung, zweispaltig'], ['aufzaehlung', 'Aufzählung'], ['tags', 'Schlagwort-Kacheln'], ['zeile', 'Fließtext mit Trennpunkten']],
-    dichte: [['kompakt', 'Kompakt (10 pt)'], ['normal', 'Normal (10,5 pt)'], ['luftig', 'Luftig (11 pt)']]
+    dichte: [['kompakt', 'Kompakt (10 pt)'], ['normal', 'Normal (10,5 pt)'], ['luftig', 'Luftig (11 pt)']],
+    zielSeitenCv: [['1', 'Höchstens 1 Seite'], ['2', 'Höchstens 2 Seiten'], ['3', 'Höchstens 3 Seiten']]
   };
 
   const DESIGN_BASIS = {
@@ -3854,7 +4505,9 @@ function initApp() {
     dichte: 'normal',
     rahmen: false,
     unterschrift: false,
-    briefLeiste: true
+    briefLeiste: true,
+    zielSeitenCv: '2',
+    seitenAnpassen: true
   };
 
   // Startpunkte, abgeleitet aus den häufigsten Vorlagen-Typen.
@@ -3937,7 +4590,7 @@ function initApp() {
     ['akzent', 'leisteFarbe'].forEach(key => {
       if (/^#[0-9a-f]{6}$/i.test(r[key] || '')) g[key] = r[key];
     });
-    ['titelzeile', 'dokumenttitel', 'rahmen', 'unterschrift', 'briefLeiste'].forEach(key => {
+    ['titelzeile', 'dokumenttitel', 'rahmen', 'unterschrift', 'briefLeiste', 'seitenAnpassen'].forEach(key => {
       if (typeof r[key] === 'boolean') g[key] = r[key];
     });
     if (r.leiste && typeof r.leiste === 'object') {
@@ -4129,9 +4782,72 @@ function initApp() {
     return `<section class="dz-abschnitt"><h2 class="dz-ue">${escapeHtml(titel)}</h2>${inhalt}</section>`;
   }
 
-  function dzFoto(g, name) {
+  function dzFoto(g, name, url) {
+    if (url) return `<div class="dz-foto ${g.foto}"><img src="${escapeAttr(url)}" alt=""></div>`;
     const initialen = name.split(/\s+/).filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
-    return `<div class="dz-foto ${g.foto}" title="Platzhalter — der Foto-Upload folgt">${escapeHtml(initialen)}</div>`;
+    return `<div class="dz-foto ${g.foto}" title="Platzhalter — Fotos lädst du unter „Kontaktdaten“ hoch">${escapeHtml(initialen)}</div>`;
+  }
+
+  // ---- Einpassen auf eine Zielseitenzahl (Punkt 11) ----
+  // Stufenweise enger setzen: erst Abstände und Zeilenhöhe, dann die Schrift
+  // auf 10 pt. Kleiner nie — was dann nicht passt, muss inhaltlich kürzer.
+  const FIT_STUFEN = [
+    { gap: 1, lh: 1, rand: 1 },
+    { gap: 0.85, lh: 0.97, rand: 1 },
+    { gap: 0.7, lh: 0.94, rand: 0.9 },
+    { gap: 0.6, lh: 0.92, rand: 0.85, size: '10pt' },
+    { gap: 0.5, lh: 0.9, rand: 0.8, size: '10pt' }
+  ];
+
+  // Seitenzahl am Bildschirm schätzen. Die Vergleichshöhe wird im Blatt selbst
+  // gemessen, damit ein Zoom der Vorschau die Rechnung nicht verfälscht.
+  // seiteCm: nutzbare Höhe je Seite, randCm: Innenabstand des Blatts am
+  // Bildschirm, der im Druck durch den Seitenrand ersetzt wird.
+  function seitenAnzahl(blatt, seiteCm, randCm) {
+    const probe = document.createElement('div');
+    probe.style.cssText = `position:absolute; visibility:hidden; width:1px; height:${seiteCm}cm; top:0; left:0;`;
+    const randProbe = document.createElement('div');
+    randProbe.style.cssText = `position:absolute; visibility:hidden; width:1px; height:${randCm || 0}cm; top:0; left:0;`;
+    blatt.appendChild(probe);
+    blatt.appendChild(randProbe);
+    const seite = probe.getBoundingClientRect().height;
+    const rand = randProbe.getBoundingClientRect().height;
+    probe.remove();
+    randProbe.remove();
+    // Das Blatt wächst mit seinem Inhalt, seine Höhe ist also die Inhaltshöhe.
+    const inhalt = blatt.getBoundingClientRect().height - rand;
+    return Math.max(1, Math.ceil((inhalt - 2) / seite));
+  }
+
+  function passeBlattAn(blatt, g, zielSeiten) {
+    const gestaltet = blatt.classList.contains('dz');
+    const messen = () => gestaltet ? seitenAnzahl(blatt, 29.7, 0) : seitenAnzahl(blatt, 25.7, 4.7);
+    let enger = false;
+    if (gestaltet && g.seitenAnpassen) {
+      const basisGroesse = parseFloat(DICHTE[g.dichte] ? DICHTE[g.dichte].size : '10.5');
+      for (let i = 0; i < FIT_STUFEN.length; i++) {
+        const s = FIT_STUFEN[i];
+        blatt.style.setProperty('--d-gap', s.gap);
+        blatt.style.setProperty('--d-lh-faktor', s.lh);
+        blatt.style.setProperty('--d-rand', s.rand);
+        if (s.size && basisGroesse > 10) blatt.style.setProperty('--d-size', s.size);
+        enger = i > 0;
+        if (messen() <= zielSeiten) break;
+      }
+    }
+    return { seiten: messen(), enger };
+  }
+
+  function seitenText(ergebnis, ziel, kind) {
+    const { seiten, enger } = ergebnis;
+    const anzahl = seiten === 1 ? '1 Seite' : seiten + ' Seiten';
+    if (seiten > ziel) {
+      return {
+        text: `${anzahl} — Ziel ${ziel}. ${kind === 'cover_letter' ? 'Bitte Absätze kürzen.' : 'Bitte kürzen oder „Lebenslauf neu generieren“ (berücksichtigt das Ziel).'}`,
+        warn: true
+      };
+    }
+    return { text: anzahl + (enger ? ' (enger gesetzt)' : ''), warn: false };
   }
 
   function dzKontakt(g, k, inLeiste) {
@@ -4229,7 +4945,7 @@ function initApp() {
     const t = DZ_TEXTE[ctx.lang] || DZ_TEXTE.de;
     const k = kontaktDaten(ctx.profil);
     const mitLeiste = g.layout !== 'einspaltig';
-    const foto = g.foto !== 'aus' ? dzFoto(g, k.name) : '';
+    const foto = g.foto !== 'aus' ? dzFoto(g, k.name, ctx.fotoUrl) : '';
     const main = [];
     const side = [];
 
@@ -4272,14 +4988,13 @@ function initApp() {
     const mitLeiste = g.layout !== 'einspaltig' && g.briefLeiste;
     const side = [];
     if (mitLeiste) {
-      if (g.foto !== 'aus') side.push(dzFoto(g, k.name));
+      if (g.foto !== 'aus') side.push(dzFoto(g, k.name, ctx.fotoUrl));
       side.push(dzAbschnitt(t.kontakt, dzKontakt(g, k, true)));
     }
 
     const heute = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const absender = [k.name, k.strasse, k.ort].filter(Boolean).join(' · ');
-    const empfaenger = [a.unternehmen || job.company || '', a.ansprechpartner ? 'z. Hd. ' + a.ansprechpartner : '']
-      .filter(Boolean).join('\n');
+    const empfaenger = anschriftZeilen(job);
     const ortZeile = k.ort ? k.ort.replace(/^\d+\s*/, '') + ', ' : '';
 
     const main = dzKopf(ctx, k, '', !mitLeiste) + `
@@ -4306,7 +5021,7 @@ function initApp() {
     ladeDesignSchriften();
     // Frisch aus dem Konto holen — das Design kann auf einem anderen Gerät
     // geändert worden sein.
-    await loadSettings();
+    await Promise.all([loadSettings(), loadPhotos()]);
     designAktuell = ladeDesign();
     renderDesignControls();
     renderDesignPreview();
@@ -4364,6 +5079,9 @@ function initApp() {
         ${dzCheck('briefLeiste', 'Seitenleiste auch im Anschreiben')}
       ` : ''}
       ${dzSelect('dichte', 'Schriftgröße und Abstände')}
+      ${dzSelect('zielSeitenCv', 'Umfang des Lebenslaufs')}
+      ${dzCheck('seitenAnpassen', 'Automatisch einpassen (Anschreiben 1 Seite)')}
+      <p class="design-hint" style="margin:0 0 10px;">Passt ein Dokument nicht, werden zuerst Abstände und Zeilenhöhe verringert, dann die Schrift auf 10 pt — nie kleiner. Reicht das nicht, zeigt das Vorschaufenster einen Hinweis zum Kürzen. Der Umfang geht außerdem als Vorgabe an „Lebenslauf generieren“.</p>
 
       <h3>Kopfbereich</h3>
       ${dzSelect('kopf', 'Anordnung')}
@@ -4374,7 +5092,7 @@ function initApp() {
       ${dzCheck('titelzeile', 'Titelzeile unter dem Namen (Stellentitel der Anzeige)')}
       ${dzCheck('dokumenttitel', 'Überschrift „Lebenslauf“ über dem Kopf')}
       ${dzCheck('rahmen', 'Farbiger Rahmen um die Seite')}
-      ${g.foto !== 'aus' ? '<p class="design-hint">Bis der Foto-Upload gebaut ist, zeigt der Platzhalter deine Initialen.</p>' : ''}
+      ${g.foto !== 'aus' ? `<p class="design-hint">${standardFotoUrl ? 'Es wird dein Standardfoto aus „Kontaktdaten“ verwendet.' : 'Fotos lädst du unter „Kontaktdaten“ hoch. Ohne Foto zeigt der Platzhalter deine Initialen.'}</p>` : ''}
 
       <h3>Inhalte</h3>
       ${dzSelect('ueberschrift', 'Abschnittsüberschriften')}
@@ -4429,11 +5147,23 @@ function initApp() {
       job: echteDaten ? job : DZ_BEISPIEL.job,
       stellentitel: echteDaten ? stelleKontext(job).stellentitel : DZ_BEISPIEL.job.analysis.stellentitel,
       lang: 'de',
+      fotoUrl: standardFotoUrl,
       text: (pfad, text) => escapeHtml(text),
       editierbar: false
     };
     document.getElementById('design-sheet').innerHTML =
       dzDokument === 'cv' ? cvGestaltetHtml(ctx) : briefGestaltetHtml(ctx);
+
+    const design = designAktuell;
+    document.fonts.ready.then(() => {
+      const blatt = document.querySelector('#design-sheet .sheet');
+      const info = document.getElementById('dz-seiten');
+      if (!blatt || !info || designAktuell !== design) return;
+      const ziel = dzDokument === 'cv' ? Number(design.zielSeitenCv) || 2 : 1;
+      const ergebnis = seitenText(passeBlattAn(blatt, design, ziel), ziel, dzDokument === 'cv' ? 'cv_document' : 'cover_letter');
+      info.textContent = ergebnis.text;
+      info.classList.toggle('warn', ergebnis.warn);
+    });
   }
 
   function designGeaendert(neuZeichnen) {
@@ -4497,6 +5227,190 @@ function initApp() {
   document.getElementById('dz-quelle').addEventListener('change', (e) => {
     dzQuelle = e.target.value;
     renderDesignPreview();
+  });
+
+  // =======================================================================
+  // BAUSTEIN IM DIALOG SCHÄRFEN (Punkt 14)
+  // =======================================================================
+  const refineBackdrop = document.getElementById('refine-backdrop');
+  const refineInput = document.getElementById('refine-input');
+  const refineMic = document.getElementById('refine-mic');
+  let refineState = null;
+
+  function openRefine(group) {
+    refineState = { group, verlauf: [], laeuft: false };
+    document.getElementById('refine-baustein').innerHTML =
+      `<strong>${escapeHtml((group.block && group.block.title) || '(ohne Titel)')}</strong>\n${escapeHtml((group.block && group.block.text_content) || '')}`;
+    refineInput.value = '';
+    document.getElementById('refine-error').style.display = 'none';
+    renderRefineChat();
+    refineBackdrop.classList.add('open');
+    refineSenden('');
+  }
+
+  function renderRefineChat() {
+    const el = document.getElementById('refine-chat');
+    el.innerHTML = refineState.verlauf.map((m, i) => {
+      const blase = m.text ? `<div class="refine-msg ${m.rolle}">${escapeHtml(m.text)}</div>` : '';
+      const vorschlag = m.vorschlag ? `
+        <div class="refine-vorschlag">
+          <div style="font-size:12px; color:var(--color-ink-muted); margin-bottom:4px;">Vorschlag</div>
+          <strong>${escapeHtml(m.vorschlag.titel || '')}</strong>
+          <div style="white-space:pre-wrap; margin-top:4px;">${escapeHtml(m.vorschlag.text || '')}</div>
+          <div style="margin-top:8px;">
+            <button type="button" class="btn-primary refine-uebernehmen" data-idx="${i}" style="padding:4px 12px; font-size:13px;">In Baustein übernehmen</button>
+          </div>
+        </div>` : '';
+      return blase + vorschlag;
+    }).join('') || '<p style="color:var(--color-ink-muted); font-size:13px; margin:0;">Claude liest den Baustein …</p>';
+    el.scrollTop = el.scrollHeight;
+    el.querySelectorAll('.refine-uebernehmen').forEach(btn => {
+      btn.addEventListener('click', () => refineUebernehmen(refineState.verlauf[Number(btn.dataset.idx)].vorschlag, btn));
+    });
+  }
+
+  async function refineSenden(text) {
+    if (!refineState || refineState.laeuft) return;
+    const errorEl = document.getElementById('refine-error');
+    errorEl.style.display = 'none';
+    if (text) refineState.verlauf.push({ rolle: 'nutzer', text });
+    refineState.laeuft = true;
+    document.getElementById('refine-progress').style.display = 'block';
+    renderRefineChat();
+
+    const state = refineState;
+    try {
+      const g = state.group;
+      const antwort = await callClaude({
+        task: 'refine_block',
+        baustein: {
+          titel: (g.block && g.block.title) || '',
+          text: (g.block && g.block.text_content) || '',
+          kategorie: g.category
+        },
+        verlauf: state.verlauf.map(m => ({
+          rolle: m.rolle,
+          text: m.text + (m.vorschlag ? '\n[Vorschlag] ' + m.vorschlag.titel + ': ' + m.vorschlag.text : '')
+        }))
+      });
+      const vorschlag = antwort.vorschlag && antwort.vorschlag.text ? antwort.vorschlag : null;
+      state.verlauf.push({ rolle: 'claude', text: antwort.antwort || '', vorschlag });
+    } catch (err) {
+      errorEl.textContent = err.message || 'Claude hat nicht geantwortet.';
+      errorEl.style.display = 'block';
+      // Die unbeantwortete Nachricht zurück ins Eingabefeld, damit nichts verloren geht.
+      if (text && state.verlauf.length && state.verlauf[state.verlauf.length - 1].text === text) {
+        state.verlauf.pop();
+        refineInput.value = text;
+      }
+    } finally {
+      state.laeuft = false;
+      if (refineState === state) {
+        document.getElementById('refine-progress').style.display = 'none';
+        renderRefineChat();
+      }
+    }
+  }
+
+  async function refineUebernehmen(vorschlag, btn) {
+    const g = refineState.group;
+    if (!g.block) return;
+    btn.disabled = true;
+    btn.textContent = 'Speichert …';
+    const { error } = await client
+      .from('content_blocks')
+      .update({ title: vorschlag.titel || g.block.title, text_content: vorschlag.text, updated_at: new Date().toISOString() })
+      .eq('id', g.block.id);
+    if (error) {
+      btn.disabled = false;
+      btn.textContent = 'In Baustein übernehmen';
+      alert('Speichern fehlgeschlagen: ' + error.message);
+      return;
+    }
+    g.block.title = vorschlag.titel || g.block.title;
+    g.block.text_content = vorschlag.text;
+    btn.textContent = 'Übernommen';
+    document.getElementById('refine-baustein').innerHTML =
+      `<strong>${escapeHtml(g.block.title || '(ohne Titel)')}</strong>\n${escapeHtml(g.block.text_content)}`;
+    await loadData();
+    const aktuell = allGroups.find(x => x.id === g.id);
+    if (aktuell && selectedGroupId === g.id) renderDetail(aktuell);
+  }
+
+  function refineAbschicken() {
+    const text = refineInput.value.trim();
+    if (!text) return;
+    refineInput.value = '';
+    refineSenden(text);
+  }
+
+  document.getElementById('refine-send').addEventListener('click', refineAbschicken);
+  document.getElementById('refine-proposal').addEventListener('click', () =>
+    refineSenden('Bitte mach mir jetzt einen Vorschlag mit dem, was wir bisher haben.'));
+  refineInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); refineAbschicken(); }
+  });
+
+  // ---- Spracheingabe ----
+  // Die Web Speech API erkennt Sprache nicht im Browser selbst: Chrome schickt
+  // die Aufnahme an Google, Edge an Microsoft. Weil es um Lebenslaufinhalte
+  // geht, muss der Nutzer das einmal bestätigen, bevor das Mikrofon startet.
+  const SpracheErkennung = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const DIKTAT_HINWEIS_KEY = 'cvtool.diktat-hinweis-bestaetigt';
+  let diktat = null;
+
+  if (!SpracheErkennung) {
+    refineMic.disabled = true;
+    refineMic.title = 'Dieser Browser unterstützt keine Spracheingabe (geht in Chrome und Edge).';
+  }
+
+  function diktatStoppen() {
+    if (diktat) diktat.stop();
+  }
+
+  refineMic.addEventListener('click', () => {
+    if (!SpracheErkennung) return;
+    if (diktat) { diktatStoppen(); return; }
+
+    let bestaetigt = false;
+    try { bestaetigt = localStorage.getItem(DIKTAT_HINWEIS_KEY) === 'ja'; } catch (err) { /* dann fragen */ }
+    if (!bestaetigt) {
+      const ok = confirm('Hinweis zur Spracheingabe:\n\nDie Spracherkennung läuft nicht auf deinem Rechner. Chrome schickt die Aufnahme dafür an Google, Edge an Microsoft. Was du diktierst, verlässt also deinen Browser.\n\nTrotzdem diktieren?');
+      if (!ok) return;
+      try { localStorage.setItem(DIKTAT_HINWEIS_KEY, 'ja'); } catch (err) { /* nicht kritisch */ }
+    }
+
+    const basis = refineInput.value.trim();
+    diktat = new SpracheErkennung();
+    diktat.lang = 'de-DE';
+    diktat.interimResults = true;
+    diktat.continuous = true;
+    diktat.onresult = (e) => {
+      let gesagt = '';
+      for (let i = 0; i < e.results.length; i++) gesagt += e.results[i][0].transcript;
+      refineInput.value = (basis ? basis + ' ' : '') + gesagt.trim();
+    };
+    diktat.onerror = (e) => {
+      const errorEl = document.getElementById('refine-error');
+      errorEl.textContent = e.error === 'not-allowed'
+        ? 'Das Mikrofon ist für diese Seite nicht freigegeben. Erlaube den Zugriff über das Schloss-Symbol links in der Adressleiste.'
+        : 'Die Spracheingabe ist abgebrochen (' + e.error + ').';
+      errorEl.style.display = 'block';
+    };
+    diktat.onend = () => {
+      diktat = null;
+      refineMic.classList.remove('aktiv');
+      refineMic.textContent = 'Diktieren';
+    };
+    diktat.start();
+    refineMic.classList.add('aktiv');
+    refineMic.textContent = 'Diktat beenden';
+  });
+
+  document.getElementById('refine-close').addEventListener('click', () => {
+    diktatStoppen();
+    refineBackdrop.classList.remove('open');
+    refineState = null;
   });
 
   // ---- Matching-Vorschlag in einen Baustein übernehmen ----
@@ -4732,6 +5646,147 @@ function initApp() {
       refreshDiffSummary();
     }
   }
+
+  // =======================================================================
+  // BEWERBUNGSFOTOS (Punkt 13)
+  // =======================================================================
+  // Die Dateien liegen im privaten Bucket „photos“ unter <user_id>/…; die
+  // Seite bekommt nur zeitlich begrenzte Links (1 Stunde).
+  let allPhotos = [];
+  let standardFotoUrl = null;
+  const fotoLinks = {};
+
+  async function signierterLink(pfad) {
+    const vorhanden = fotoLinks[pfad];
+    if (vorhanden && vorhanden.bis > Date.now() + 5 * 60 * 1000) return vorhanden.url;
+    const { data, error } = await client.storage.from('photos').createSignedUrl(pfad, 3600);
+    if (error) throw error;
+    fotoLinks[pfad] = { url: data.signedUrl, bis: Date.now() + 3600 * 1000 };
+    return data.signedUrl;
+  }
+
+  async function loadPhotos() {
+    if (!currentUser) return;
+    const { data, error } = await client.from('photos').select('*').order('created_at', { ascending: false });
+    if (error) { console.warn('Fotos konnten nicht geladen werden:', error.message); return; }
+    allPhotos = data || [];
+    const standard = allPhotos.find(p => p.is_default);
+    try {
+      standardFotoUrl = standard ? await signierterLink(standard.storage_path) : null;
+    } catch (err) {
+      console.warn('Link zum Standardfoto fehlgeschlagen:', err);
+      standardFotoUrl = null;
+    }
+  }
+
+  async function renderFotos() {
+    const grid = document.getElementById('foto-grid');
+    await loadPhotos();
+    if (allPhotos.length === 0) {
+      grid.innerHTML = '<p style="font-size:13px; color:var(--color-ink-muted); margin:0;">Noch keine Fotos hochgeladen.</p>';
+      return;
+    }
+    const links = await Promise.all(allPhotos.map(p => signierterLink(p.storage_path).catch(() => '')));
+    grid.innerHTML = allPhotos.map((p, i) => `
+      <div class="foto-karte ${p.is_default ? 'standard' : ''}">
+        <img src="${escapeAttr(links[i])}" alt="Bewerbungsfoto">
+        ${p.is_default
+          ? '<strong style="display:block; margin-top:3px;">Standard</strong>'
+          : `<button type="button" class="btn-secondary foto-standard" data-id="${p.id}">Als Standard</button>`}
+        <button type="button" class="btn-danger-text foto-loeschen" data-id="${p.id}">Löschen</button>
+      </div>`).join('');
+
+    grid.querySelectorAll('.foto-standard').forEach(btn => {
+      btn.addEventListener('click', () => fotoAlsStandard(btn.dataset.id));
+    });
+    grid.querySelectorAll('.foto-loeschen').forEach(btn => {
+      btn.addEventListener('click', () => fotoLoeschen(btn.dataset.id));
+    });
+  }
+
+  function fotoFehler(msg) {
+    const el = document.getElementById('foto-error');
+    el.textContent = msg || '';
+    el.style.display = msg ? 'block' : 'none';
+  }
+
+  // Auf 1200 px verkleinern und als JPEG neu speichern. Nebeneffekt, der hier
+  // gewollt ist: Kameradaten (EXIF, etwa der Aufnahmeort) fallen dabei weg.
+  async function verkleinereFoto(datei) {
+    const bild = await createImageBitmap(datei);
+    const faktor = Math.min(1, 1200 / Math.max(bild.width, bild.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bild.width * faktor);
+    canvas.height = Math.round(bild.height * faktor);
+    canvas.getContext('2d').drawImage(bild, 0, 0, canvas.width, canvas.height);
+    return new Promise((resolve, reject) => canvas.toBlob(
+      blob => blob ? resolve(blob) : reject(new Error('Das Bild konnte nicht verarbeitet werden.')),
+      'image/jpeg', 0.9));
+  }
+
+  document.getElementById('foto-file').addEventListener('change', async (e) => {
+    const datei = e.target.files[0];
+    e.target.value = '';
+    fotoFehler('');
+    if (!datei) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(datei.type)) {
+      fotoFehler('Bitte ein JPG-, PNG- oder WebP-Bild auswählen.');
+      return;
+    }
+    if (datei.size > 15 * 1024 * 1024) {
+      fotoFehler('Das Bild ist größer als 15 MB. Bitte eine kleinere Datei wählen.');
+      return;
+    }
+    const progress = document.getElementById('foto-progress');
+    progress.style.display = 'block';
+    let pfad = null;
+    try {
+      const blob = await verkleinereFoto(datei);
+      pfad = `${currentUser.id}/${crypto.randomUUID()}.jpg`;
+      const { error: upErr } = await client.storage.from('photos').upload(pfad, blob, { contentType: 'image/jpeg' });
+      if (upErr) throw upErr;
+      const erstesFoto = allPhotos.length === 0;
+      const { error: dbErr } = await client.from('photos').insert({ storage_path: pfad, is_default: erstesFoto });
+      if (dbErr) {
+        await client.storage.from('photos').remove([pfad]);
+        throw dbErr;
+      }
+      await renderFotos();
+    } catch (err) {
+      fotoFehler('Hochladen fehlgeschlagen: ' + (err.message || err));
+    } finally {
+      progress.style.display = 'none';
+    }
+  });
+
+  async function fotoAlsStandard(id) {
+    fotoFehler('');
+    // Erst das bisherige Standardfoto lösen — pro Nutzer ist nur eins erlaubt.
+    const { error: e1 } = await client.from('photos').update({ is_default: false }).eq('user_id', currentUser.id).eq('is_default', true);
+    const { error: e2 } = e1 ? { error: e1 } : await client.from('photos').update({ is_default: true }).eq('id', id);
+    if (e2) fotoFehler('Konnte nicht als Standard gesetzt werden: ' + e2.message);
+    await renderFotos();
+  }
+
+  async function fotoLoeschen(id) {
+    const foto = allPhotos.find(p => p.id === id);
+    if (!foto || !confirm('Dieses Foto endgültig löschen?')) return;
+    fotoFehler('');
+    const { error: stErr } = await client.storage.from('photos').remove([foto.storage_path]);
+    if (stErr) { fotoFehler('Löschen fehlgeschlagen: ' + stErr.message); return; }
+    const { error: dbErr } = await client.from('photos').delete().eq('id', id);
+    if (dbErr) { fotoFehler('Löschen fehlgeschlagen: ' + dbErr.message); return; }
+    const rest = allPhotos.filter(p => p.id !== id);
+    if (foto.is_default && rest.length) {
+      await client.from('photos').update({ is_default: true }).eq('id', rest[0].id);
+    }
+    await renderFotos();
+  }
+
+  document.getElementById('profile-btn').addEventListener('click', () => {
+    fotoFehler('');
+    renderFotos();
+  });
 
   document.getElementById('profile-btn').addEventListener('click', () => {
     document.getElementById('profile-error').style.display = 'none';
