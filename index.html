@@ -185,9 +185,19 @@
   .workspace {
     flex: 1;
     display: grid;
-    grid-template-columns: 220px 1fr 400px;
+    grid-template-columns: 220px 1fr 6px var(--detail-width, 400px);
     overflow: hidden;
   }
+
+  .panel-resizer {
+    cursor: col-resize;
+    background: transparent;
+    border-left: 1px solid var(--color-border);
+    transition: background 0.15s;
+  }
+  .panel-resizer:hover, .panel-resizer.dragging { background: var(--color-accent); opacity: 0.35; }
+  body.resizing { cursor: col-resize; user-select: none; }
+  .detail-panel { border-left: none !important; }
 
   /* ---------- Filter rail ---------- */
   .filter-rail {
@@ -921,6 +931,8 @@
       <div id="list-content"></div>
     </div>
 
+    <div class="panel-resizer" id="panel-resizer" title="Zum Verändern der Breite ziehen, Doppelklick setzt zurück"></div>
+
     <!-- Detail panel -->
     <div class="detail-panel" id="detail-panel">
       <p class="detail-placeholder">Wähle einen Baustein aus der Liste aus oder lege einen neuen an.</p>
@@ -1183,8 +1195,8 @@ const CONFIG = {
 };
 
 const CATEGORIES = [
-  { value: 'erfahrung', label: 'Erfahrung' },
-  { value: 'skill', label: 'Skill' },
+  { value: 'erfahrung', label: 'Berufserfahrung' },
+  { value: 'skill', label: 'Fähigkeiten' },
   { value: 'ausbildung', label: 'Ausbildung' },
   { value: 'leitbild', label: 'Leitbild' }
 ];
@@ -1664,6 +1676,53 @@ function initApp() {
     alle.indeterminate = anzahl > 0 && anzahl < sichtbareAnzahl;
   }
 
+  // ---- Breite des Bearbeitungsbereichs per Ziehgriff ----
+  const workspaceEl = document.querySelector('.workspace');
+  const resizer = document.getElementById('panel-resizer');
+  const DETAIL_WIDTH_KEY = 'cv-tool.detail-width';
+  const DETAIL_MIN = 320;
+
+  function setDetailWidth(px) {
+    // Liste und Filterleiste sollen immer bedienbar bleiben.
+    const max = Math.max(DETAIL_MIN, window.innerWidth - 220 - 360);
+    const breite = Math.round(Math.min(Math.max(px, DETAIL_MIN), max));
+    workspaceEl.style.setProperty('--detail-width', breite + 'px');
+    return breite;
+  }
+
+  try {
+    const gespeichert = Number(localStorage.getItem(DETAIL_WIDTH_KEY));
+    if (gespeichert) setDetailWidth(gespeichert);
+  } catch (e) { /* ohne gespeicherte Breite gilt der Standard */ }
+
+  resizer.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    resizer.classList.add('dragging');
+    document.body.classList.add('resizing');
+    let letzte = null;
+
+    const onMove = (ev) => {
+      const rechts = workspaceEl.getBoundingClientRect().right;
+      letzte = setDetailWidth(rechts - ev.clientX);
+    };
+    const onUp = () => {
+      resizer.classList.remove('dragging');
+      document.body.classList.remove('resizing');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      if (letzte) {
+        try { localStorage.setItem(DETAIL_WIDTH_KEY, String(letzte)); } catch (err) { /* nicht kritisch */ }
+      }
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+
+  resizer.addEventListener('dblclick', () => {
+    workspaceEl.style.removeProperty('--detail-width');
+    try { localStorage.removeItem(DETAIL_WIDTH_KEY); } catch (e) { /* nicht kritisch */ }
+  });
+
   document.getElementById('sort-select').addEventListener('change', (e) => {
     sortMode = e.target.value;
     renderList();
@@ -1716,7 +1775,8 @@ function initApp() {
   function renderDetail(group) {
     const panel = document.getElementById('detail-panel');
     const isNew = !group;
-    const category = group?.category || CATEGORIES[0].value;
+    // Ist links eine Kategorie gefiltert, legt "Neuer Baustein" gleich in dieser an.
+    const category = group?.category || filters.category || CATEGORIES[0].value;
     const title = group?.block?.title || '';
     const text = group?.block?.text_content || '';
     const status = group?.status || 'draft';
@@ -2403,6 +2463,7 @@ function initApp() {
         <button type="button" class="job-tab" data-tab="anforderungen">Anforderungen</button>
         <button type="button" class="job-tab" data-tab="anschreiben">Anschreiben</button>
         <button type="button" class="job-tab" data-tab="lebenslauf">Lebenslauf</button>
+        <button type="button" class="job-tab" data-tab="original">Original</button>
       </div>
 
       <div class="job-tab-panel" id="job-tab-anforderungen">
@@ -2451,6 +2512,11 @@ function initApp() {
 
       <div class="job-tab-panel" id="job-tab-anschreiben">${renderLetterTab(job, hatAbgleich)}</div>
       <div class="job-tab-panel" id="job-tab-lebenslauf">${renderCvTab(job, hatAbgleich)}</div>
+      <div class="job-tab-panel" id="job-tab-original">
+        ${job.raw_text
+          ? `<div style="white-space:pre-wrap; font-size:14px; line-height:1.6; background:var(--color-panel); border:1px solid var(--color-border); border-radius:4px; padding:18px 20px;">${escapeHtml(job.raw_text)}</div>`
+          : '<p style="color:var(--color-ink-muted); font-size:14px;">Zu dieser Anzeige ist kein Originaltext gespeichert.</p>'}
+      </div>
     `;
 
     panel.querySelectorAll('.job-tab').forEach(tab => {
