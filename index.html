@@ -715,6 +715,244 @@
     @page { size: A4; margin: 2cm 2cm 2cm 2.41cm; }
   }
 
+  /* ---------- Design-Baukasten: Bedienbereich ---------- */
+  .design-workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    overflow: hidden;
+  }
+  .design-controls {
+    border-right: 1px solid var(--color-border);
+    background: var(--color-panel);
+    overflow-y: auto;
+    padding: 16px 18px 48px;
+  }
+  .design-controls h3 {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-ink-muted);
+    margin: 22px 0 10px;
+  }
+  .design-controls h3:first-child { margin-top: 0; }
+  .design-controls .field { margin-bottom: 10px; }
+  .design-controls label.check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--color-ink);
+    margin-bottom: 6px;
+  }
+  .design-controls label.check input { width: auto; }
+  .design-hint { font-size: 12px; line-height: 1.45; color: var(--color-ink-muted); margin: 6px 0 0; }
+  .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .preset-card {
+    text-align: left;
+    border: 1px solid var(--color-border);
+    background: #fff;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  .preset-card strong { display: block; font-weight: 600; margin-bottom: 2px; }
+  .preset-card span { font-size: 11px; color: var(--color-ink-muted); }
+  .preset-card:hover { border-color: var(--color-ink-muted); }
+  .preset-card.active { border-color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
+  .palette-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .palette-swatch {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--color-border);
+    overflow: hidden;
+    display: flex;
+  }
+  .palette-swatch span { flex: 1; }
+  .palette-swatch.active { box-shadow: 0 0 0 2px var(--color-accent); }
+  .color-row { display: flex; gap: 12px; }
+  .color-row .field { flex: 1; }
+  .color-row input[type="color"] { height: 34px; padding: 2px; cursor: pointer; }
+  .design-preview { overflow: auto; background: #E4E1DA; padding: 16px 24px 48px; }
+  .design-preview-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .design-preview-bar label { margin: 0; }
+  .design-preview .sheet { zoom: 0.85; box-shadow: 0 2px 14px rgba(0, 0, 0, 0.12); border: none; }
+
+  /* ---------- Gestaltete Fassung (Lebenslauf und Anschreiben) ----------
+     Alle Stilentscheidungen hängen an Klassen und CSS-Variablen am Blatt,
+     die der Baukasten setzt. Die ATS-Fassung (.sheet ohne .dz) bleibt davon
+     unberührt. */
+  .sheet.dz {
+    padding: 0;
+    min-height: 29.7cm;
+    display: flex;
+    align-items: stretch;
+    font-family: var(--d-text-font);
+    font-size: var(--d-size);
+    line-height: var(--d-lh);
+    color: #222;
+    --d-akzent-hell: color-mix(in srgb, var(--d-akzent) 10%, #fff);
+    --d-akzent-mittel: color-mix(in srgb, var(--d-akzent) 35%, #fff);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .sheet.dz.dz-rahmen { border: 0.3cm solid var(--d-akzent); }
+  .dz.dz-leiste-rechts { flex-direction: row-reverse; }
+  .dz .dz-main { flex: 1; min-width: 0; padding: 1.5cm 1.7cm; }
+  .dz .dz-side {
+    width: 6.2cm;
+    flex-shrink: 0;
+    padding: 1.5cm 0.85cm;
+    background: var(--d-leiste);
+    color: var(--d-leiste-text);
+    font-size: 0.95em;
+  }
+  .dz h1, .dz h2 { font-family: var(--d-kopf-font); margin: 0; }
+
+  .dz .dz-dokumenttitel { font-size: 1.7em; font-weight: 600; color: var(--d-akzent); margin-bottom: 0.5cm; letter-spacing: 0.03em; }
+  .dz .dz-kopf { display: flex; align-items: center; gap: 0.6cm; margin-bottom: 0.7cm; }
+  .dz .dz-kopf.foto-rechts { flex-direction: row-reverse; }
+  .dz .dz-kopftext { flex: 1; min-width: 0; }
+  .dz-kopf-zentriert .dz-kopf { flex-direction: column; text-align: center; }
+  .dz .dz-name { font-size: 2.1em; line-height: 1.1; font-weight: 700; color: #1B1B1B; }
+  .dz-name-versal .dz-name { text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600; }
+  .dz .dz-titelzeile { color: var(--d-akzent); font-size: 1.05em; margin-top: 3px; }
+  .dz-name-versal .dz-titelzeile { text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.85em; }
+  .dz .dz-kontakt { margin-top: 8px; font-size: 0.9em; display: flex; flex-wrap: wrap; gap: 3px 16px; }
+  .dz-kopf-zentriert .dz-kopf .dz-kontakt { justify-content: center; }
+  .dz .dz-kontakt > span { display: inline-flex; align-items: center; gap: 6px; overflow-wrap: anywhere; }
+  .dz .dz-kontakt svg { width: 1em; height: 1em; flex-shrink: 0; color: var(--d-akzent); }
+  .dz .dz-kontakt.zeile { display: block; }
+  .dz .dz-kontakt .trenner { color: var(--d-akzent); margin: 0 0.5em; }
+  .dz .dz-side .dz-kontakt { flex-direction: column; gap: 5px; margin-top: 0; font-size: 1em; }
+  .dz .dz-side .dz-kontakt svg { color: var(--d-leiste-akzent); }
+  .dz-kopf-band .dz-kopf {
+    background: var(--d-leiste);
+    color: var(--d-leiste-text);
+    margin: -1.5cm -1.7cm 0.8cm;
+    padding: 1cm 1.7cm;
+  }
+  .dz-kopf-band .dz-kopf .dz-name { color: inherit; }
+  .dz-kopf-band .dz-kopf .dz-titelzeile,
+  .dz-kopf-band .dz-kopf .dz-kontakt svg,
+  .dz-kopf-band .dz-kopf .trenner { color: var(--d-leiste-akzent); }
+
+  .dz .dz-foto {
+    width: 3.1cm;
+    height: 3.1cm;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--d-akzent-hell);
+    color: var(--d-akzent);
+    font-family: var(--d-kopf-font);
+    font-size: 1cm;
+    font-weight: 600;
+  }
+  .dz .dz-foto.rund { border-radius: 50%; }
+  .dz .dz-foto.eckig { height: 3.9cm; border-radius: 2px; }
+  .dz-kopf-band .dz-kopf .dz-foto { background: color-mix(in srgb, var(--d-leiste-text) 15%, transparent); color: var(--d-leiste-text); }
+  .dz .dz-side .dz-foto {
+    width: 3.8cm;
+    height: 3.8cm;
+    margin: 0 auto 0.8cm;
+    background: color-mix(in srgb, var(--d-leiste-text) 15%, transparent);
+    color: var(--d-leiste-text);
+  }
+  .dz .dz-side .dz-foto.eckig { height: 4.7cm; }
+
+  .dz .dz-abschnitt { margin-bottom: 0.55cm; }
+  .dz h2.dz-ue { font-size: 1.1em; font-weight: 700; color: var(--d-akzent); margin-bottom: 0.3cm; }
+  .dz .dz-side h2.dz-ue { color: var(--d-leiste-akzent); }
+  .dz-ue-linie h2.dz-ue { border-bottom: 0.75pt solid currentColor; padding-bottom: 3px; }
+  .dz-ue-unterstrichen h2.dz-ue { display: inline-block; border-bottom: 2pt solid currentColor; padding-bottom: 1px; }
+  .dz-ue-balken h2.dz-ue { border-left: 4pt solid currentColor; padding-left: 8px; }
+  .dz-ue-flaeche h2.dz-ue { background: var(--d-akzent); color: var(--d-akzent-kontrast); padding: 2px 8px; }
+  .dz-ue-flaeche .dz-side h2.dz-ue { background: var(--d-leiste-akzent); color: var(--d-leiste); }
+  .dz-ue-versal h2.dz-ue { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.95em; }
+  .dz-schrift-bebas-lato .dz-name,
+  .dz-schrift-bebas-lato h2.dz-ue,
+  .dz-schrift-bebas-lato .dz-dokumenttitel { font-weight: 400; letter-spacing: 0.05em; }
+  .dz-schrift-bebas-lato .dz-name { font-size: 2.8em; }
+  .dz-schrift-bebas-lato h2.dz-ue { font-size: 1.35em; }
+
+  .dz .dz-profil { margin: 0; }
+  .dz .dz-station { margin-bottom: 0.4cm; break-inside: avoid; }
+  .dz .dz-station .rolle { font-weight: 700; }
+  .dz .dz-station .org,
+  .dz .dz-station .zeit { color: #555; }
+  .dz .dz-side .dz-station .org,
+  .dz .dz-side .dz-station .zeit { color: inherit; opacity: 0.8; }
+  .dz .dz-station .zeit { font-size: 0.92em; }
+  .dz .dz-station ul { margin: 3px 0 0; padding-left: 1.05em; }
+  .dz .dz-station li { margin-bottom: 1px; }
+  .dz-st-datum-links .dz-main .dz-station { display: grid; grid-template-columns: 3.2cm 1fr; column-gap: 0.4cm; }
+  .dz-st-datum-rechts .dz-station .kopfzeile { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .dz-st-datum-rechts .dz-station .kopfzeile .zeit { white-space: nowrap; }
+  .dz-st-zeitleiste .dz-main .dz-station { display: grid; grid-template-columns: 3.2cm 1fr; margin-bottom: 0; }
+  .dz-st-zeitleiste .dz-main .dz-station .seite { padding-right: 0.4cm; }
+  .dz-st-zeitleiste .dz-main .dz-station .seite .org { font-weight: 700; text-transform: uppercase; font-size: 0.85em; color: #333; }
+  .dz-st-zeitleiste .dz-main .dz-station .inhalt {
+    position: relative;
+    border-left: 1.2pt solid var(--d-akzent-mittel);
+    padding: 0 0 0.4cm 0.5cm;
+  }
+  .dz-st-zeitleiste .dz-main .dz-station .inhalt::before {
+    content: '';
+    position: absolute;
+    left: -4.6pt;
+    top: 0.3em;
+    width: 8pt;
+    height: 8pt;
+    border-radius: 50%;
+    background: var(--d-akzent);
+  }
+  .dz-st-zeitleiste .dz-main .dz-station .rolle { color: var(--d-akzent); }
+
+  .dz .dz-listgruppe + .dz-listgruppe { margin-top: 6px; }
+  .dz .dz-listgruppe .gruppentitel { font-weight: 700; }
+  .dz ul.dz-liste { margin: 0; padding-left: 1.05em; }
+  .dz-li-zweispaltig .dz-main ul.dz-liste { columns: 2; column-gap: 0.8cm; }
+  .dz-li-tags ul.dz-liste { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 5px; }
+  .dz-li-tags ul.dz-liste li {
+    background: var(--d-akzent-hell);
+    border: 0.75pt solid var(--d-akzent-mittel);
+    border-radius: 3px;
+    padding: 0 7px;
+    font-size: 0.92em;
+  }
+  .dz-li-tags .dz-side ul.dz-liste li {
+    background: color-mix(in srgb, var(--d-leiste-text) 10%, transparent);
+    border-color: color-mix(in srgb, var(--d-leiste-text) 30%, transparent);
+  }
+  .dz-li-zeile ul.dz-liste { list-style: none; padding: 0; }
+  .dz-li-zeile ul.dz-liste li { display: inline; }
+  .dz-li-zeile ul.dz-liste li + li::before { content: ' · '; color: var(--d-akzent); }
+  .dz-li-zeile .dz-side ul.dz-liste li + li::before { color: var(--d-leiste-akzent); }
+
+  .dz .dz-unterschrift { display: flex; gap: 1.5cm; margin-top: 1.2cm; break-inside: avoid; }
+  .dz .dz-unterschrift div { width: 5.5cm; border-top: 0.5pt solid #777; padding-top: 3px; font-size: 0.85em; color: #555; }
+
+  .dz .dz-brief .absender-zeile { display: inline-block; border-bottom-color: #999; margin-top: 0.2cm; }
+  .dz .dz-brief .anschrift { min-height: 2.6cm; }
+  .dz .dz-brief .datum { margin: 0.3cm 0 0.8cm; }
+  .dz .dz-brief .betreff { font-weight: 700; color: var(--d-akzent); margin-bottom: 0.7cm; }
+  .dz .dz-brief p { margin: 0 0 0.4cm; }
+  .dz .dz-brief .signatur-raum { height: 1.5cm; }
+
+  @media print {
+    .sheet.dz { page: gestaltet; min-height: 29.6cm; width: 21cm; }
+    .sheet.dz.dz-rahmen { border: 0.3cm solid var(--d-akzent); }
+    .dz .dz-main, .dz .dz-side { -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+    @page gestaltet { size: A4; margin: 0; }
+  }
+
   /* ---------- Anschreiben-Gliederung ---------- */
   .outline-item {
     border: 1px solid var(--color-border);
@@ -904,6 +1142,7 @@
     <div class="nav-tabs">
       <button id="tab-pool" class="active">Content-Pool</button>
       <button id="tab-jobs">Stellenanzeigen</button>
+      <button id="tab-design">Design</button>
     </div>
     <input type="search" class="search" id="search-input" placeholder="Bausteine durchsuchen …">
     <div class="spacer"></div>
@@ -980,6 +1219,23 @@
     </div>
     <div class="job-detail" id="job-detail">
       <p class="detail-placeholder">Wähle eine Stellenanzeige aus oder füge eine neue hinzu.</p>
+    </div>
+  </div>
+
+  <!-- Design-Baukasten -->
+  <div class="design-workspace" id="design-workspace" style="display:none;">
+    <div class="design-controls" id="design-controls"></div>
+    <div class="design-preview">
+      <div class="design-preview-bar">
+        <div class="nav-tabs">
+          <button type="button" class="dz-doc-tab active" data-doc="cv">Lebenslauf</button>
+          <button type="button" class="dz-doc-tab" data-doc="brief">Anschreiben</button>
+        </div>
+        <label for="dz-quelle">Vorschau mit</label>
+        <select id="dz-quelle" style="width:auto; max-width:320px;"></select>
+        <span class="design-hint" id="dz-quelle-hinweis" style="margin:0;"></span>
+      </div>
+      <div id="design-sheet"></div>
     </div>
   </div>
 </div>
@@ -1132,6 +1388,11 @@
         <label for="doc-language" style="margin:0;">Sprache</label>
         <select id="doc-language" style="width:auto;">
           <option value="de">Deutsch</option>
+        </select>
+        <label for="doc-fassung" style="margin:0 0 0 12px;">Fassung</label>
+        <select id="doc-fassung" style="width:auto;" title="Gestaltet: nach deinem Design im Reiter „Design“. ATS: schlicht und einspaltig für Bewerbungsportale.">
+          <option value="gestaltet">Gestaltet</option>
+          <option value="ats">ATS (schlicht)</option>
         </select>
       </div>
       <div style="display:flex; gap:8px;">
@@ -2414,17 +2675,20 @@ function initApp() {
 
   document.getElementById('tab-pool').addEventListener('click', () => switchView('pool'));
   document.getElementById('tab-jobs').addEventListener('click', () => switchView('jobs'));
+  document.getElementById('tab-design').addEventListener('click', () => switchView('design'));
 
   function switchView(view) {
-    const isPool = view === 'pool';
-    document.querySelector('.workspace').style.display = isPool ? 'grid' : 'none';
-    document.getElementById('jobs-workspace').style.display = isPool ? 'none' : 'grid';
-    document.getElementById('tab-pool').className = isPool ? 'active' : '';
-    document.getElementById('tab-jobs').className = isPool ? '' : 'active';
-    document.getElementById('search-input').style.display = isPool ? 'block' : 'none';
+    document.querySelector('.workspace').style.display = view === 'pool' ? 'grid' : 'none';
+    document.getElementById('jobs-workspace').style.display = view === 'jobs' ? 'grid' : 'none';
+    document.getElementById('design-workspace').style.display = view === 'design' ? 'grid' : 'none';
+    document.getElementById('tab-pool').className = view === 'pool' ? 'active' : '';
+    document.getElementById('tab-jobs').className = view === 'jobs' ? 'active' : '';
+    document.getElementById('tab-design').className = view === 'design' ? 'active' : '';
+    document.getElementById('search-input').style.display = view === 'pool' ? 'block' : 'none';
     // Die Aktionsknöpfe stecken jetzt in den jeweiligen Bereichen und werden
     // mit diesen ein- und ausgeblendet.
-    if (!isPool) loadJobs();
+    if (view === 'jobs') loadJobs();
+    if (view === 'design') openDesigner();
   }
 
   async function loadJobs() {
@@ -3145,7 +3409,8 @@ function initApp() {
     const daten = docQuelle(job, kind, sprache);
     if (!daten) return;
 
-    docState = { job, kind, lang: sprache, data: JSON.parse(JSON.stringify(daten)) };
+    docState = { job, kind, lang: sprache, data: JSON.parse(JSON.stringify(daten)), fassung: ladeFassung(kind) };
+    document.getElementById('doc-fassung').value = docState.fassung;
 
     document.getElementById('doc-title').textContent =
       kind === 'cover_letter' ? 'Anschreiben' : 'Lebenslauf';
@@ -3350,7 +3615,22 @@ function initApp() {
 
   function renderDocSheet() {
     const sheet = document.getElementById('doc-sheet');
-    sheet.innerHTML = docState.kind === 'cover_letter' ? letterSheetHtml() : cvSheetHtml();
+    if (docState.fassung === 'gestaltet') {
+      ladeDesignSchriften();
+      const ctx = {
+        design: ladeDesign(),
+        daten: docState.data,
+        profil: currentProfile,
+        job: docState.job,
+        stellentitel: stelleKontext(docState.job).stellentitel,
+        lang: docState.lang,
+        text: mitMarken,
+        editierbar: true
+      };
+      sheet.innerHTML = docState.kind === 'cover_letter' ? briefGestaltetHtml(ctx) : cvGestaltetHtml(ctx);
+    } else {
+      sheet.innerHTML = docState.kind === 'cover_letter' ? letterSheetHtml() : cvSheetHtml();
+    }
 
     sheet.querySelectorAll('[data-path]').forEach(el => {
       el.addEventListener('input', () => setByPath(docState.data, el.dataset.path, el.textContent.trim()));
@@ -3455,6 +3735,12 @@ function initApp() {
     openDoc(docState.job, docState.kind, e.target.value);
   });
 
+  document.getElementById('doc-fassung').addEventListener('change', (e) => {
+    docState.fassung = e.target.value === 'ats' ? 'ats' : 'gestaltet';
+    try { localStorage.setItem(FASSUNG_KEY + docState.kind, docState.fassung); } catch (err) { /* nicht kritisch */ }
+    renderDocSheet();
+  });
+
   document.getElementById('doc-print').addEventListener('click', () => window.print());
 
   document.getElementById('doc-translate').addEventListener('click', async () => {
@@ -3492,6 +3778,612 @@ function initApp() {
       errorEl.textContent = err.message || 'Die Übersetzung ist fehlgeschlagen.';
       errorEl.style.display = 'block';
     }
+  });
+
+  // =======================================================================
+  // DESIGN-BAUKASTEN
+  // =======================================================================
+  // Die gestaltete Fassung von Lebenslauf und Anschreiben wird aus Bausteinen
+  // zusammengesetzt, die sich in gängigen Vorlagen immer wiederholen:
+  // Grundlayout (einspaltig / Seitenleiste), Kopfbereich, Foto, Überschriften,
+  // Stationen, Listen, Schrift, Dichte, Farben. Die Auswahl steckt in einem
+  // Design-Objekt. Gespeichert wird es vorerst nur im Browser.
+  // Die ATS-Fassung (letterSheetHtml / cvSheetHtml) bleibt davon unberührt.
+
+  const DESIGN_KEY = 'cvtool.design.v1';
+  const FASSUNG_KEY = 'cvtool.fassung.';
+  const DESIGN_FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;600;700&family=Bebas+Neue&family=Lato:wght@400;700&family=Source+Sans+3:wght@400;600;700&family=Playfair+Display:wght@500;700&family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600;700&family=Inter:wght@400;600;700&display=swap';
+
+  const SCHRIFTEN = {
+    'zilla': { label: 'Zilla Slab (kräftige Serifen)', kopf: "'Zilla Slab', Georgia, serif", text: "'Zilla Slab', Georgia, serif" },
+    'bebas-lato': { label: 'Bebas Neue + Lato (markant)', kopf: "'Bebas Neue', 'Lato', sans-serif", text: "'Lato', Arial, sans-serif" },
+    'inter': { label: 'Inter (sachlich, modern)', kopf: "'Inter', Arial, sans-serif", text: "'Inter', Arial, sans-serif" },
+    'source': { label: 'Source Serif + Source Sans (klassisch)', kopf: "'Source Serif 4', Georgia, serif", text: "'Source Sans 3', Arial, sans-serif" },
+    'playfair-lato': { label: 'Playfair Display + Lato (elegant)', kopf: "'Playfair Display', Georgia, serif", text: "'Lato', Arial, sans-serif" },
+    'merriweather-opensans': { label: 'Merriweather + Open Sans (gut lesbar)', kopf: "'Merriweather', Georgia, serif", text: "'Open Sans', Arial, sans-serif" }
+  };
+
+  const DICHTE = {
+    kompakt: { size: '10pt', lh: 1.3 },
+    normal: { size: '10.5pt', lh: 1.4 },
+    luftig: { size: '11pt', lh: 1.5 }
+  };
+
+  const PALETTEN = [
+    { name: 'Navy', akzent: '#123763', leiste: '#123763' },
+    { name: 'Anthrazit & Gold', akzent: '#A28848', leiste: '#2C3A4B' },
+    { name: 'Petrol', akzent: '#2B6777', leiste: '#1F4E5B' },
+    { name: 'Bordeaux', akzent: '#7A2E3A', leiste: '#3A2A2E' },
+    { name: 'Waldgrün', akzent: '#2F5D50', leiste: '#23352F' },
+    { name: 'Graphit', akzent: '#3A3A3A', leiste: '#2B2B2B' },
+    { name: 'Sand', akzent: '#8C6A43', leiste: '#EFE8DE' },
+    { name: 'Hellgrau & Blau', akzent: '#2F5E8C', leiste: '#EEF1F4' }
+  ];
+
+  const DZ_OPTIONEN = {
+    layout: [['einspaltig', 'Einspaltig'], ['leiste-links', 'Seitenleiste links'], ['leiste-rechts', 'Seitenleiste rechts']],
+    kopf: [['links', 'Linksbündig'], ['zentriert', 'Zentriert'], ['band', 'Farbiges Kopfband']],
+    foto: [['aus', 'Ohne Foto'], ['rund', 'Rund'], ['eckig', 'Eckig']],
+    fotoPos: [['links', 'Links vom Namen'], ['rechts', 'Rechts vom Namen']],
+    name: [['normal', 'Normal'], ['versal', 'Großbuchstaben, gesperrt']],
+    kontakt: [['icons', 'Mit Symbolen'], ['zeile', 'Als Textzeile']],
+    ueberschrift: [['unterstrichen', 'Kurz unterstrichen'], ['linie', 'Linie über die ganze Breite'], ['balken', 'Farbbalken links'], ['flaeche', 'Farbfläche'], ['versal', 'Großbuchstaben, gesperrt'], ['schlicht', 'Nur fett']],
+    stationen: [['datum-links', 'Zeitraum links als Spalte'], ['datum-rechts', 'Zeitraum rechts neben der Rolle'], ['zeitleiste', 'Zeitleiste mit Punkten']],
+    listen: [['zweispaltig', 'Aufzählung, zweispaltig'], ['aufzaehlung', 'Aufzählung'], ['tags', 'Schlagwort-Kacheln'], ['zeile', 'Fließtext mit Trennpunkten']],
+    dichte: [['kompakt', 'Kompakt (10 pt)'], ['normal', 'Normal (10,5 pt)'], ['luftig', 'Luftig (11 pt)']]
+  };
+
+  const DESIGN_BASIS = {
+    vorlage: 'klar',
+    layout: 'einspaltig',
+    leiste: { kontakt: true, kurzprofil: false, ausbildung: false, listen: true },
+    kopf: 'links',
+    foto: 'rund',
+    fotoPos: 'links',
+    name: 'normal',
+    titelzeile: true,
+    dokumenttitel: false,
+    kontakt: 'icons',
+    ueberschrift: 'unterstrichen',
+    stationen: 'datum-links',
+    listen: 'zweispaltig',
+    schrift: 'zilla',
+    akzent: '#123763',
+    leisteFarbe: '#123763',
+    dichte: 'normal',
+    rahmen: false,
+    unterschrift: false,
+    briefLeiste: true
+  };
+
+  // Startpunkte, abgeleitet aus den häufigsten Vorlagen-Typen.
+  const DZ_VORLAGEN = {
+    klar: { label: 'Klar', info: 'Einspaltig, eine Farbe', werte: { layout: 'einspaltig', kopf: 'links', foto: 'rund', fotoPos: 'links', name: 'normal', titelzeile: true, dokumenttitel: false, kontakt: 'icons', ueberschrift: 'unterstrichen', stationen: 'datum-links', listen: 'zweispaltig', schrift: 'zilla', akzent: '#123763', leisteFarbe: '#123763', dichte: 'normal', rahmen: true, unterschrift: false } },
+    seitenleiste: { label: 'Seitenleiste', info: 'Dunkle Leiste, Zeitleiste', werte: { layout: 'leiste-links', leiste: { kontakt: true, kurzprofil: true, ausbildung: true, listen: true }, kopf: 'links', foto: 'rund', name: 'versal', titelzeile: true, dokumenttitel: false, kontakt: 'icons', ueberschrift: 'versal', stationen: 'zeitleiste', listen: 'aufzaehlung', schrift: 'bebas-lato', akzent: '#A28848', leisteFarbe: '#2C3A4B', dichte: 'kompakt', rahmen: false, unterschrift: false, briefLeiste: true } },
+    klassisch: { label: 'Klassisch deutsch', info: '„Lebenslauf“, Foto rechts', werte: { layout: 'einspaltig', kopf: 'links', foto: 'eckig', fotoPos: 'rechts', name: 'normal', titelzeile: false, dokumenttitel: true, kontakt: 'zeile', ueberschrift: 'linie', stationen: 'datum-links', listen: 'aufzaehlung', schrift: 'source', akzent: '#3A3A3A', leisteFarbe: '#2B2B2B', dichte: 'normal', rahmen: false, unterschrift: true } },
+    kopfband: { label: 'Kopfband', info: 'Farbiges Band oben', werte: { layout: 'einspaltig', kopf: 'band', foto: 'rund', fotoPos: 'rechts', name: 'versal', titelzeile: true, dokumenttitel: false, kontakt: 'icons', ueberschrift: 'balken', stationen: 'datum-rechts', listen: 'tags', schrift: 'inter', akzent: '#2B6777', leisteFarbe: '#1F4E5B', dichte: 'normal', rahmen: false, unterschrift: false } },
+    hell: { label: 'Hell zweispaltig', info: 'Helle Leiste, elegant', werte: { layout: 'leiste-rechts', leiste: { kontakt: true, kurzprofil: false, ausbildung: false, listen: true }, kopf: 'links', foto: 'rund', fotoPos: 'links', name: 'versal', titelzeile: true, dokumenttitel: false, kontakt: 'icons', ueberschrift: 'versal', stationen: 'datum-rechts', listen: 'tags', schrift: 'playfair-lato', akzent: '#7A2E3A', leisteFarbe: '#F3EEEA', dichte: 'normal', rahmen: false, unterschrift: false, briefLeiste: false } },
+    minimal: { label: 'Minimal', info: 'Nur Typografie', werte: { layout: 'einspaltig', kopf: 'zentriert', foto: 'aus', name: 'versal', titelzeile: true, dokumenttitel: false, kontakt: 'zeile', ueberschrift: 'versal', stationen: 'datum-rechts', listen: 'zeile', schrift: 'merriweather-opensans', akzent: '#1E1E1E', leisteFarbe: '#1E1E1E', dichte: 'normal', rahmen: false, unterschrift: false } }
+  };
+
+  const DZ_TEXTE = {
+    de: { profil: 'Profil', kontakt: 'Kontakt', lebenslauf: 'Lebenslauf', ortDatum: 'Ort, Datum', unterschrift: 'Unterschrift', ohneName: 'Name fehlt — bitte unter „Kontaktdaten“ ergänzen' },
+    en: { profil: 'Profile', kontakt: 'Contact', lebenslauf: 'Curriculum Vitae', ortDatum: 'Place, date', unterschrift: 'Signature', ohneName: 'Name missing' }
+  };
+
+  const DZ_ICONS = {
+    ort: '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+    telefon: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+    mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+    link: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>'
+  };
+
+  const DZ_BEISPIEL = {
+    profil: {
+      full_name: 'Alex Beispiel', street: 'Musterweg 12', postal_code: '10115', city: 'Berlin',
+      phone: '+49 170 1234567', email: 'alex.beispiel@example.com', linkedin_url: 'https://www.linkedin.com/in/alex-beispiel'
+    },
+    job: { company: 'Beispiel Medizintechnik GmbH', job_title: 'Senior Sales Manager', analysis: { unternehmen: 'Beispiel Medizintechnik GmbH', stellentitel: 'Senior Sales Manager', ansprechpartner: 'Frau Muster' } },
+    cv: {
+      kurzprofil: 'Vertriebsprofi mit acht Jahren Erfahrung im beratungsintensiven B2B-Vertrieb von Medizintechnik. Erfahren in Markteinführungen und im Aufbau langfristiger Kundenbeziehungen bis zur Klinikleitung.',
+      abschnitte: [
+        { titel: 'Berufserfahrung', eintraege: [
+          { titel: 'Senior Sales Manager', organisation: 'Muster Medical GmbH', zeitraum: '01/2023 – heute', punkte: ['Aufbau des Vertriebsgebiets Nord mit 40 Neukunden', 'Markteinführung eines neuen Lasersystems', 'Schulungen für Ärzte und Praxisteams'] },
+          { titel: 'Sales Manager', organisation: 'Vita Devices AG', zeitraum: '04/2019 – 12/2022', punkte: ['Betreuung von Kliniken und Fachpraxen in Bayern', 'Zielerreichung 2021: 128 %'] },
+          { titel: 'Junior Account Manager', organisation: 'Nordlicht Diagnostik GmbH', zeitraum: '09/2016 – 03/2019', punkte: ['Betreuung von Bestandskunden', 'Vorbereitung von Messen und Kongressen'] }
+        ] },
+        { titel: 'Ausbildung', eintraege: [
+          { titel: 'B. A. Betriebswirtschaftslehre', organisation: 'Hochschule Musterstadt', zeitraum: '2012 – 2016', punkte: ['Schwerpunkt Marketing und Vertrieb'] }
+        ] },
+        { titel: 'Kenntnisse', eintraege: [
+          { titel: '', organisation: '', zeitraum: '', punkte: ['Key Account Management', 'Markteinführung', 'CRM: Salesforce, HubSpot', 'Verhandlungsführung', 'Produktschulungen', 'Wettbewerbsanalyse'] }
+        ] },
+        { titel: 'Sprachen', eintraege: [
+          { titel: '', organisation: '', zeitraum: '', punkte: ['Deutsch – Muttersprache', 'Englisch – verhandlungssicher', 'Französisch – Grundkenntnisse'] }
+        ] }
+      ]
+    },
+    brief: {
+      betreff: 'Bewerbung als Senior Sales Manager',
+      anrede: 'Sehr geehrte Frau Muster,',
+      absaetze: [
+        { text: 'dies ist ein Beispieltext, damit du sehen kannst, wie dein Anschreiben im gewählten Design wirkt. Hier steht später der Text, den das Tool für die jeweilige Stellenanzeige generiert.' },
+        { text: 'Der zweite Absatz zeigt, wie Fließtext, Zeilenabstand und Schrift über mehrere Zeilen zusammenspielen. Schrift, Farben und Kopfbereich übernimmt das Anschreiben aus dem Lebenslauf-Design, damit beide Unterlagen wie aus einem Guss wirken.' },
+        { text: 'Im dritten Absatz ginge es um ein weiteres Argument. Über „Vorschau mit“ kannst du statt dieses Beispiels auch eines deiner echten Anschreiben einblenden.' },
+        { text: 'Über eine Einladung zu einem persönlichen Gespräch freue ich mich.' }
+      ],
+      grussformel: 'Mit freundlichen Grüßen'
+    }
+  };
+
+  function ladeDesignSchriften() {
+    if (document.getElementById('design-fonts')) return;
+    const link = document.createElement('link');
+    link.id = 'design-fonts';
+    link.rel = 'stylesheet';
+    link.href = DESIGN_FONTS_HREF;
+    document.head.appendChild(link);
+  }
+
+  // Alles aus dem Speicher wird geprüft, bevor es in HTML und CSS landet.
+  function normalisiereDesign(raw) {
+    const r = raw && typeof raw === 'object' ? raw : {};
+    const g = { ...DESIGN_BASIS, leiste: { ...DESIGN_BASIS.leiste } };
+    Object.keys(DZ_OPTIONEN).forEach(key => {
+      if (DZ_OPTIONEN[key].some(([wert]) => wert === r[key])) g[key] = r[key];
+    });
+    if (SCHRIFTEN[r.schrift]) g.schrift = r.schrift;
+    ['akzent', 'leisteFarbe'].forEach(key => {
+      if (/^#[0-9a-f]{6}$/i.test(r[key] || '')) g[key] = r[key];
+    });
+    ['titelzeile', 'dokumenttitel', 'rahmen', 'unterschrift', 'briefLeiste'].forEach(key => {
+      if (typeof r[key] === 'boolean') g[key] = r[key];
+    });
+    if (r.leiste && typeof r.leiste === 'object') {
+      Object.keys(g.leiste).forEach(key => {
+        if (typeof r.leiste[key] === 'boolean') g.leiste[key] = r.leiste[key];
+      });
+    }
+    g.vorlage = DZ_VORLAGEN[r.vorlage] ? r.vorlage : '';
+    return g;
+  }
+
+  function ladeDesign() {
+    try {
+      return normalisiereDesign(JSON.parse(localStorage.getItem(DESIGN_KEY) || 'null') || DZ_VORLAGEN.klar.werte);
+    } catch (err) {
+      return normalisiereDesign(DZ_VORLAGEN.klar.werte);
+    }
+  }
+
+  function speichereDesign(g) {
+    try { localStorage.setItem(DESIGN_KEY, JSON.stringify(g)); } catch (err) { /* nicht kritisch */ }
+  }
+
+  function ladeFassung(kind) {
+    try {
+      return localStorage.getItem(FASSUNG_KEY + kind) === 'ats' ? 'ats' : 'gestaltet';
+    } catch (err) {
+      return 'gestaltet';
+    }
+  }
+
+  function leuchtdichte(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+      .map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); })
+      .reduce((summe, v, i) => summe + v * [0.2126, 0.7152, 0.0722][i], 0);
+  }
+
+  function kontrast(a, b) {
+    const [hell, dunkel] = [leuchtdichte(a), leuchtdichte(b)].sort((x, y) => y - x);
+    return (hell + 0.05) / (dunkel + 0.05);
+  }
+
+  // Textfarbe auf einer Fläche: die mit dem stärkeren Kontrast.
+  function textAuf(hex) {
+    return kontrast(hex, '#FFFFFF') >= kontrast(hex, '#1E1E1E') ? '#FFFFFF' : '#1E1E1E';
+  }
+
+  function kontaktDaten(profil) {
+    const p = profil || {};
+    const ohneProtokoll = url => url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
+    const ort = [p.postal_code, p.city].filter(Boolean).join(' ');
+    return {
+      name: p.full_name || '',
+      strasse: p.street || '',
+      ort,
+      eintraege: [
+        (p.street || ort) ? { icon: 'ort', text: [p.street, ort].filter(Boolean).join(', ') } : null,
+        p.phone ? { icon: 'telefon', text: p.phone } : null,
+        p.email ? { icon: 'mail', text: p.email } : null,
+        p.linkedin_url ? { icon: 'link', text: ohneProtokoll(p.linkedin_url) } : null,
+        p.portfolio_url ? { icon: 'link', text: ohneProtokoll(p.portfolio_url) } : null
+      ].filter(Boolean)
+    };
+  }
+
+  // Abschnitte ohne Zeiträume und Organisationen sind Listen (Kenntnisse,
+  // Sprachen) — nur die passen in eine schmale Seitenleiste.
+  function istListenAbschnitt(abschnitt) {
+    const eintraege = abschnitt.eintraege || [];
+    return eintraege.length > 0 &&
+      eintraege.every(e => !String(e.zeitraum || '').trim() && !String(e.organisation || '').trim());
+  }
+
+  function istAusbildung(abschnitt) {
+    return /ausbildung|bildung|studium|education/i.test(abschnitt.titel || '');
+  }
+
+  function dzFeld(ctx, tag, pfad, text, klasse) {
+    const klassen = [klasse, ctx.editierbar ? 'doc-field' : ''].filter(Boolean).join(' ');
+    const attr = ctx.editierbar ? ` contenteditable="true" data-path="${pfad}"` : '';
+    return `<${tag}${klassen ? ` class="${klassen}"` : ''}${attr}>${ctx.text(pfad, text || '')}</${tag}>`;
+  }
+
+  function dzAbschnitt(titel, inhalt) {
+    return `<section class="dz-abschnitt"><h2 class="dz-ue">${escapeHtml(titel)}</h2>${inhalt}</section>`;
+  }
+
+  function dzFoto(g, name) {
+    const initialen = name.split(/\s+/).filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    return `<div class="dz-foto ${g.foto}" title="Platzhalter — der Foto-Upload folgt">${escapeHtml(initialen)}</div>`;
+  }
+
+  function dzKontakt(g, k, inLeiste) {
+    if (k.eintraege.length === 0) return '';
+    if (g.kontakt === 'zeile' && !inLeiste) {
+      return `<div class="dz-kontakt zeile">${k.eintraege.map(e => escapeHtml(e.text)).join('<span class="trenner">·</span>')}</div>`;
+    }
+    return `<div class="dz-kontakt">${k.eintraege.map(e =>
+      `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${DZ_ICONS[e.icon]}</svg>${escapeHtml(e.text)}</span>`).join('')}</div>`;
+  }
+
+  function dzKopf(ctx, k, foto, mitKontakt) {
+    const g = ctx.design;
+    const t = DZ_TEXTE[ctx.lang] || DZ_TEXTE.de;
+    const titel = g.titelzeile && ctx.stellentitel ? `<div class="dz-titelzeile">${escapeHtml(ctx.stellentitel)}</div>` : '';
+    const name = escapeHtml(k.name) || `<span style="opacity:0.5; font-size:0.5em;">${t.ohneName}</span>`;
+    return `
+      <div class="dz-kopf ${g.fotoPos === 'rechts' ? 'foto-rechts' : ''}">
+        ${foto}
+        <div class="dz-kopftext">
+          <h1 class="dz-name">${name}</h1>
+          ${titel}
+          ${mitKontakt ? dzKontakt(g, k, false) : ''}
+        </div>
+      </div>`;
+  }
+
+  function dzStation(ctx, e, basis, inLeiste) {
+    const g = ctx.design;
+    const rolle = dzFeld(ctx, 'div', basis + '.titel', e.titel, 'rolle');
+    const org = e.organisation ? dzFeld(ctx, 'div', basis + '.organisation', e.organisation, 'org') : '';
+    const zeit = e.zeitraum ? `<div class="zeit">${ctx.text(basis + '.zeitraum', e.zeitraum)}</div>` : '';
+    const punkte = (e.punkte || []).length
+      ? `<ul>${e.punkte.map((punkt, pi) => dzFeld(ctx, 'li', `${basis}.punkte.${pi}`, punkt)).join('')}</ul>`
+      : '';
+    // In der schmalen Leiste ist für Spalten kein Platz: einfach untereinander.
+    if (inLeiste) {
+      return `<div class="dz-station">${rolle}${org}${zeit}${punkte}</div>`;
+    }
+    if (g.stationen === 'datum-rechts') {
+      return `<div class="dz-station"><div class="kopfzeile">${rolle}${zeit}</div>${org}${punkte}</div>`;
+    }
+    if (g.stationen === 'zeitleiste') {
+      return `<div class="dz-station"><div class="seite">${org}${zeit}</div><div class="inhalt">${rolle}${punkte}</div></div>`;
+    }
+    return `<div class="dz-station"><div class="seite">${zeit}</div><div class="inhalt">${rolle}${org}${punkte}</div></div>`;
+  }
+
+  function dzListe(ctx, abschnitt, si) {
+    return (abschnitt.eintraege || []).map((e, ei) => {
+      const basis = `abschnitte.${si}.eintraege.${ei}`;
+      const titel = e.titel ? dzFeld(ctx, 'div', basis + '.titel', e.titel, 'gruppentitel') : '';
+      const punkte = (e.punkte || []).map((punkt, pi) => dzFeld(ctx, 'li', `${basis}.punkte.${pi}`, punkt)).join('');
+      return `<div class="dz-listgruppe">${titel}${punkte ? `<ul class="dz-liste">${punkte}</ul>` : ''}</div>`;
+    }).join('');
+  }
+
+  function dzBlatt(g, main, side, mitLeiste) {
+    const schrift = SCHRIFTEN[g.schrift] || SCHRIFTEN.zilla;
+    const dichte = DICHTE[g.dichte] || DICHTE.normal;
+    const leisteText = textAuf(g.leisteFarbe);
+    // Die Akzentfarbe nur dann auf der Leiste verwenden, wenn sie dort lesbar ist.
+    const leisteAkzent = kontrast(g.akzent, g.leisteFarbe) >= 3 ? g.akzent : leisteText;
+    const klassen = [
+      'sheet', 'dz',
+      'dz-' + (mitLeiste ? g.layout : 'einspaltig'),
+      'dz-schrift-' + g.schrift,
+      'dz-kopf-' + g.kopf,
+      'dz-name-' + g.name,
+      'dz-ue-' + g.ueberschrift,
+      'dz-st-' + g.stationen,
+      'dz-li-' + g.listen,
+      g.rahmen ? 'dz-rahmen' : ''
+    ].filter(Boolean).join(' ');
+    const stil = [
+      `--d-akzent:${g.akzent}`,
+      `--d-akzent-kontrast:${textAuf(g.akzent)}`,
+      `--d-leiste:${g.leisteFarbe}`,
+      `--d-leiste-text:${leisteText}`,
+      `--d-leiste-akzent:${leisteAkzent}`,
+      `--d-kopf-font:${schrift.kopf}`,
+      `--d-text-font:${schrift.text}`,
+      `--d-size:${dichte.size}`,
+      `--d-lh:${dichte.lh}`
+    ].join(';');
+    return `<div class="${klassen}" style="${stil}">${mitLeiste ? `<aside class="dz-side">${side}</aside>` : ''}<div class="dz-main">${main}</div></div>`;
+  }
+
+  // ctx: { design, daten, profil, job, stellentitel, lang, text(pfad, text), editierbar }
+  function cvGestaltetHtml(ctx) {
+    const g = ctx.design;
+    const d = ctx.daten || {};
+    const t = DZ_TEXTE[ctx.lang] || DZ_TEXTE.de;
+    const k = kontaktDaten(ctx.profil);
+    const mitLeiste = g.layout !== 'einspaltig';
+    const foto = g.foto !== 'aus' ? dzFoto(g, k.name) : '';
+    const main = [];
+    const side = [];
+
+    if (g.dokumenttitel) main.push(`<div class="dz-dokumenttitel">${t.lebenslauf}</div>`);
+    if (mitLeiste) {
+      if (foto) side.push(foto);
+      if (g.leiste.kontakt) side.push(dzAbschnitt(t.kontakt, dzKontakt(g, k, true)));
+    }
+    main.push(dzKopf(ctx, k, mitLeiste ? '' : foto, !(mitLeiste && g.leiste.kontakt)));
+
+    if (d.kurzprofil) {
+      const profil = dzAbschnitt(t.profil, dzFeld(ctx, 'p', 'kurzprofil', d.kurzprofil, 'dz-profil'));
+      (mitLeiste && g.leiste.kurzprofil ? side : main).push(profil);
+    }
+
+    (d.abschnitte || []).forEach((abschnitt, si) => {
+      const liste = istListenAbschnitt(abschnitt);
+      const inLeiste = mitLeiste && ((liste && g.leiste.listen) || (!liste && g.leiste.ausbildung && istAusbildung(abschnitt)));
+      const inhalt = liste
+        ? dzListe(ctx, abschnitt, si)
+        : (abschnitt.eintraege || []).map((e, ei) => dzStation(ctx, e, `abschnitte.${si}.eintraege.${ei}`, inLeiste)).join('');
+      (inLeiste ? side : main).push(dzAbschnitt(abschnitt.titel || '', inhalt));
+    });
+
+    if (g.unterschrift) {
+      main.push(`<div class="dz-unterschrift"><div>${t.ortDatum}</div><div>${t.unterschrift}</div></div>`);
+    }
+    return dzBlatt(g, main.join(''), side.join(''), mitLeiste);
+  }
+
+  function briefGestaltetHtml(ctx) {
+    const g = ctx.design;
+    const d = ctx.daten || {};
+    const t = DZ_TEXTE[ctx.lang] || DZ_TEXTE.de;
+    const k = kontaktDaten(ctx.profil);
+    const job = ctx.job || {};
+    const a = job.analysis || {};
+    const mitLeiste = g.layout !== 'einspaltig' && g.briefLeiste;
+    const side = [];
+    if (mitLeiste) {
+      if (g.foto !== 'aus') side.push(dzFoto(g, k.name));
+      side.push(dzAbschnitt(t.kontakt, dzKontakt(g, k, true)));
+    }
+
+    const heute = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const absender = [k.name, k.strasse, k.ort].filter(Boolean).join(' · ');
+    const empfaenger = [a.unternehmen || job.company || '', a.ansprechpartner ? 'z. Hd. ' + a.ansprechpartner : '']
+      .filter(Boolean).join('\n');
+    const ortZeile = k.ort ? k.ort.replace(/^\d+\s*/, '') + ', ' : '';
+
+    const main = dzKopf(ctx, k, '', !mitLeiste) + `
+      <div class="dz-brief">
+        <div class="absender-zeile">${escapeHtml(absender)}</div>
+        <div class="anschrift">${escapeHtml(empfaenger)}</div>
+        <div class="datum">${escapeHtml(ortZeile)}${heute}</div>
+        ${dzFeld(ctx, 'div', 'betreff', d.betreff, 'betreff')}
+        ${dzFeld(ctx, 'p', 'anrede', d.anrede)}
+        ${(d.absaetze || []).map((abs, i) => dzFeld(ctx, 'p', `absaetze.${i}.text`, abs.text)).join('')}
+        ${dzFeld(ctx, 'p', 'grussformel', d.grussformel, 'gruss')}
+        <div class="signatur-raum"></div>
+        <p>${escapeHtml(k.name)}</p>
+      </div>`;
+    return dzBlatt(g, main, side.join(''), mitLeiste);
+  }
+
+  // ---- Bedienbereich im Reiter „Design“ ----
+  let designAktuell = null;
+  let dzDokument = 'cv';
+  let dzQuelle = 'beispiel';
+
+  async function openDesigner() {
+    ladeDesignSchriften();
+    designAktuell = ladeDesign();
+    renderDesignControls();
+    renderDesignPreview();
+    // Echte Dokumente für die Vorschau nachladen, ohne die Ansicht zu blockieren.
+    await loadJobs();
+    renderDesignQuelle();
+  }
+
+  function renderDesignQuelle() {
+    const select = document.getElementById('dz-quelle');
+    const mitDokument = allJobs.filter(j => j.cv_document || j.cover_letter);
+    if (dzQuelle !== 'beispiel' && !mitDokument.some(j => j.id === dzQuelle)) dzQuelle = 'beispiel';
+    select.innerHTML = '<option value="beispiel">Beispieldaten</option>' + mitDokument.map(j =>
+      `<option value="${escapeAttr(j.id)}" ${j.id === dzQuelle ? 'selected' : ''}>${escapeHtml([j.job_title, j.company].filter(Boolean).join(' – ') || 'Stellenanzeige')}</option>`).join('');
+    select.value = dzQuelle;
+  }
+
+  function dzSelect(key, label) {
+    return `
+      <div class="field">
+        <label for="dz-${key}">${label}</label>
+        <select id="dz-${key}" data-key="${key}">
+          ${DZ_OPTIONEN[key].map(([wert, text]) => `<option value="${wert}" ${designAktuell[key] === wert ? 'selected' : ''}>${text}</option>`).join('')}
+        </select>
+      </div>`;
+  }
+
+  function dzCheck(key, label, gruppe) {
+    const wert = gruppe ? designAktuell[gruppe][key] : designAktuell[key];
+    return `<label class="check"><input type="checkbox" data-key="${key}" ${gruppe ? `data-gruppe="${gruppe}"` : ''} ${wert ? 'checked' : ''}> ${label}</label>`;
+  }
+
+  function renderDesignControls() {
+    const g = designAktuell;
+    const mitLeiste = g.layout !== 'einspaltig';
+    document.getElementById('design-controls').innerHTML = `
+      <h3>Vorlage als Startpunkt</h3>
+      <div class="preset-grid">
+        ${Object.entries(DZ_VORLAGEN).map(([key, v]) => `
+          <button type="button" class="preset-card ${g.vorlage === key ? 'active' : ''}" data-vorlage="${key}">
+            <strong>${escapeHtml(v.label)}</strong><span>${escapeHtml(v.info)}</span>
+          </button>`).join('')}
+      </div>
+      <p class="design-hint">Eine Vorlage setzt alle Einstellungen. Danach kannst du jedes Detail einzeln ändern.</p>
+
+      <h3>Grundlayout</h3>
+      ${dzSelect('layout', 'Aufteilung')}
+      ${mitLeiste ? `
+        <label>In die Seitenleiste</label>
+        ${dzCheck('kontakt', 'Kontaktdaten', 'leiste')}
+        ${dzCheck('kurzprofil', 'Profil', 'leiste')}
+        ${dzCheck('ausbildung', 'Ausbildung', 'leiste')}
+        ${dzCheck('listen', 'Kenntnisse und Sprachen', 'leiste')}
+        ${dzCheck('briefLeiste', 'Seitenleiste auch im Anschreiben')}
+      ` : ''}
+      ${dzSelect('dichte', 'Schriftgröße und Abstände')}
+
+      <h3>Kopfbereich</h3>
+      ${dzSelect('kopf', 'Anordnung')}
+      ${dzSelect('foto', 'Foto')}
+      ${!mitLeiste && g.foto !== 'aus' ? dzSelect('fotoPos', 'Position des Fotos') : ''}
+      ${dzSelect('name', 'Name')}
+      ${dzSelect('kontakt', 'Kontaktdaten')}
+      ${dzCheck('titelzeile', 'Titelzeile unter dem Namen (Stellentitel der Anzeige)')}
+      ${dzCheck('dokumenttitel', 'Überschrift „Lebenslauf“ über dem Kopf')}
+      ${dzCheck('rahmen', 'Farbiger Rahmen um die Seite')}
+      ${g.foto !== 'aus' ? '<p class="design-hint">Bis der Foto-Upload gebaut ist, zeigt der Platzhalter deine Initialen.</p>' : ''}
+
+      <h3>Inhalte</h3>
+      ${dzSelect('ueberschrift', 'Abschnittsüberschriften')}
+      ${dzSelect('stationen', 'Berufsstationen')}
+      ${dzSelect('listen', 'Kenntnisse und Sprachen')}
+      ${dzCheck('unterschrift', 'Ort, Datum und Unterschrift am Ende')}
+      <p class="design-hint">Fähigkeiten als Punkte, Balken oder Kreise gibt es bewusst nicht: „4 von 5 Punkten“ sagt Personalern wenig, und Bewerbermanagement-Systeme können es nicht auslesen.</p>
+
+      <h3>Schrift</h3>
+      <div class="field">
+        <label for="dz-schrift">Schriftart</label>
+        <select id="dz-schrift" data-key="schrift">
+          ${Object.entries(SCHRIFTEN).map(([key, s]) => `<option value="${key}" ${g.schrift === key ? 'selected' : ''}>${escapeHtml(s.label)}</option>`).join('')}
+        </select>
+      </div>
+
+      <h3>Farben</h3>
+      <div class="palette-row">
+        ${PALETTEN.map((p, i) => `
+          <button type="button" class="palette-swatch ${p.akzent === g.akzent && p.leiste === g.leisteFarbe ? 'active' : ''}" data-palette="${i}" title="${escapeAttr(p.name)}">
+            <span style="background:${p.leiste};"></span><span style="background:${p.akzent};"></span>
+          </button>`).join('')}
+      </div>
+      <div class="color-row">
+        <div class="field">
+          <label for="dz-akzent">Akzentfarbe</label>
+          <input type="color" id="dz-akzent" data-key="akzent" value="${g.akzent}">
+        </div>
+        <div class="field">
+          <label for="dz-leisteFarbe">Leiste und Kopfband</label>
+          <input type="color" id="dz-leisteFarbe" data-key="leisteFarbe" value="${g.leisteFarbe}">
+        </div>
+      </div>
+
+      <p class="design-hint" style="margin-top:18px;">Das Design gilt für die Fassung „Gestaltet“ im Vorschaufenster von Anschreiben und Lebenslauf. Gespeichert wird es vorerst nur in diesem Browser.</p>
+    `;
+  }
+
+  function renderDesignPreview() {
+    const job = allJobs.find(j => j.id === dzQuelle);
+    const echteDaten = job && (dzDokument === 'cv' ? job.cv_document : job.cover_letter);
+    const hinweis = document.getElementById('dz-quelle-hinweis');
+    hinweis.textContent = job && !echteDaten
+      ? (dzDokument === 'cv' ? 'Zu dieser Stellenanzeige gibt es noch keinen Lebenslauf — Beispiel wird gezeigt.' : 'Zu dieser Stellenanzeige gibt es noch kein Anschreiben — Beispiel wird gezeigt.')
+      : '';
+
+    const ctx = {
+      design: designAktuell,
+      daten: echteDaten || (dzDokument === 'cv' ? DZ_BEISPIEL.cv : DZ_BEISPIEL.brief),
+      profil: echteDaten ? currentProfile : DZ_BEISPIEL.profil,
+      job: echteDaten ? job : DZ_BEISPIEL.job,
+      stellentitel: echteDaten ? stelleKontext(job).stellentitel : DZ_BEISPIEL.job.analysis.stellentitel,
+      lang: 'de',
+      text: (pfad, text) => escapeHtml(text),
+      editierbar: false
+    };
+    document.getElementById('design-sheet').innerHTML =
+      dzDokument === 'cv' ? cvGestaltetHtml(ctx) : briefGestaltetHtml(ctx);
+  }
+
+  function designGeaendert(neuZeichnen) {
+    speichereDesign(designAktuell);
+    if (neuZeichnen) renderDesignControls();
+    renderDesignPreview();
+  }
+
+  const designControls = document.getElementById('design-controls');
+
+  designControls.addEventListener('click', (e) => {
+    const vorlage = e.target.closest('[data-vorlage]');
+    if (vorlage) {
+      const key = vorlage.dataset.vorlage;
+      designAktuell = normalisiereDesign({ ...DZ_VORLAGEN[key].werte, vorlage: key });
+      designGeaendert(true);
+      return;
+    }
+    const palette = e.target.closest('[data-palette]');
+    if (palette) {
+      const p = PALETTEN[Number(palette.dataset.palette)];
+      designAktuell.akzent = p.akzent;
+      designAktuell.leisteFarbe = p.leiste;
+      designGeaendert(true);
+    }
+  });
+
+  designControls.addEventListener('change', (e) => {
+    const el = e.target;
+    const key = el.dataset.key;
+    if (!key) return;
+    const roh = JSON.parse(JSON.stringify(designAktuell));
+    if (el.type === 'checkbox' && el.dataset.gruppe) roh[el.dataset.gruppe][key] = el.checked;
+    else if (el.type === 'checkbox') roh[key] = el.checked;
+    else roh[key] = el.value;
+    designAktuell = normalisiereDesign(roh);
+    // Einzelne Änderungen lösen die Vorlage auf, damit keine Karte mehr
+    // als aktiv markiert ist, die gar nicht mehr stimmt.
+    designAktuell.vorlage = '';
+    designGeaendert(true);
+  });
+
+  // Farbwähler: beim Ziehen nur die Vorschau aktualisieren, sonst verliert
+  // der geöffnete Farbwähler seinen Bezug.
+  designControls.addEventListener('input', (e) => {
+    const el = e.target;
+    if (el.type !== 'color') return;
+    designAktuell = normalisiereDesign({ ...designAktuell, [el.dataset.key]: el.value });
+    designAktuell.vorlage = '';
+    designGeaendert(false);
+  });
+
+  document.querySelectorAll('.dz-doc-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      dzDokument = btn.dataset.doc;
+      document.querySelectorAll('.dz-doc-tab').forEach(b => b.classList.toggle('active', b === btn));
+      renderDesignPreview();
+    });
+  });
+
+  document.getElementById('dz-quelle').addEventListener('change', (e) => {
+    dzQuelle = e.target.value;
+    renderDesignPreview();
   });
 
   // ---- Matching-Vorschlag in einen Baustein übernehmen ----
