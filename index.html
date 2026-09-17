@@ -676,6 +676,30 @@
   .doc-field:hover { border-color: var(--color-border); }
   .doc-field:focus { outline: 2px solid var(--color-accent); outline-offset: 1px; }
 
+  /* Faktenprüfung: nur am Bildschirm, nie auf dem Papier. */
+  .fc-summary {
+    border-left: 3px solid var(--color-border);
+    background: var(--color-bg);
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+  .fc-summary.ok { border-left-color: var(--color-published); }
+  .fc-summary.warn { border-left-color: var(--color-draft); background: #FBF5E6; }
+  .fc-summary.fail { border-left-color: var(--color-danger); }
+  .fc-summary .fc-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .fc-summary .fc-head button { padding: 4px 12px; font-size: 12px; white-space: nowrap; }
+  .fc-summary ul { margin: 8px 0 0; padding-left: 1.2em; }
+  .fc-summary li { margin-bottom: 4px; }
+  .fc-summary .fc-meta { color: var(--color-ink-muted); font-size: 12px; }
+  mark.fc-mark {
+    background: #FCE8A6;
+    color: inherit;
+    border-bottom: 1.5px solid #D4A72C;
+    padding: 0 1px;
+    cursor: help;
+  }
+
   @media print {
     body { background: #fff; }
     /* Nur das geöffnete Dokument kommt aufs Papier — alle übrigen Dialoge
@@ -687,6 +711,7 @@
     .no-print { display: none !important; }
     .sheet { border: none; width: auto; min-height: 0; margin: 0; padding: 0; }
     .doc-field { border-color: transparent !important; }
+    mark.fc-mark { background: none !important; border-bottom: none !important; padding: 0; }
     @page { size: A4; margin: 2cm 2cm 2cm 2.41cm; }
   }
 
@@ -1118,6 +1143,7 @@
     <div id="doc-progress" class="no-print" style="display:none;">
       <div class="progress-note"><span class="spinner"></span><span id="doc-progress-text">Wird übersetzt …</span></div>
     </div>
+    <div id="doc-factcheck" class="no-print"></div>
     <div id="doc-sheet"></div>
   </div>
 </div>
@@ -3002,18 +3028,22 @@ function initApp() {
         bausteine: publishedBausteine()
       });
 
+      // Die alte Prüfung gehört zum alten Text und wird mit ihm verworfen.
+      const fc = ohnePruefung(job, 'cover_letter');
       const { error } = await client
         .from('job_postings')
-        .update({ cover_letter_outline: outlineDraft, cover_letter: entwurf })
+        .update({ cover_letter_outline: outlineDraft, cover_letter: entwurf, fact_check: fc })
         .eq('id', job.id);
       if (error) throw error;
 
       job.cover_letter_outline = outlineDraft;
       job.cover_letter = entwurf;
+      job.fact_check = fc;
       renderJobDetail(job);
       activeJobTab = 'anschreiben';
       showJobTab(document.getElementById('job-detail'));
       openDoc(job, 'cover_letter');
+      runFactCheck(job, 'cover_letter', entwurf);
     } catch (err) {
       letterError(err.message || 'Das Anschreiben konnte nicht geschrieben werden.');
     } finally {
@@ -3072,17 +3102,20 @@ function initApp() {
         bausteine
       });
 
+      const fc = ohnePruefung(job, 'cv_document');
       const { error } = await client
         .from('job_postings')
-        .update({ cv_document: dokument })
+        .update({ cv_document: dokument, fact_check: fc })
         .eq('id', job.id);
       if (error) throw error;
 
       job.cv_document = dokument;
+      job.fact_check = fc;
       renderJobDetail(job);
       activeJobTab = 'lebenslauf';
       showJobTab(document.getElementById('job-detail'));
       openDoc(job, 'cv_document');
+      runFactCheck(job, 'cv_document', dokument);
     } catch (err) {
       progressEl.style.display = 'none';
       errorEl.textContent = err.message || 'Der Lebenslauf konnte nicht erstellt werden.';
@@ -3126,7 +3159,193 @@ function initApp() {
 
     document.getElementById('doc-translate').style.display = sprache === 'de' ? 'inline-block' : 'none';
     renderDocSheet();
+    renderFactCheck();
     docBackdrop.classList.add('open');
+  }
+
+  // ---- Faktenprüfung ----
+  // Prüft nach dem Generieren, ob Claude beim Formulieren etwas hinzuerfunden
+  // oder übertrieben hat. Ob der Bewerber zur Stelle passt, ist Sache des
+  // Abgleichs, nicht dieser Prüfung. Geprüft wird nur die deutsche Fassung.
+  const factLaeuft = new Set();
+  const factFehler = {};
+
+  function ohnePruefung(job, kind) {
+    const fc = JSON.parse(JSON.stringify(job.fact_check || {}));
+    delete fc[kind];
+    return fc;
+  }
+
+  function getByPath(obj, path) {
+    return path.split('.').reduce((ziel, teil) => (ziel == null ? undefined : ziel[teil]), obj);
+  }
+
+  // Zerlegt ein Dokument in die Stellen, die Tatsachen über den Bewerber
+  // enthalten können. Der Pfad ist derselbe wie data-path im Blatt — so
+  // finden die Befunde zurück an die richtige Stelle.
+  function factSegments(kind, d) {
+    const segmente = [];
+    const add = (pfad, text) => {
+      if (typeof text === 'string' && text.trim()) segmente.push({ pfad, text });
+    };
+    if (kind === 'cover_letter') {
+      add('betreff', d.betreff);
+      (d.absaetze || []).forEach((abs, i) => add(`absaetze.${i}.text`, abs.text));
+    } else {
+      add('kurzprofil', d.kurzprofil);
+      (d.abschnitte || []).forEach((abschnitt, si) => {
+        (abschnitt.eintraege || []).forEach((e, ei) => {
+          const basis = `abschnitte.${si}.eintraege.${ei}`;
+          add(basis + '.titel', e.titel);
+          add(basis + '.organisation', e.organisation);
+          add(basis + '.zeitraum', e.zeitraum);
+          (e.punkte || []).forEach((punkt, pi) => add(`${basis}.punkte.${pi}`, punkt));
+        });
+      });
+    }
+    return segmente;
+  }
+
+  async function runFactCheck(job, kind, daten) {
+    const key = job.id + ':' + kind;
+    if (factLaeuft.has(key)) return;
+    factLaeuft.add(key);
+    delete factFehler[key];
+    renderFactCheck();
+
+    try {
+      const segmente = factSegments(kind, daten);
+      if (segmente.length === 0) throw new Error('Das Dokument enthält keinen Text zum Prüfen.');
+
+      const ergebnis = await callClaude({
+        task: 'fact_check',
+        art: kind === 'cover_letter' ? 'anschreiben' : 'lebenslauf',
+        stelle: stelleKontext(job),
+        bausteine: publishedBausteine(),
+        segmente
+      });
+
+      const texte = {};
+      segmente.forEach(s => { texte[s.pfad] = s.text; });
+      // Der geprüfte Wortlaut wird mitgespeichert: Ändert der Nutzer die
+      // Stelle später von Hand, verschwindet die Markierung von selbst.
+      const befunde = (Array.isArray(ergebnis.befunde) ? ergebnis.befunde : [])
+        .filter(b => b && typeof texte[b.pfad] === 'string')
+        .map(b => ({
+          pfad: b.pfad,
+          zitat: String(b.zitat || ''),
+          grund: String(b.grund || ''),
+          baustein_id: b.baustein_id || '',
+          segment_text: texte[b.pfad]
+        }));
+
+      const fc = JSON.parse(JSON.stringify(job.fact_check || {}));
+      fc[kind] = { geprueft_am: new Date().toISOString(), befunde };
+      const { error } = await client.from('job_postings').update({ fact_check: fc }).eq('id', job.id);
+      if (error) throw error;
+      job.fact_check = fc;
+    } catch (err) {
+      factFehler[key] = err.message || 'Die Faktenprüfung ist fehlgeschlagen.';
+    } finally {
+      factLaeuft.delete(key);
+      if (docState && docState.job.id === job.id && docState.kind === kind && docState.lang === 'de') {
+        renderDocSheet();
+      }
+      renderFactCheck();
+    }
+  }
+
+  function sichtbareBefunde() {
+    if (!docState || docState.lang !== 'de') return [];
+    const fc = (docState.job.fact_check || {})[docState.kind];
+    if (!fc || !Array.isArray(fc.befunde)) return [];
+    return fc.befunde.filter(b => {
+      const text = getByPath(docState.data, b.pfad);
+      if (typeof text !== 'string') return false;
+      return (b.zitat && text.includes(b.zitat)) || text === b.segment_text;
+    });
+  }
+
+  // Gibt den Text einer Stelle als HTML zurück, beanstandete Teile markiert.
+  function mitMarken(pfad, text) {
+    const t = String(text || '');
+    const befunde = sichtbareBefunde().filter(b => b.pfad === pfad);
+    if (befunde.length === 0) return escapeHtml(t);
+
+    const bereiche = [];
+    befunde.forEach(b => {
+      let start = b.zitat ? t.indexOf(b.zitat) : -1;
+      let ende = start + b.zitat.length;
+      // Zitat nicht wörtlich gefunden, Text aber unverändert: ganze Stelle markieren.
+      if (start < 0) { start = 0; ende = t.length; }
+      if (bereiche.some(r => start < r.ende && ende > r.start)) return;
+      bereiche.push({ start, ende, grund: b.grund });
+    });
+    bereiche.sort((x, y) => x.start - y.start);
+
+    let html = '';
+    let pos = 0;
+    bereiche.forEach(r => {
+      html += escapeHtml(t.slice(pos, r.start)) +
+        `<mark class="fc-mark" title="${escapeAttr(r.grund)}">${escapeHtml(t.slice(r.start, r.ende))}</mark>`;
+      pos = r.ende;
+    });
+    return html + escapeHtml(t.slice(pos));
+  }
+
+  function renderFactCheck() {
+    const box = document.getElementById('doc-factcheck');
+    if (!box) return;
+    if (!docState) { box.innerHTML = ''; return; }
+
+    const { job, kind, lang } = docState;
+    if (lang !== 'de') {
+      box.innerHTML = '<div class="fc-summary">Die Faktenprüfung läuft auf der deutschen Fassung. Die Übersetzung darf nichts hinzufügen — bitte trotzdem gegenlesen.</div>';
+      return;
+    }
+
+    const key = job.id + ':' + kind;
+    const fc = (job.fact_check || {})[kind];
+    const knopf = (label) => `<button class="btn-secondary" id="fc-run">${label}</button>`;
+
+    if (factLaeuft.has(key)) {
+      box.innerHTML = '<div class="fc-summary"><div class="progress-note" style="margin:0;"><span class="spinner"></span><span>Faktenprüfung läuft — jede Aussage wird mit deinen Bausteinen verglichen …</span></div></div>';
+      return;
+    }
+
+    if (factFehler[key]) {
+      box.innerHTML = `<div class="fc-summary fail"><div class="fc-head"><span>Faktenprüfung fehlgeschlagen: ${escapeHtml(factFehler[key])}</span>${knopf('Erneut prüfen')}</div></div>`;
+    } else if (!fc) {
+      box.innerHTML = `<div class="fc-summary"><div class="fc-head"><span>Dieses Dokument wurde noch nicht auf erfundene Angaben geprüft.</span>${knopf('Jetzt prüfen')}</div></div>`;
+    } else {
+      const befunde = sichtbareBefunde();
+      const am = new Date(fc.geprueft_am).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      if (befunde.length === 0) {
+        box.innerHTML = `<div class="fc-summary ok"><div class="fc-head"><span>Faktenprüfung: Keine erfundenen oder übertriebenen Angaben gefunden. <span class="fc-meta">Geprüft am ${am}</span></span>${knopf('Erneut prüfen')}</div></div>`;
+      } else {
+        box.innerHTML = `
+          <div class="fc-summary warn">
+            <div class="fc-head">
+              <span><strong>Faktenprüfung: ${befunde.length === 1 ? '1 Stelle' : befunde.length + ' Stellen'} nicht durch deine Bausteine belegt</strong> — im Blatt gelb markiert, die Markierung wird nicht mitgedruckt. <span class="fc-meta">Geprüft am ${am}</span></span>
+              ${knopf('Erneut prüfen')}
+            </div>
+            <ul>${befunde.map(b => `<li>„${escapeHtml(b.zitat || b.segment_text)}“ — ${escapeHtml(b.grund)}</li>`).join('')}</ul>
+          </div>`;
+      }
+    }
+
+    document.getElementById('fc-run').addEventListener('click', async () => {
+      // Erst den aktuellen Stand sichern — geprüft wird, was im Blatt steht.
+      try {
+        await saveDoc();
+      } catch (err) {
+        factFehler[key] = 'Die Änderungen konnten nicht gespeichert werden: ' + err.message;
+        renderFactCheck();
+        return;
+      }
+      await loadData();
+      runFactCheck(job, kind, docState.data);
+    });
   }
 
   function renderDocSheet() {
@@ -3164,10 +3383,10 @@ function initApp() {
         <div class="absender-zeile">${escapeHtml(absender) || '<span style="color:#999;">Absenderdaten fehlen — bitte unter „Kontaktdaten“ ergänzen</span>'}</div>
         <div class="anschrift">${escapeHtml(empfaenger)}</div>
         <div class="datum">${escapeHtml(p.ort ? p.ort.replace(/^\d+\s*/, '') + ', ' : '')}${heute}</div>
-        <div class="betreff doc-field" contenteditable="true" data-path="betreff">${escapeHtml(d.betreff || '')}</div>
+        <div class="betreff doc-field" contenteditable="true" data-path="betreff">${mitMarken('betreff', d.betreff)}</div>
         <p class="doc-field" contenteditable="true" data-path="anrede">${escapeHtml(d.anrede || '')}</p>
         ${(d.absaetze || []).map((abs, i) =>
-          `<p class="doc-field" contenteditable="true" data-path="absaetze.${i}.text">${escapeHtml(abs.text || '')}</p>`).join('')}
+          `<p class="doc-field" contenteditable="true" data-path="absaetze.${i}.text">${mitMarken(`absaetze.${i}.text`, abs.text)}</p>`).join('')}
         <p class="gruss doc-field" contenteditable="true" data-path="grussformel">${escapeHtml(d.grussformel || '')}</p>
         <div class="signatur-raum"></div>
         <p>${escapeHtml(p.name)}</p>
@@ -3184,18 +3403,18 @@ function initApp() {
       <div class="sheet cv">
         <h1>${escapeHtml(p.name) || 'Name fehlt — bitte unter „Kontaktdaten“ ergänzen'}</h1>
         <div class="cv-kontakt">${escapeHtml(kopfzeile)}</div>
-        ${d.kurzprofil ? `<h2>Kurzprofil</h2><p class="doc-field" contenteditable="true" data-path="kurzprofil">${escapeHtml(d.kurzprofil)}</p>` : ''}
+        ${d.kurzprofil ? `<h2>Kurzprofil</h2><p class="doc-field" contenteditable="true" data-path="kurzprofil">${mitMarken('kurzprofil', d.kurzprofil)}</p>` : ''}
         ${(d.abschnitte || []).map((abschnitt, si) => `
           <h2>${escapeHtml(abschnitt.titel || '')}</h2>
           ${(abschnitt.eintraege || []).map((e, ei) => `
             <div class="cv-eintrag">
               <div class="kopf">
-                <span class="rolle doc-field" contenteditable="true" data-path="abschnitte.${si}.eintraege.${ei}.titel">${escapeHtml(e.titel || '')}</span>
-                <span>${escapeHtml(e.zeitraum || '')}</span>
+                <span class="rolle doc-field" contenteditable="true" data-path="abschnitte.${si}.eintraege.${ei}.titel">${mitMarken(`abschnitte.${si}.eintraege.${ei}.titel`, e.titel)}</span>
+                <span>${mitMarken(`abschnitte.${si}.eintraege.${ei}.zeitraum`, e.zeitraum)}</span>
               </div>
-              ${e.organisation ? `<div class="doc-field" contenteditable="true" data-path="abschnitte.${si}.eintraege.${ei}.organisation">${escapeHtml(e.organisation)}</div>` : ''}
+              ${e.organisation ? `<div class="doc-field" contenteditable="true" data-path="abschnitte.${si}.eintraege.${ei}.organisation">${mitMarken(`abschnitte.${si}.eintraege.${ei}.organisation`, e.organisation)}</div>` : ''}
               ${(e.punkte || []).length ? `<ul>${e.punkte.map((punkt, pi) =>
-                `<li class="doc-field" contenteditable="true" data-path="abschnitte.${si}.eintraege.${ei}.punkte.${pi}">${escapeHtml(punkt)}</li>`).join('')}</ul>` : ''}
+                `<li class="doc-field" contenteditable="true" data-path="abschnitte.${si}.eintraege.${ei}.punkte.${pi}">${mitMarken(`abschnitte.${si}.eintraege.${ei}.punkte.${pi}`, punkt)}</li>`).join('')}</ul>` : ''}
             </div>
           `).join('')}
         `).join('')}
