@@ -12,18 +12,24 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root {
-    --color-bg: #F6F4EF;
+    /* Ruhige, moderne Grundfarben: fast neutrales Grau, ein klares Blau für
+       alles Bedienbare. Dokumente und Design-Baukasten haben eigene Farben
+       und bleiben davon unberührt. */
+    --color-bg: #F5F5F7;
     --color-panel: #FFFFFF;
-    --color-ink: #1E2A32;
-    --color-ink-muted: #6B7680;
-    --color-accent: #2B6777;
-    --color-accent-hover: #1F4E5B;
-    --color-border: #DAD5C9;
-    --color-published: #5B7B5A;
-    --color-draft: #B98B34;
-    --color-danger: #A6453A;
-    --font-serif: 'Source Serif 4', Georgia, serif;
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --color-ink: #1D1D1F;
+    --color-ink-muted: #6E6E73;
+    --color-accent: #0071E3;
+    --color-accent-hover: #0077ED;
+    --color-accent-weich: rgba(0, 113, 227, 0.10);
+    --color-border: #D2D2D7;
+    --color-published: #1D8A47;
+    --color-draft: #B25E02;
+    --color-danger: #D70015;
+    /* Eine Schriftfamilie für die ganze Oberfläche, wie bei modernen Apps.
+       Die Dokumente selbst nutzen weiter ihre eigenen Schriften. */
+    --font-serif: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   }
 
   * { box-sizing: border-box; }
@@ -73,7 +79,7 @@
     padding: 9px 16px;
   }
   .btn-primary:hover { background: var(--color-accent-hover); }
-  .btn-primary:disabled { background: #A9BCC1; cursor: not-allowed; }
+  .btn-primary:disabled { background: #AFCBEC; cursor: not-allowed; }
 
   .btn-secondary {
     background: transparent;
@@ -1120,6 +1126,143 @@
     flex-shrink: 0;
   }
   .profile-diff button:hover, .profile-diff-summary button:hover { border-color: var(--color-ink-muted); }
+  /* =====================================================================
+     OBERFLÄCHE: klar abgegrenzte Bedienbereiche (Variante C)
+     Jeder Block, mit dem man arbeitet, bekommt eine weiße Fläche mit
+     Rahmen und eine kleine Überschrift. Knöpfe und Eingabefelder sind
+     groß genug, um sie sicher zu treffen (40 px). Diese Regeln stehen am
+     Ende, damit sie die älteren Einzelregeln überschreiben.
+     ===================================================================== */
+  body { -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { letter-spacing: -0.01em; }
+
+  /* ---- Knöpfe ---- */
+  .btn-primary, .btn-secondary, .btn-danger-outline {
+    min-height: 40px;
+    padding: 0 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+  .btn-secondary {
+    background: #fff;
+    border: 1px solid var(--color-border);
+    color: var(--color-ink);
+  }
+  .btn-secondary:hover { background: #F5F5F7; border-color: #B6B6BD; }
+  .btn-danger-text { border-radius: 10px; padding: 6px 10px; }
+  .btn-danger-text:hover { background: rgba(215, 0, 21, 0.08); }
+  button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, [contenteditable]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px var(--color-accent-weich);
+    border-color: var(--color-accent);
+  }
+
+  /* ---- Eingabefelder ---- */
+  input, select, textarea {
+    min-height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    padding: 9px 12px;
+    background: #fff;
+  }
+  input:hover, select:hover, textarea:hover { border-color: #B6B6BD; }
+  textarea { min-height: 80px; }
+  input[type="checkbox"], input[type="color"] { min-height: 0; }
+  /* Nur echte Feldbeschriftungen — nicht Knöpfe oder Ablagefelder, die
+     technisch ebenfalls ein <label> sind. */
+  .field > label, .design-preview-bar > label, .doc-toolbar label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+  .field label.check, .guide label.check, label.check { text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 400; color: var(--color-ink); }
+
+  /* ---- Kopfleiste und Bereichswechsel als Segmentschalter ---- */
+  .topbar { padding: 12px 20px; background: #fff; border-bottom: 1px solid var(--color-border); }
+  .topbar h1 { font-size: 17px; font-weight: 600; }
+  .topbar .search { border-radius: 10px; }
+  .topbar .nav-tabs { background: #EFEFF2; border-radius: 12px; padding: 3px; gap: 2px; }
+  .topbar .nav-tabs button {
+    border-radius: 9px;
+    border-bottom: none;
+    padding: 7px 14px;
+    color: var(--color-ink-muted);
+  }
+  .topbar .nav-tabs button:hover { color: var(--color-ink); }
+  .topbar .nav-tabs button.active {
+    background: #fff;
+    color: var(--color-ink);
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10);
+  }
+
+  /* ---- Bedienblöcke mit Beschriftung ---- */
+  .panel-actions {
+    position: relative;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 20px 14px 14px;
+    margin-bottom: 20px;
+  }
+  .panel-actions::before {
+    content: 'Aktionen';
+    position: absolute;
+    top: -8px;
+    left: 14px;
+    background: var(--color-bg);
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+  .filter-rail { padding: 16px 12px; }
+  .filter-group {
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 12px 10px 8px;
+    margin-bottom: 14px;
+  }
+  .filter-group h3 { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-ink-muted); margin-bottom: 8px; }
+  .filter-item { min-height: 34px; display: flex; align-items: center; border-radius: 9px; padding: 4px 10px; }
+  .filter-item:hover { background: #F5F5F7; }
+  .filter-item.active { background: var(--color-accent-weich); color: var(--color-accent); font-weight: 500; }
+  .list-header {
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+  }
+  .bulk-bar { border-radius: 12px; }
+  .row { min-height: 54px; border-radius: 12px; border-bottom: none; padding-left: 10px; padding-right: 10px; }
+  .row:hover { background: #fff; }
+  .row.selected { background: #fff; box-shadow: 0 0 0 1px var(--color-accent) inset; }
+  .job-row { border-bottom: none; border-radius: 12px; padding: 12px; margin-bottom: 4px; }
+  .job-row:hover { background: #fff; }
+  .job-row.selected { background: #fff; border-left: none; padding-left: 12px; box-shadow: 0 0 0 1px var(--color-accent) inset; }
+  .detail-panel, .job-detail { background: transparent; }
+  .detail-placeholder { background: #fff; border: 1px dashed var(--color-border); border-radius: 14px; padding: 20px; }
+
+  /* ---- Karten und Dialoge ---- */
+  .modal { border-radius: 16px; }
+  .modal-backdrop { background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(6px); }
+  .review-item, .fb-eintrag, .outline-item, .foto-karte, .versionen-box { border-radius: 14px; }
+  .req-item { border-radius: 14px; background: #fff; border: 1px solid var(--color-border); padding: 14px; margin-bottom: 10px; }
+  .status-badge, .req-badge, .match-strength, .tag-chip, .origin-badge { border-radius: 999px; }
+  .preset-card, .guide-toc { border-radius: 12px; }
+  .guide-toc a { text-decoration: none; }
+  .guide-toc a:hover { text-decoration: underline; }
+
+  /* Im Druck stören Flächen und Rahmen der Bedienoberfläche nicht, weil dort
+     ohnehin nur das Dokument oder die Anleitung ausgegeben wird. */
 </style>
 </head>
 <body>
@@ -1256,12 +1399,13 @@
       <button id="tab-pool" class="active">Content-Pool</button>
       <button id="tab-jobs">Stellenanzeigen</button>
       <button id="tab-design">Design</button>
+      <button id="tab-profil">Kontaktdaten</button>
+      <button id="tab-fotos">Fotos</button>
       <button id="tab-guide">Anleitung</button>
       <button id="tab-feedback">Feedback</button>
     </div>
     <input type="search" class="search" id="search-input" placeholder="Bausteine durchsuchen …">
     <div class="spacer"></div>
-    <button class="btn-secondary" id="profile-btn">Kontaktdaten</button>
     <button class="logout-link" id="logout-btn">Abmelden</button>
   </div>
 
@@ -1349,6 +1493,91 @@
   </div>
 
   <!-- Design-Baukasten -->
+  <!-- Kontaktdaten und Fotos liegen als eigene Bereiche in der Navigationsleiste. -->
+  <div class="guide-workspace" id="profil-workspace" style="display:none;">
+    <div class="guide">
+      <div class="guide-kopf">
+        <h2>Kontaktdaten</h2>
+        <button class="btn-primary" id="profile-save">Speichern</button>
+      </div>
+      <p class="guide-lead">Diese Angaben werden als Absender im Briefkopf des Anschreibens verwendet.</p>
+
+      <label for="profile-cv-file" class="dropzone" id="profile-cv-dropzone" style="display:block; cursor:pointer; padding:14px 16px; margin-bottom:20px;">
+        <div class="filename" id="profile-cv-filename">Aus Lebenslauf übernehmen (PDF/DOCX)</div>
+        <div class="hint">Befüllt die Felder unten zur Prüfung — gespeichert wird erst mit "Speichern".</div>
+      </label>
+      <input type="file" id="profile-cv-file" accept=".pdf,.docx" style="display:none;">
+      <div id="profile-cv-progress" style="display:none; margin-bottom:16px;">
+        <div class="progress-note"><span class="spinner"></span><span id="profile-cv-progress-text">Lebenslauf wird gelesen …</span></div>
+      </div>
+      <p class="modal-error" id="profile-cv-error"></p>
+
+      <div id="profile-diff-summary" class="profile-diff-summary">
+        <span id="profile-diff-count"></span>
+        <button type="button" id="profile-diff-apply-all">Alle übernehmen</button>
+      </div>
+
+      <div class="field">
+        <label for="profile-full-name">Name</label>
+        <input type="text" id="profile-full-name" placeholder="Vor- und Nachname">
+      </div>
+      <div class="field">
+        <label for="profile-street">Straße und Hausnummer</label>
+        <input type="text" id="profile-street">
+      </div>
+      <div id="profile-plz-city-block">
+        <div style="display:flex; gap:12px;">
+          <div class="field" style="flex:0 0 140px;">
+            <label for="profile-postal-code">PLZ</label>
+            <input type="text" id="profile-postal-code">
+          </div>
+          <div class="field" style="flex:1;">
+            <label for="profile-city">Ort</label>
+            <input type="text" id="profile-city">
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="profile-phone">Telefon</label>
+        <input type="text" id="profile-phone">
+      </div>
+      <div class="field">
+        <label for="profile-email">E-Mail</label>
+        <input type="email" id="profile-email">
+      </div>
+      <div class="field">
+        <label for="profile-linkedin">LinkedIn-URL</label>
+        <input type="url" id="profile-linkedin" placeholder="https://www.linkedin.com/in/…">
+      </div>
+      <div class="field">
+        <label for="profile-portfolio">Portfolio-/Webseiten-URL</label>
+        <input type="url" id="profile-portfolio" placeholder="https://…">
+      </div>
+
+      <p class="modal-error" id="profile-error"></p>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:20px; padding-top:14px; border-top:1px solid var(--color-border);">
+        <button class="btn-danger-text" id="profile-delete">Kontaktdaten löschen</button>
+        <span class="doc-status" id="profile-status"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-workspace" id="fotos-workspace" style="display:none;">
+    <div class="guide">
+      <div class="guide-kopf">
+        <h2>Fotos</h2>
+        <label for="foto-file" class="btn-primary foto-upload" id="foto-upload-label">Foto hochladen</label>
+      </div>
+      <p class="guide-lead">Das Standardfoto erscheint in der gestalteten Fassung von Lebenslauf und Anschreiben, nie in der ATS-Fassung. Die Fotos liegen privat in deinem Konto. Beim Hochladen werden sie auf 1200 Pixel verkleinert, Kameradaten wie der Aufnahmeort werden dabei entfernt.</p>
+      <input type="file" id="foto-file" accept="image/jpeg,image/png,image/webp" style="display:none;">
+      <div id="foto-progress" style="display:none; margin-bottom:12px;">
+        <div class="progress-note"><span class="spinner"></span><span>Foto wird hochgeladen …</span></div>
+      </div>
+      <p class="modal-error" id="foto-error"></p>
+      <div class="foto-grid" id="foto-grid"></div>
+    </div>
+  </div>
+
   <!-- Feedback -->
   <div class="guide-workspace" id="feedback-workspace" style="display:none;">
     <div class="guide">
@@ -1414,7 +1643,7 @@
 
       <nav class="guide-toc no-print">
         <a href="#a-schnellstart">Schnellstart</a>
-        <a href="#a-bereiche">Die vier Bereiche</a>
+        <a href="#a-bereiche">Die Bereiche</a>
         <a href="#a-pool">Content-Pool</a>
         <a href="#a-anzeigen">Stellenanzeigen</a>
         <a href="#a-unterlagen">Anschreiben und Lebenslauf</a>
@@ -1426,7 +1655,7 @@
 
       <h3 id="a-schnellstart">1. Schnellstart: von null zur fertigen Bewerbung</h3>
       <ol>
-        <li><strong>Kontaktdaten anlegen.</strong> Oben rechts auf „Kontaktdaten“. Name, Adresse, Telefon und E-Mail erscheinen später im Briefkopf. Wahlweise lädst du dort deinen Lebenslauf hoch, dann werden die Felder vorgeschlagen.</li>
+        <li><strong>Kontaktdaten anlegen.</strong> Reiter „Kontaktdaten“ oben. Name, Adresse, Telefon und E-Mail erscheinen später im Briefkopf. Wahlweise lädst du dort deinen Lebenslauf hoch, dann werden die Felder vorgeschlagen.</li>
         <li><strong>Lebenslauf importieren.</strong> Reiter „Content-Pool“, Knopf „Lebenslauf importieren“. Claude zerlegt ihn in Bausteine, die du einzeln prüfst.</li>
         <li><strong>Bausteine freigeben.</strong> Nur freigegebene Bausteine dürfen in eine Bewerbung. Entwürfe bleiben außen vor.</li>
         <li><strong>Stellenanzeige erfassen.</strong> Reiter „Stellenanzeigen“, „Stellenanzeige hinzufügen“ — Text einfügen, Datei hochladen oder Link angeben.</li>
@@ -1436,15 +1665,17 @@
         <li><strong>Prüfen und drucken.</strong> Faktenprüfung lesen, im Blatt nachbessern, dann „Drucken / als PDF sichern“.</li>
       </ol>
 
-      <h3 id="a-bereiche">2. Die vier Bereiche</h3>
+      <h3 id="a-bereiche">2. Die Bereiche</h3>
       <ul>
         <li><strong>Content-Pool:</strong> dein Materiallager — alles, was du kannst und gemacht hast.</li>
         <li><strong>Stellenanzeigen:</strong> je Anzeige die Anforderungen, der Abgleich und die erzeugten Unterlagen.</li>
         <li><strong>Design:</strong> wie Anschreiben und Lebenslauf aussehen.</li>
+        <li><strong>Kontaktdaten:</strong> deine Absenderdaten für den Briefkopf.</li>
+        <li><strong>Fotos:</strong> Bewerbungsfotos hochladen und eins als Standard markieren.</li>
         <li><strong>Anleitung:</strong> diese Seite.</li>
         <li><strong>Feedback:</strong> Lob, Kritik, Vorschläge und Fehlermeldungen — getippt oder diktiert.</li>
       </ul>
-      <p>Oben rechts liegen außerdem „Kontaktdaten“ (Absenderdaten und Bewerbungsfotos) und „Abmelden“.</p>
+      <p>Ganz rechts in der Kopfleiste liegt „Abmelden“.</p>
 
       <h3 id="a-pool">3. Content-Pool</h3>
       <p><strong>Ein Baustein</strong> ist eine Station, eine Fähigkeit, eine Ausbildung, ein Satz über dich oder eine Sprache. Kategorien: Berufserfahrung, Fähigkeiten, Ausbildung, Über mich, Sprachen.</p>
@@ -1489,7 +1720,7 @@
         <li><strong>Zwei Fassungen:</strong> Im Vorschaufenster wählst du unter „Fassung“ zwischen <em>Gestaltet</em> (dein Design) und <em>ATS (schlicht)</em>. Für Bewerbungsportale, die Dokumente maschinell auslesen, ist die ATS-Fassung die sichere Wahl; per E-Mail und als Beilage wirkt die gestaltete besser.</li>
         <li><strong>Baukasten:</strong> Im Reiter „Design“ startest du mit einer Vorlage und änderst dann einzeln Layout, Kopfbereich, Foto, Überschriften, Darstellung der Stationen, Schrift, Dichte und Farben. Rechts siehst du das Ergebnis sofort, gespeichert wird automatisch in deinem Konto.</li>
         <li><strong>Seitenzahl:</strong> Unter „Umfang des Lebenslaufs“ gibst du 1 bis 3 Seiten vor, das Anschreiben zielt auf 1 Seite. Passt es nicht, werden zuerst Abstände und Zeilenhöhe verringert, dann die Schrift auf 10 pt — kleiner nie. Reicht das nicht, erscheint ein Hinweis zum Kürzen.</li>
-        <li><strong>Fotos:</strong> unter „Kontaktdaten“ hochladen und eins als Standard markieren. Es erscheint nur in der gestalteten Fassung. Die Bilder liegen privat in deinem Konto.</li>
+        <li><strong>Fotos:</strong> im Reiter „Fotos“ hochladen und eins als Standard markieren. Es erscheint nur in der gestalteten Fassung. Die Bilder liegen privat in deinem Konto.</li>
         <li><strong>Drucken:</strong> „Drucken / als PDF sichern“ öffnet den Druckdialog des Browsers. Dort als Ziel „Als PDF speichern“ wählen. Die Ränder stellst du am besten auf „Standard“; Kopf- und Fußzeilen abschalten.</li>
       </ul>
 
@@ -1705,84 +1936,6 @@
 </div>
 
 <!-- ========== PROFIL (ABSENDERDATEN) ========== -->
-<div class="modal-backdrop" id="profile-backdrop">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Kontaktdaten</h2>
-      <button class="modal-close" id="profile-close" aria-label="Schließen">×</button>
-    </div>
-    <p class="lead">Diese Angaben werden als Absender im Briefkopf des Anschreibens verwendet.</p>
-
-    <label for="profile-cv-file" class="dropzone" id="profile-cv-dropzone" style="display:block; cursor:pointer; padding:14px 16px; margin-bottom:20px;">
-      <div class="filename" id="profile-cv-filename">Aus Lebenslauf übernehmen (PDF/DOCX)</div>
-      <div class="hint">Befüllt die Felder unten zur Prüfung — gespeichert wird erst mit "Speichern".</div>
-    </label>
-    <input type="file" id="profile-cv-file" accept=".pdf,.docx" style="display:none;">
-    <div id="profile-cv-progress" style="display:none; margin-bottom:16px;">
-      <div class="progress-note"><span class="spinner"></span><span id="profile-cv-progress-text">Lebenslauf wird gelesen …</span></div>
-    </div>
-    <p class="modal-error" id="profile-cv-error"></p>
-
-    <div id="profile-diff-summary" class="profile-diff-summary">
-      <span id="profile-diff-count"></span>
-      <button type="button" id="profile-diff-apply-all">Alle übernehmen</button>
-    </div>
-
-    <div class="field">
-      <label for="profile-full-name">Name</label>
-      <input type="text" id="profile-full-name" placeholder="Vor- und Nachname">
-    </div>
-    <div class="field">
-      <label for="profile-street">Straße und Hausnummer</label>
-      <input type="text" id="profile-street">
-    </div>
-    <div id="profile-plz-city-block">
-      <div style="display:flex; gap:12px;">
-        <div class="field" style="flex:0 0 140px;">
-          <label for="profile-postal-code">PLZ</label>
-          <input type="text" id="profile-postal-code">
-        </div>
-        <div class="field" style="flex:1;">
-          <label for="profile-city">Ort</label>
-          <input type="text" id="profile-city">
-        </div>
-      </div>
-    </div>
-    <div class="field">
-      <label for="profile-phone">Telefon</label>
-      <input type="text" id="profile-phone">
-    </div>
-    <div class="field">
-      <label for="profile-email">E-Mail</label>
-      <input type="email" id="profile-email">
-    </div>
-    <div class="field">
-      <label for="profile-linkedin">LinkedIn-URL</label>
-      <input type="url" id="profile-linkedin" placeholder="https://www.linkedin.com/in/…">
-    </div>
-    <div class="field">
-      <label for="profile-portfolio">Portfolio-/Webseiten-URL</label>
-      <input type="url" id="profile-portfolio" placeholder="https://…">
-    </div>
-
-    <h3 class="section-title">Bewerbungsfotos</h3>
-    <p style="font-size:13px; color:var(--color-ink-muted); margin:0 0 10px;">Das Standardfoto erscheint in der gestalteten Fassung, nie in der ATS-Fassung. Die Fotos liegen privat in deinem Konto. Beim Hochladen werden sie auf 1200 Pixel verkleinert, Kameradaten wie der Aufnahmeort werden dabei entfernt.</p>
-    <div class="foto-grid" id="foto-grid"></div>
-    <label for="foto-file" class="btn-secondary foto-upload" id="foto-upload-label">Foto hochladen</label>
-    <input type="file" id="foto-file" accept="image/jpeg,image/png,image/webp" style="display:none;">
-    <div id="foto-progress" style="display:none; margin-top:8px;">
-      <div class="progress-note"><span class="spinner"></span><span>Foto wird hochgeladen …</span></div>
-    </div>
-    <p class="modal-error" id="foto-error"></p>
-
-    <p class="modal-error" id="profile-error"></p>
-    <div class="modal-footer">
-      <button class="btn-danger-text" id="profile-delete">Kontaktdaten löschen</button>
-      <button class="btn-primary" id="profile-save">Speichern</button>
-    </div>
-  </div>
-</div>
-
 <!-- ========== BAUSTEIN IM DIALOG SCHÄRFEN ========== -->
 <div class="modal-backdrop" id="refine-backdrop">
   <div class="modal" style="max-width:720px;">
@@ -3082,6 +3235,8 @@ function initApp() {
   document.getElementById('tab-design').addEventListener('click', () => switchView('design'));
   document.getElementById('tab-guide').addEventListener('click', () => switchView('guide'));
   document.getElementById('tab-feedback').addEventListener('click', () => switchView('feedback'));
+  document.getElementById('tab-profil').addEventListener('click', () => switchView('profil'));
+  document.getElementById('tab-fotos').addEventListener('click', () => switchView('fotos'));
 
   // Drucken: Die Druckregeln blenden sonst alles außer einem geöffneten
   // Dokument aus — für die Anleitung wird das kurzzeitig umgeschaltet.
@@ -3097,17 +3252,23 @@ function initApp() {
     document.getElementById('design-workspace').style.display = view === 'design' ? 'grid' : 'none';
     document.getElementById('guide-workspace').style.display = view === 'guide' ? 'block' : 'none';
     document.getElementById('feedback-workspace').style.display = view === 'feedback' ? 'block' : 'none';
+    document.getElementById('profil-workspace').style.display = view === 'profil' ? 'block' : 'none';
+    document.getElementById('fotos-workspace').style.display = view === 'fotos' ? 'block' : 'none';
     document.getElementById('tab-pool').className = view === 'pool' ? 'active' : '';
     document.getElementById('tab-jobs').className = view === 'jobs' ? 'active' : '';
     document.getElementById('tab-design').className = view === 'design' ? 'active' : '';
     document.getElementById('tab-guide').className = view === 'guide' ? 'active' : '';
     document.getElementById('tab-feedback').className = view === 'feedback' ? 'active' : '';
+    document.getElementById('tab-profil').className = view === 'profil' ? 'active' : '';
+    document.getElementById('tab-fotos').className = view === 'fotos' ? 'active' : '';
     document.getElementById('search-input').style.display = view === 'pool' ? 'block' : 'none';
     // Die Aktionsknöpfe stecken jetzt in den jeweiligen Bereichen und werden
     // mit diesen ein- und ausgeblendet.
     if (view === 'jobs') loadJobs();
     if (view === 'design') openDesigner();
     if (view === 'feedback') ladeFeedback();
+    if (view === 'profil') oeffneProfil();
+    if (view === 'fotos') oeffneFotos();
     if (view !== 'feedback') diktatStoppen();
   }
 
@@ -5010,7 +5171,7 @@ function initApp() {
   function dzFoto(g, name, url) {
     if (url) return `<div class="dz-foto ${g.foto}"><img src="${escapeAttr(url)}" alt=""></div>`;
     const initialen = name.split(/\s+/).filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
-    return `<div class="dz-foto ${g.foto}" title="Platzhalter — Fotos lädst du unter „Kontaktdaten“ hoch">${escapeHtml(initialen)}</div>`;
+    return `<div class="dz-foto ${g.foto}" title="Platzhalter — Fotos lädst du im Reiter „Fotos“ hoch">${escapeHtml(initialen)}</div>`;
   }
 
   // ---- Einpassen auf eine Zielseitenzahl (Punkt 11) ----
@@ -5317,7 +5478,7 @@ function initApp() {
       ${dzCheck('titelzeile', 'Titelzeile unter dem Namen (Stellentitel der Anzeige)')}
       ${dzCheck('dokumenttitel', 'Überschrift „Lebenslauf“ über dem Kopf')}
       ${dzCheck('rahmen', 'Farbiger Rahmen um die Seite')}
-      ${g.foto !== 'aus' ? `<p class="design-hint">${standardFotoUrl ? 'Es wird dein Standardfoto aus „Kontaktdaten“ verwendet.' : 'Fotos lädst du unter „Kontaktdaten“ hoch. Ohne Foto zeigt der Platzhalter deine Initialen.'}</p>` : ''}
+      ${g.foto !== 'aus' ? `<p class="design-hint">${standardFotoUrl ? 'Es wird dein Standardfoto aus dem Reiter „Fotos“ verwendet.' : 'Fotos lädst du im Reiter „Fotos“ hoch. Ohne Foto zeigt der Platzhalter deine Initialen.'}</p>` : ''}
 
       <h3>Inhalte</h3>
       ${dzSelect('ueberschrift', 'Abschnittsüberschriften')}
@@ -5835,7 +5996,6 @@ function initApp() {
   // =======================================================================
   // PROFIL (ABSENDERDATEN)
   // =======================================================================
-  const profileBackdrop = document.getElementById('profile-backdrop');
   const PROFILE_FIELDS = {
     full_name: 'profile-full-name',
     street: 'profile-street',
@@ -6112,13 +6272,9 @@ function initApp() {
     await renderFotos();
   }
 
-  document.getElementById('profile-btn').addEventListener('click', () => {
-    fotoFehler('');
-    renderFotos();
-  });
-
-  document.getElementById('profile-btn').addEventListener('click', () => {
+  function oeffneProfil() {
     document.getElementById('profile-error').style.display = 'none';
+    document.getElementById('profile-status').textContent = '';
     document.getElementById('profile-cv-error').style.display = 'none';
     document.getElementById('profile-cv-progress').style.display = 'none';
     document.getElementById('profile-cv-file').value = '';
@@ -6132,10 +6288,12 @@ function initApp() {
       // obwohl man sich längst entschieden hat.
       pendingProfileFromCv = null;
     }
-    profileBackdrop.classList.add('open');
-  });
-  document.getElementById('profile-close').addEventListener('click', () => profileBackdrop.classList.remove('open'));
-  profileBackdrop.addEventListener('click', (e) => { if (e.target === profileBackdrop) profileBackdrop.classList.remove('open'); });
+  }
+
+  function oeffneFotos() {
+    fotoFehler('');
+    renderFotos();
+  }
 
   document.getElementById('profile-cv-file').addEventListener('change', async (e) => {
     const file = e.target.files[0];
@@ -6205,7 +6363,7 @@ function initApp() {
       return;
     }
     currentProfile = data;
-    profileBackdrop.classList.remove('open');
+    document.getElementById('profile-status').textContent = 'Gespeichert.';
   });
 
   document.getElementById('profile-delete').addEventListener('click', async () => {
@@ -6224,6 +6382,7 @@ function initApp() {
     formStand = null;
     clearProfileDiffs();
     fillProfileForm();
+    document.getElementById('profile-status').textContent = 'Gelöscht.';
   });
 
   function escapeHtml(str) {
