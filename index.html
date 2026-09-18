@@ -1261,8 +1261,182 @@
   .guide-toc a { text-decoration: none; }
   .guide-toc a:hover { text-decoration: underline; }
 
+  /* =====================================================================
+     ERSCHEINUNGSBILD: hell und dunkel
+     Hell: warmes Papierweiß mit sehr dezentem Verlauf, Bedienflächen als
+     milchige Scheiben. Dunkel: konsequent monochrom, weißer Hauptknopf.
+     Die Dokumente selbst bleiben in beiden Fällen weißes Papier.
+     ===================================================================== */
+  :root, body.thema-hell {
+    --color-bg: #FAF8F4;
+    --color-panel: rgba(255, 255, 255, 0.80);
+    --color-panel-fest: #FFFFFF;
+    --color-ink: #24231F;
+    --color-ink-muted: #7C766C;
+    --color-accent: #7A6A52;
+    --color-accent-hover: #665739;
+    --color-accent-text: #FFFFFF;
+    --color-accent-weich: rgba(122, 106, 82, 0.12);
+    --color-border: rgba(255, 255, 255, 0.90);
+    --color-border-fest: #E4DDD0;
+    --color-published: #2E7D4F;
+    --color-draft: #A5701A;
+    --color-danger: #A93B2F;
+    --feld: rgba(255, 255, 255, 0.90);
+    --kopf: rgba(255, 255, 255, 0.70);
+    --schalter-bg: rgba(255, 255, 255, 0.60);
+    --schalter-an: #FFFFFF;
+    --schalter-schatten: 0 1px 2px rgba(60, 52, 40, 0.12);
+    --flaechen-schatten: 0 1px 2px rgba(60, 52, 40, 0.05);
+    --hover: rgba(255, 255, 255, 0.70);
+    --glas: 10px;
+    --vorschau-bg: #EFEBE3;
+    --glanz: rgba(255, 255, 255, 0.55);
+    --maus-licht: rgba(232, 214, 184, 0.45);
+    --wolken-staerke: 1;
+    --verlauf:
+      radial-gradient(55% 58% at 8% 6%, rgba(233, 217, 190, 0.55) 0%, transparent 62%),
+      radial-gradient(48% 52% at 96% 4%, rgba(242, 231, 214, 0.58) 0%, transparent 60%),
+      radial-gradient(60% 55% at 72% 104%, rgba(235, 222, 200, 0.45) 0%, transparent 62%),
+      radial-gradient(44% 44% at 42% 58%, rgba(250, 242, 229, 0.35) 0%, transparent 66%);
+    --wolken:
+      radial-gradient(36% 40% at 24% 26%, rgba(226, 208, 178, 0.45) 0%, transparent 72%),
+      radial-gradient(34% 38% at 78% 24%, rgba(238, 226, 208, 0.42) 0%, transparent 72%),
+      radial-gradient(42% 40% at 58% 86%, rgba(228, 214, 190, 0.40) 0%, transparent 74%);
+  }
+
+  body.thema-dunkel {
+    --color-bg: #0A0A0A;
+    --color-panel: rgba(255, 255, 255, 0.055);
+    --color-panel-fest: #141414;
+    --color-ink: #EDEDED;
+    --color-ink-muted: #8F8F8F;
+    --color-accent: #FAFAFA;
+    --color-accent-hover: #FFFFFF;
+    --color-accent-text: #0A0A0A;
+    --color-accent-weich: rgba(250, 250, 250, 0.12);
+    --color-border: rgba(255, 255, 255, 0.12);
+    --color-border-fest: #2A2A2A;
+    --color-published: #5FCB82;
+    --color-draft: #E0A94A;
+    --color-danger: #FF6B60;
+    --feld: rgba(255, 255, 255, 0.05);
+    --kopf: rgba(255, 255, 255, 0.04);
+    --schalter-bg: rgba(255, 255, 255, 0.06);
+    --schalter-an: rgba(255, 255, 255, 0.15);
+    --schalter-schatten: none;
+    --flaechen-schatten: none;
+    --hover: rgba(255, 255, 255, 0.06);
+    --glas: 12px;
+    --vorschau-bg: #121212;
+    --glanz: rgba(0, 0, 0, 0.18);
+    --maus-licht: rgba(255, 255, 255, 0.07);
+    --wolken-staerke: 0.9;
+    --verlauf:
+      radial-gradient(60% 60% at 15% 10%, rgba(255, 255, 255, 0.055) 0%, transparent 60%),
+      radial-gradient(50% 50% at 88% 8%, rgba(255, 255, 255, 0.04) 0%, transparent 58%),
+      radial-gradient(70% 60% at 60% 102%, rgba(255, 255, 255, 0.035) 0%, transparent 60%);
+    --wolken:
+      radial-gradient(38% 42% at 20% 24%, rgba(255, 255, 255, 0.05) 0%, transparent 72%),
+      radial-gradient(34% 40% at 80% 20%, rgba(255, 255, 255, 0.04) 0%, transparent 72%),
+      radial-gradient(42% 40% at 58% 86%, rgba(255, 255, 255, 0.035) 0%, transparent 74%);
+  }
+
+  body {
+    background: var(--verlauf), var(--color-bg);
+    background-attachment: fixed;
+  }
+
+  /* Farbwolken und Lichtschein liegen hinter allem und reagieren auf nichts. */
+  .aurora, .maus { position: fixed; pointer-events: none; z-index: 0; }
+  .aurora {
+    inset: -25%;
+    background: var(--wolken);
+    filter: blur(50px);
+    opacity: var(--wolken-staerke);
+    animation: driften 42s ease-in-out infinite alternate;
+  }
+  .maus {
+    width: 560px; height: 560px; border-radius: 50%;
+    background: radial-gradient(circle, var(--maus-licht) 0%, transparent 65%);
+    filter: blur(28px);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  body.maus-aktiv .maus { opacity: 1; }
+  .app, .login-screen, .setup-screen, .modal-backdrop { position: relative; z-index: 1; }
+
+  @keyframes driften {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    50%  { transform: translate3d(2%, -1.5%, 0) scale(1.05); }
+    100% { transform: translate3d(-1.5%, 2%, 0) scale(1.03); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .aurora { animation: none; }
+    .maus { display: none; }
+  }
+
+  /* Milchglas für alle Bedienflächen */
+  .panel-actions, .filter-group, .list-header, .req-item, .fb-eintrag, .foto-karte,
+  .outline-item, .review-item, .preset-card, .guide-toc, .detail-placeholder, .modal {
+    background: var(--color-panel);
+    backdrop-filter: blur(var(--glas));
+    border-color: var(--color-border);
+    box-shadow: var(--flaechen-schatten);
+  }
+  .btn-secondary, input, select, textarea, .dropzone, .tag-input-wrap, .status-toggle button {
+    background: var(--feld);
+    backdrop-filter: blur(var(--glas));
+    border-color: var(--color-border);
+    color: var(--color-ink);
+  }
+  .btn-primary { color: var(--color-accent-text); }
+  .btn-primary:disabled { background: color-mix(in srgb, var(--color-accent) 45%, var(--color-bg)); }
+  .btn-secondary:hover, .filter-item:hover, .row:hover, .job-row:hover { background: var(--hover); border-color: var(--color-border); }
+  .row.selected, .job-row.selected { background: var(--color-panel); }
+  .topbar { background: var(--kopf); backdrop-filter: blur(var(--glas)); border-bottom-color: var(--color-border); }
+  .topbar .nav-tabs { background: var(--schalter-bg); }
+  .topbar .nav-tabs button.active { background: var(--schalter-an); box-shadow: var(--schalter-schatten); }
+  .bulk-bar { color: var(--color-accent-text); }
+  .bulk-bar button { color: var(--color-accent-text); border-color: color-mix(in srgb, var(--color-accent-text) 45%, transparent); }
+  .design-preview { background: var(--vorschau-bg); }
+  .refine-chat, .versionen-box, .fc-summary { border-color: var(--color-border); }
+  .refine-msg.claude, .refine-baustein { background: var(--color-panel); }
+  .filter-rail, .list-panel, .detail-panel, .jobs-list, .job-detail { border-color: var(--color-border); }
+  .modal-header, .doc-toolbar, .modal-footer, .list-header, .panel-actions, .req-item { border-color: var(--color-border); }
+
+  /* Dezenter Glanz, der beim Überfahren einmal über den Hauptknopf wandert. */
+  .btn-primary { position: relative; overflow: hidden; }
+  .btn-primary::after {
+    content: '';
+    position: absolute; top: 0; bottom: 0; width: 40%; left: -60%;
+    background: linear-gradient(100deg, transparent, var(--glanz), transparent);
+    transition: left 0.55s ease;
+  }
+  .btn-primary:hover::after { left: 120%; }
+
+  /* Umschalter im Kopfbereich */
+  .thema-schalter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    background: var(--feld);
+    color: var(--color-ink);
+    font-size: 13px;
+  }
+  .thema-schalter:hover { background: var(--hover); }
+
   /* Im Druck stören Flächen und Rahmen der Bedienoberfläche nicht, weil dort
      ohnehin nur das Dokument oder die Anleitung ausgegeben wird. */
+  @media print {
+    .aurora, .maus { display: none !important; }
+    body { background: #fff !important; }
+  }
 </style>
 </head>
 <body>
@@ -1391,6 +1565,9 @@
   </form>
 </div>
 
+<div class="aurora" aria-hidden="true"></div>
+<div class="maus" aria-hidden="true"></div>
+
 <!-- ========== MAIN APP ========== -->
 <div class="app" id="app">
   <div class="topbar">
@@ -1406,6 +1583,7 @@
     </div>
     <input type="search" class="search" id="search-input" placeholder="Bausteine durchsuchen …">
     <div class="spacer"></div>
+    <button type="button" class="thema-schalter" id="thema-btn" title="Zwischen heller und dunkler Ansicht wechseln"></button>
     <button class="logout-link" id="logout-btn">Abmelden</button>
   </div>
 
@@ -4829,6 +5007,7 @@ function initApp() {
 
   const DESIGN_KEY = 'cvtool.design.v1';
   const FASSUNG_KEY = 'cvtool.fassung.';
+  const THEMA_KEY = 'cvtool.thema';
   const DESIGN_FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;600;700&family=Bebas+Neue&family=Lato:wght@400;700&family=Source+Sans+3:wght@400;600;700&family=Playfair+Display:wght@500;700&family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600;700&family=Inter:wght@400;600;700&display=swap';
 
   const SCHRIFTEN = {
@@ -5007,7 +5186,7 @@ function initApp() {
     if (settingsTimer || !currentUser) return;
     const { data, error } = await client
       .from('user_settings')
-      .select('design, doc_fassung')
+      .select('design, doc_fassung, ui_theme')
       .eq('user_id', currentUser.id)
       .maybeSingle();
     if (error) {
@@ -5036,10 +5215,19 @@ function initApp() {
       }
     });
 
+    // Im Konto gespeichertes Erscheinungsbild gewinnt; sonst wandert die
+    // Wahl aus diesem Browser einmalig ins Konto.
+    if (data && data.ui_theme && data.ui_theme !== themaWahl) {
+      setzeThema(data.ui_theme, false);
+    } else if (!data || !data.ui_theme) {
+      uebernehmen = true;
+    }
+
     if (uebernehmen) speichereSettings();
   }
 
   function speichereSettings() {
+    if (!currentUser) return;
     clearTimeout(settingsTimer);
     settingsStatus = 'Wird gespeichert …';
     zeigeSettingsStatus();
@@ -5049,6 +5237,7 @@ function initApp() {
         user_id: currentUser.id,
         design: designCache,
         doc_fassung: fassungCache,
+        ui_theme: themaWahl,
         updated_at: new Date().toISOString()
       });
       settingsTimer = null;
@@ -5078,6 +5267,56 @@ function initApp() {
     try { localStorage.setItem(DESIGN_KEY, JSON.stringify(g)); } catch (err) { /* nicht kritisch */ }
     speichereSettings();
   }
+
+  // ---- Erscheinungsbild hell / dunkel ----
+  // Reihenfolge: gespeicherte Wahl im Konto, sonst die im Browser, sonst die
+  // Einstellung des Betriebssystems.
+  let themaWahl = 'system';
+
+  function systemIstDunkel() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
+  function wendeThemaAn() {
+    const dunkel = themaWahl === 'dunkel' || (themaWahl === 'system' && systemIstDunkel());
+    document.body.classList.toggle('thema-dunkel', dunkel);
+    document.body.classList.toggle('thema-hell', !dunkel);
+    const btn = document.getElementById('thema-btn');
+    if (btn) {
+      btn.textContent = dunkel ? 'Helle Ansicht' : 'Dunkle Ansicht';
+      btn.setAttribute('aria-label', dunkel ? 'Zur hellen Ansicht wechseln' : 'Zur dunklen Ansicht wechseln');
+    }
+  }
+
+  function setzeThema(wert, speichern) {
+    themaWahl = ['hell', 'dunkel', 'system'].includes(wert) ? wert : 'system';
+    wendeThemaAn();
+    try { localStorage.setItem(THEMA_KEY, themaWahl); } catch (err) { /* nicht kritisch */ }
+    if (speichern) speichereSettings();
+  }
+
+  setzeThema(lokal(THEMA_KEY) || 'system', false);
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (themaWahl === 'system') wendeThemaAn();
+    });
+  }
+
+  document.getElementById('thema-btn').addEventListener('click', () => {
+    const dunkelJetzt = document.body.classList.contains('thema-dunkel');
+    setzeThema(dunkelJetzt ? 'hell' : 'dunkel', true);
+  });
+
+  // Der Lichtschein folgt der Maus, aber nur solange sie sich bewegt.
+  let mausTimer = null;
+  const mausSchein = document.querySelector('.maus');
+  document.addEventListener('mousemove', (e) => {
+    mausSchein.style.left = e.clientX + 'px';
+    mausSchein.style.top = e.clientY + 'px';
+    document.body.classList.add('maus-aktiv');
+    clearTimeout(mausTimer);
+    mausTimer = setTimeout(() => document.body.classList.remove('maus-aktiv'), 2500);
+  });
 
   function ladeFassung(kind) {
     const wert = fassungCache[kind] || lokal(FASSUNG_KEY + kind);
