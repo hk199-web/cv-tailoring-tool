@@ -714,7 +714,47 @@
     .doc-field { border-color: transparent !important; }
     mark.fc-mark { background: none !important; border-bottom: none !important; padding: 0; }
     @page { size: A4; margin: 2cm 2cm 2cm 2.41cm; }
+
+    /* Die Anleitung druckt sich als normaler Text, nicht als Blatt. */
+    body.drucke-anleitung > *:not(#app) { display: none !important; }
+    body.drucke-anleitung #app { display: block !important; height: auto; }
+    body.drucke-anleitung .topbar,
+    body.drucke-anleitung .workspace,
+    body.drucke-anleitung .jobs-workspace,
+    body.drucke-anleitung .design-workspace,
+    body.drucke-anleitung #feedback-workspace { display: none !important; }
+    body.drucke-anleitung #guide-workspace { display: block !important; overflow: visible; padding: 0; }
+    body.drucke-anleitung .guide { max-width: none; }
+    body.drucke-anleitung .guide h3 { break-after: avoid; }
+    body.drucke-anleitung .guide li { break-inside: avoid; }
   }
+
+  /* ---------- Anleitung ---------- */
+  .guide-workspace { flex: 1; overflow-y: auto; padding: 28px 32px 64px; }
+  .guide { max-width: 760px; margin: 0 auto; }
+  .guide-kopf { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+  .guide-kopf h2 { font-size: 24px; }
+  .guide-lead { font-size: 15px; color: var(--color-ink-muted); margin: 0 0 20px; }
+  .guide-toc { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 12px 16px; background: var(--color-panel); border: 1px solid var(--color-border); border-radius: 4px; margin-bottom: 28px; }
+  .guide-toc a { font-size: 13px; color: var(--color-accent); }
+  .guide h3 {
+    font-size: 18px;
+    margin: 30px 0 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--color-border);
+    scroll-margin-top: 16px;
+  }
+  .guide p { margin: 0 0 12px; }
+  .guide ul, .guide ol { margin: 0 0 12px; padding-left: 1.3em; }
+  .guide li { margin-bottom: 8px; }
+  .guide li strong { font-weight: 600; }
+
+  /* ---------- Feedback ---------- */
+  .fb-eintrag { border: 1px solid var(--color-border); border-radius: 4px; padding: 10px 14px; margin-bottom: 10px; background: var(--color-panel); }
+  .fb-kopf { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--color-ink-muted); margin-bottom: 6px; }
+  .fb-kopf strong { color: var(--color-ink); }
+  .fb-kopf button { padding: 2px 8px; font-size: 12px; }
+  .fb-text { white-space: pre-wrap; font-size: 14px; }
 
   /* ---------- Bewerbungsfotos ---------- */
   .foto-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
@@ -1216,6 +1256,8 @@
       <button id="tab-pool" class="active">Content-Pool</button>
       <button id="tab-jobs">Stellenanzeigen</button>
       <button id="tab-design">Design</button>
+      <button id="tab-guide">Anleitung</button>
+      <button id="tab-feedback">Feedback</button>
     </div>
     <input type="search" class="search" id="search-input" placeholder="Bausteine durchsuchen …">
     <div class="spacer"></div>
@@ -1307,6 +1349,173 @@
   </div>
 
   <!-- Design-Baukasten -->
+  <!-- Feedback -->
+  <div class="guide-workspace" id="feedback-workspace" style="display:none;">
+    <div class="guide">
+      <div class="guide-kopf">
+        <h2>Feedback</h2>
+      </div>
+      <p class="guide-lead">Was gefällt dir, was stört dich, was fehlt? Schreib es auf oder sprich es einfach ein. Jede Rückmeldung landet direkt beim Tool, mit Datum und Bereich.</p>
+
+      <div style="display:flex; gap:14px; flex-wrap:wrap;">
+        <div class="field" style="flex:1; min-width:200px;">
+          <label for="fb-art">Worum geht es?</label>
+          <select id="fb-art">
+            <option value="verbesserung">Verbesserungsvorschlag</option>
+            <option value="lob">Lob — das gefällt mir</option>
+            <option value="kritik">Kritik — das stört mich</option>
+            <option value="fehler">Fehler — etwas funktioniert nicht</option>
+            <option value="frage">Frage</option>
+          </select>
+        </div>
+        <div class="field" style="flex:1; min-width:200px;">
+          <label for="fb-bereich">Welcher Bereich?</label>
+          <select id="fb-bereich">
+            <option value="">Allgemein</option>
+            <option value="Content-Pool">Content-Pool</option>
+            <option value="Stellenanzeigen">Stellenanzeigen</option>
+            <option value="Anschreiben">Anschreiben</option>
+            <option value="Lebenslauf">Lebenslauf</option>
+            <option value="Design">Design</option>
+            <option value="Kontaktdaten und Fotos">Kontaktdaten und Fotos</option>
+            <option value="Anleitung">Anleitung</option>
+            <option value="Anmeldung">Anmeldung</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="fb-text">Deine Rückmeldung</label>
+        <textarea id="fb-text" rows="6" style="resize:vertical;" placeholder="Schreib los — oder klicke auf „Diktieren“ und sprich einfach."></textarea>
+      </div>
+      <div class="refine-knoepfe" style="margin-bottom:8px;">
+        <button type="button" class="btn-secondary" id="fb-mic">Diktieren</button>
+        <span class="doc-status" id="fb-status"></span>
+        <span style="flex:1;"></span>
+        <button type="button" class="btn-primary" id="fb-send">Absenden</button>
+      </div>
+      <p style="font-size:13px; color:var(--color-ink-muted); margin:0 0 8px;">Beim Diktieren schickt Chrome die Aufnahme zur Texterkennung an Google, Edge an Microsoft. Vor dem ersten Mal wird gefragt. Du kannst den erkannten Text vor dem Absenden noch bearbeiten.</p>
+      <p class="modal-error" id="fb-error"></p>
+
+      <h3>Deine bisherigen Rückmeldungen</h3>
+      <div id="fb-liste"></div>
+    </div>
+  </div>
+
+  <!-- Anleitung -->
+  <div class="guide-workspace" id="guide-workspace" style="display:none;">
+    <div class="guide">
+      <div class="guide-kopf no-print">
+        <h2>Anleitung</h2>
+        <button class="btn-secondary" id="guide-print">Drucken / als PDF sichern</button>
+      </div>
+
+      <p class="guide-lead">Das Tool schneidet Anschreiben und Lebenslauf auf eine konkrete Stellenanzeige zu. Grundlage ist dein Content-Pool: gesammelte Bausteine aus deinem Werdegang. Nichts wird erfunden — was nicht im Pool steht, steht auch nicht in der Bewerbung.</p>
+
+      <nav class="guide-toc no-print">
+        <a href="#a-schnellstart">Schnellstart</a>
+        <a href="#a-bereiche">Die vier Bereiche</a>
+        <a href="#a-pool">Content-Pool</a>
+        <a href="#a-anzeigen">Stellenanzeigen</a>
+        <a href="#a-unterlagen">Anschreiben und Lebenslauf</a>
+        <a href="#a-pruefung">Faktenprüfung</a>
+        <a href="#a-design">Design und Drucken</a>
+        <a href="#a-wissen">Gut zu wissen</a>
+        <a href="#a-probleme">Wenn etwas nicht klappt</a>
+      </nav>
+
+      <h3 id="a-schnellstart">1. Schnellstart: von null zur fertigen Bewerbung</h3>
+      <ol>
+        <li><strong>Kontaktdaten anlegen.</strong> Oben rechts auf „Kontaktdaten“. Name, Adresse, Telefon und E-Mail erscheinen später im Briefkopf. Wahlweise lädst du dort deinen Lebenslauf hoch, dann werden die Felder vorgeschlagen.</li>
+        <li><strong>Lebenslauf importieren.</strong> Reiter „Content-Pool“, Knopf „Lebenslauf importieren“. Claude zerlegt ihn in Bausteine, die du einzeln prüfst.</li>
+        <li><strong>Bausteine freigeben.</strong> Nur freigegebene Bausteine dürfen in eine Bewerbung. Entwürfe bleiben außen vor.</li>
+        <li><strong>Stellenanzeige erfassen.</strong> Reiter „Stellenanzeigen“, „Stellenanzeige hinzufügen“ — Text einfügen, Datei hochladen oder Link angeben.</li>
+        <li><strong>Abgleichen.</strong> Im Reiter „Anforderungen“ auf „Mit Content-Pool abgleichen“.</li>
+        <li><strong>Anschreiben erzeugen.</strong> Reiter „Anschreiben“: erst „Gliederung generieren“, Argumente prüfen, dann „Anschreiben generieren“.</li>
+        <li><strong>Lebenslauf erzeugen.</strong> Reiter „Lebenslauf“, „Lebenslauf generieren“.</li>
+        <li><strong>Prüfen und drucken.</strong> Faktenprüfung lesen, im Blatt nachbessern, dann „Drucken / als PDF sichern“.</li>
+      </ol>
+
+      <h3 id="a-bereiche">2. Die vier Bereiche</h3>
+      <ul>
+        <li><strong>Content-Pool:</strong> dein Materiallager — alles, was du kannst und gemacht hast.</li>
+        <li><strong>Stellenanzeigen:</strong> je Anzeige die Anforderungen, der Abgleich und die erzeugten Unterlagen.</li>
+        <li><strong>Design:</strong> wie Anschreiben und Lebenslauf aussehen.</li>
+        <li><strong>Anleitung:</strong> diese Seite.</li>
+        <li><strong>Feedback:</strong> Lob, Kritik, Vorschläge und Fehlermeldungen — getippt oder diktiert.</li>
+      </ul>
+      <p>Oben rechts liegen außerdem „Kontaktdaten“ (Absenderdaten und Bewerbungsfotos) und „Abmelden“.</p>
+
+      <h3 id="a-pool">3. Content-Pool</h3>
+      <p><strong>Ein Baustein</strong> ist eine Station, eine Fähigkeit, eine Ausbildung, ein Satz über dich oder eine Sprache. Kategorien: Berufserfahrung, Fähigkeiten, Ausbildung, Über mich, Sprachen.</p>
+      <ul>
+        <li><strong>Import:</strong> „Lebenslauf importieren“ liest PDF oder Word. Du bekommst zwei Arten von Vorschlägen: <em>Aus CV</em> steht wörtlich im Dokument, <em>Abgeleitet</em> hat Claude aus einer Tätigkeit erschlossen und mit einem Beleg versehen. Alles wird als Entwurf angelegt, nichts ungeprüft übernommen.</li>
+        <li><strong>Status:</strong> <em>Entwurf</em> = noch nicht geprüft. <em>Freigegeben</em> = darf in Bewerbungen. <em>Archiviert</em> = nicht mehr aktuell, bleibt aber erhalten und ist in der Liste ausgeblendet, bis du links auf „Archiviert“ filterst.</li>
+        <li><strong>Sprachen:</strong> Kategorie „Sprachen“ wählen, dann das Niveau angeben, zum Beispiel „C1 – verhandlungssicher“. Ältere Sprach-Bausteine stehen noch unter „Fähigkeiten“ — Kategorie umstellen und Niveau nachtragen.</li>
+        <li><strong>Mit Claude schärfen:</strong> Der Knopf oben im Baustein startet ein Gespräch. Claude fragt nach, was fehlt (Umfang, Ergebnis, Werkzeuge) und macht daraus einen Vorschlag. In den Vorschlag kommt nur, was im Baustein steht oder was du selbst sagst. „Diktieren“ nutzt das Mikrofon; die Aufnahme geht zur Texterkennung an Google (Chrome) bzw. Microsoft (Edge), deshalb wird einmal nachgefragt.</li>
+        <li><strong>Mehrere auf einmal:</strong> Mit den Häkchen links mehrere Bausteine wählen und gemeinsam freigeben, auf Entwurf setzen, archivieren oder löschen.</li>
+      </ul>
+
+      <h3 id="a-anzeigen">4. Stellenanzeigen</h3>
+      <ul>
+        <li><strong>Erfassen:</strong> Text einfügen funktioniert immer. Ein Link klappt oft, aber nicht bei Börsen, die automatische Zugriffe sperren — dann Text einfügen.</li>
+        <li><strong>Anforderungen:</strong> Die Anzeige wird in Muss- und Kann-Anforderungen zerlegt. „Mit Content-Pool abgleichen“ zeigt starke und teilweise Treffer sowie Lücken. Bei teilweisen Treffern gibt es einen Formulierungsvorschlag, den du über „In Baustein übernehmen“ in den Pool zurückspielen kannst.</li>
+        <li><strong>Firma &amp; Kontakt:</strong> Anschrift und Ansprechpartner für das Anschreiben. Bei neuen Anzeigen liest das Tool sie automatisch aus, sonst „Aus Stellenanzeige auslesen“ (füllt nur leere Felder), danach „Speichern“. Mit Anrede entsteht „Sehr geehrte Frau …“, ohne Anrede „Guten Tag Vorname Nachname“ — geraten wird nie.</li>
+        <li><strong>Farben und Werte:</strong> Adresse der Firmenseite eintragen und „Farben und Werte abrufen“. Die Firmenfarbe kann die Akzentfarbe der gestalteten Fassung ersetzen, die Werte fließen in den Einstieg des Anschreibens ein.</li>
+        <li><strong>Bewerbungsstatus:</strong> oben rechts in der Anzeige (Offen, Beworben, Im Gespräch, Zusage, Absage, Archiviert). Über der Liste filterst du danach; archivierte sind standardmäßig ausgeblendet.</li>
+        <li><strong>Original:</strong> der gespeicherte Anzeigentext zum Nachlesen.</li>
+      </ul>
+
+      <h3 id="a-unterlagen">5. Anschreiben und Lebenslauf</h3>
+      <ul>
+        <li><strong>Zwei Schritte beim Anschreiben:</strong> „Gliederung generieren“ schlägt drei bis vier Argumente vor. Du kannst sie abwählen, umsortieren und umformulieren. Erst „Anschreiben generieren“ schreibt den Text.</li>
+        <li><strong>Lebenslauf:</strong> „Lebenslauf generieren“ wählt aus deinen freigegebenen Bausteinen aus. Das Ziel für die Seitenzahl kommt aus dem Reiter „Design“.</li>
+        <li><strong>Ansehen und bearbeiten:</strong> Im Vorschaufenster kannst du direkt im Blatt tippen. Änderungen werden beim Schließen gespeichert.</li>
+        <li><strong>Übersetzen:</strong> im Vorschaufenster „Ins Englische übersetzen“. Danach stehen in den Reitern beide Knöpfe: „Deutsch ansehen und drucken“ und „Englisch ansehen und drucken“. Übersetzungen sind Entwürfe und gehören gegengelesen.</li>
+        <li><strong>Frühere Fassungen:</strong> Neu-Generieren überschreibt nichts. Die alte Fassung liegt unter „Frühere Fassungen“ und lässt sich wiederherstellen; die aktuelle wandert dabei ins Archiv der Fassungen.</li>
+      </ul>
+
+      <h3 id="a-pruefung">6. Faktenprüfung</h3>
+      <p>Nach jedem Erzeugen prüft ein eigener Schritt, ob beim Formulieren etwas <strong>hinzuerfunden oder übertrieben</strong> wurde — zum Beispiel „geleitet“ statt „mitgearbeitet“ oder eine Zahl, die in keinem Baustein steht. Ob du zur Stelle passt, ist <em>nicht</em> Gegenstand dieser Prüfung, dafür ist der Abgleich da.</p>
+      <ul>
+        <li><strong>Grüne Zeile:</strong> nichts gefunden.</li>
+        <li><strong>Gelbe Zeile:</strong> Zahl der Fundstellen, darunter Zitat und Begründung. Im Blatt sind die Stellen gelb markiert; beim Draufzeigen erscheint der Grund. Gedruckt wird die Markierung nicht.</li>
+        <li><strong>Korrigieren:</strong> Stelle im Blatt überschreiben — die Markierung verschwindet. „Erneut prüfen“ speichert und prüft den aktuellen Stand.</li>
+        <li>Geprüft wird die deutsche Fassung. Drucken ist immer möglich, nichts blockiert dich.</li>
+      </ul>
+
+      <h3 id="a-design">7. Design und Drucken</h3>
+      <ul>
+        <li><strong>Zwei Fassungen:</strong> Im Vorschaufenster wählst du unter „Fassung“ zwischen <em>Gestaltet</em> (dein Design) und <em>ATS (schlicht)</em>. Für Bewerbungsportale, die Dokumente maschinell auslesen, ist die ATS-Fassung die sichere Wahl; per E-Mail und als Beilage wirkt die gestaltete besser.</li>
+        <li><strong>Baukasten:</strong> Im Reiter „Design“ startest du mit einer Vorlage und änderst dann einzeln Layout, Kopfbereich, Foto, Überschriften, Darstellung der Stationen, Schrift, Dichte und Farben. Rechts siehst du das Ergebnis sofort, gespeichert wird automatisch in deinem Konto.</li>
+        <li><strong>Seitenzahl:</strong> Unter „Umfang des Lebenslaufs“ gibst du 1 bis 3 Seiten vor, das Anschreiben zielt auf 1 Seite. Passt es nicht, werden zuerst Abstände und Zeilenhöhe verringert, dann die Schrift auf 10 pt — kleiner nie. Reicht das nicht, erscheint ein Hinweis zum Kürzen.</li>
+        <li><strong>Fotos:</strong> unter „Kontaktdaten“ hochladen und eins als Standard markieren. Es erscheint nur in der gestalteten Fassung. Die Bilder liegen privat in deinem Konto.</li>
+        <li><strong>Drucken:</strong> „Drucken / als PDF sichern“ öffnet den Druckdialog des Browsers. Dort als Ziel „Als PDF speichern“ wählen. Die Ränder stellst du am besten auf „Standard“; Kopf- und Fußzeilen abschalten.</li>
+      </ul>
+
+      <h3 id="a-wissen">8. Gut zu wissen</h3>
+      <ul>
+        <li><strong>Nur Freigegebenes zählt.</strong> Entwürfe und archivierte Bausteine bleiben bei Abgleich und Generierung außen vor.</li>
+        <li><strong>Reihenfolge:</strong> Ohne Abgleich kein Anschreiben und kein zugeschnittener Lebenslauf.</li>
+        <li><strong>Alles gehört dir allein.</strong> Jeder Nutzer sieht nur seine eigenen Daten. Registrieren geht nur mit Einladungscode.</li>
+        <li><strong>Geräteübergreifend:</strong> Bausteine, Anzeigen, Design und Fotos liegen in deinem Konto und stehen auf jedem Gerät zur Verfügung.</li>
+        <li><strong>Claude irrt sich manchmal.</strong> Lies erzeugte Texte gegen, besonders Zahlen, Zeiträume und Rollenbezeichnungen.</li>
+      </ul>
+
+      <h3 id="a-probleme">9. Wenn etwas nicht klappt</h3>
+      <ul>
+        <li><strong>„Es sind noch keine freigegebenen Bausteine im Pool“:</strong> Bausteine im Content-Pool auf „Freigegeben“ setzen.</li>
+        <li><strong>Die Seite lässt sich nicht laden (Stellenanzeige oder Firmenseite):</strong> Viele Seiten sperren automatische Zugriffe. Text einfügen bzw. Farbe und Werte von Hand eintragen.</li>
+        <li><strong>„Deine Sitzung ist abgelaufen“:</strong> neu anmelden, dann den Schritt wiederholen.</li>
+        <li><strong>„Zu viele Anfragen in kurzer Zeit“:</strong> kurz warten und erneut versuchen.</li>
+        <li><strong>Anschriftfeld unvollständig:</strong> Reiter „Firma &amp; Kontakt“, Felder ergänzen und speichern.</li>
+        <li><strong>Mikrofon reagiert nicht:</strong> Zugriff über das Schloss-Symbol in der Adressleiste erlauben. Spracheingabe gibt es nur in Chrome und Edge.</li>
+        <li><strong>Dokument zu lang:</strong> Ziel im Reiter „Design“ erhöhen, Absätze kürzen oder den Lebenslauf neu generieren — das Ziel geht in die Erzeugung mit ein.</li>
+        <li><strong>Etwas anderes klemmt?</strong> Schreib oder sprich es im Reiter „Feedback“ ein.</li>
+      </ul>
+    </div>
+  </div>
+
   <div class="design-workspace" id="design-workspace" style="display:none;">
     <div class="design-controls" id="design-controls"></div>
     <div class="design-preview">
@@ -2871,19 +3080,35 @@ function initApp() {
   document.getElementById('tab-pool').addEventListener('click', () => switchView('pool'));
   document.getElementById('tab-jobs').addEventListener('click', () => switchView('jobs'));
   document.getElementById('tab-design').addEventListener('click', () => switchView('design'));
+  document.getElementById('tab-guide').addEventListener('click', () => switchView('guide'));
+  document.getElementById('tab-feedback').addEventListener('click', () => switchView('feedback'));
+
+  // Drucken: Die Druckregeln blenden sonst alles außer einem geöffneten
+  // Dokument aus — für die Anleitung wird das kurzzeitig umgeschaltet.
+  document.getElementById('guide-print').addEventListener('click', () => {
+    document.body.classList.add('drucke-anleitung');
+    window.print();
+    setTimeout(() => document.body.classList.remove('drucke-anleitung'), 500);
+  });
 
   function switchView(view) {
     document.querySelector('.workspace').style.display = view === 'pool' ? 'grid' : 'none';
     document.getElementById('jobs-workspace').style.display = view === 'jobs' ? 'grid' : 'none';
     document.getElementById('design-workspace').style.display = view === 'design' ? 'grid' : 'none';
+    document.getElementById('guide-workspace').style.display = view === 'guide' ? 'block' : 'none';
+    document.getElementById('feedback-workspace').style.display = view === 'feedback' ? 'block' : 'none';
     document.getElementById('tab-pool').className = view === 'pool' ? 'active' : '';
     document.getElementById('tab-jobs').className = view === 'jobs' ? 'active' : '';
     document.getElementById('tab-design').className = view === 'design' ? 'active' : '';
+    document.getElementById('tab-guide').className = view === 'guide' ? 'active' : '';
+    document.getElementById('tab-feedback').className = view === 'feedback' ? 'active' : '';
     document.getElementById('search-input').style.display = view === 'pool' ? 'block' : 'none';
     // Die Aktionsknöpfe stecken jetzt in den jeweiligen Bereichen und werden
     // mit diesen ein- und ausgeblendet.
     if (view === 'jobs') loadJobs();
     if (view === 'design') openDesigner();
+    if (view === 'feedback') ladeFeedback();
+    if (view !== 'feedback') diktatStoppen();
   }
 
   async function loadJobs() {
@@ -5355,20 +5580,17 @@ function initApp() {
   // Die Web Speech API erkennt Sprache nicht im Browser selbst: Chrome schickt
   // die Aufnahme an Google, Edge an Microsoft. Weil es um Lebenslaufinhalte
   // geht, muss der Nutzer das einmal bestätigen, bevor das Mikrofon startet.
+  // Wird an zwei Stellen genutzt: Baustein-Dialog und Feedback.
   const SpracheErkennung = window.SpeechRecognition || window.webkitSpeechRecognition;
   const DIKTAT_HINWEIS_KEY = 'cvtool.diktat-hinweis-bestaetigt';
   let diktat = null;
-
-  if (!SpracheErkennung) {
-    refineMic.disabled = true;
-    refineMic.title = 'Dieser Browser unterstützt keine Spracheingabe (geht in Chrome und Edge).';
-  }
+  let diktatGenutzt = false;
 
   function diktatStoppen() {
     if (diktat) diktat.stop();
   }
 
-  refineMic.addEventListener('click', () => {
+  function diktatUmschalten(feld, btn, zeigeFehler) {
     if (!SpracheErkennung) return;
     if (diktat) { diktatStoppen(); return; }
 
@@ -5380,7 +5602,7 @@ function initApp() {
       try { localStorage.setItem(DIKTAT_HINWEIS_KEY, 'ja'); } catch (err) { /* nicht kritisch */ }
     }
 
-    const basis = refineInput.value.trim();
+    const basis = feld.value.trim();
     diktat = new SpracheErkennung();
     diktat.lang = 'de-DE';
     diktat.interimResults = true;
@@ -5388,23 +5610,130 @@ function initApp() {
     diktat.onresult = (e) => {
       let gesagt = '';
       for (let i = 0; i < e.results.length; i++) gesagt += e.results[i][0].transcript;
-      refineInput.value = (basis ? basis + ' ' : '') + gesagt.trim();
+      feld.value = (basis ? basis + ' ' : '') + gesagt.trim();
+      diktatGenutzt = true;
     };
     diktat.onerror = (e) => {
-      const errorEl = document.getElementById('refine-error');
-      errorEl.textContent = e.error === 'not-allowed'
+      zeigeFehler(e.error === 'not-allowed'
         ? 'Das Mikrofon ist für diese Seite nicht freigegeben. Erlaube den Zugriff über das Schloss-Symbol links in der Adressleiste.'
-        : 'Die Spracheingabe ist abgebrochen (' + e.error + ').';
-      errorEl.style.display = 'block';
+        : 'Die Spracheingabe ist abgebrochen (' + e.error + ').');
     };
     diktat.onend = () => {
       diktat = null;
-      refineMic.classList.remove('aktiv');
-      refineMic.textContent = 'Diktieren';
+      btn.classList.remove('aktiv');
+      btn.textContent = 'Diktieren';
     };
     diktat.start();
-    refineMic.classList.add('aktiv');
-    refineMic.textContent = 'Diktat beenden';
+    btn.classList.add('aktiv');
+    btn.textContent = 'Diktat beenden';
+  }
+
+  function diktatKnopf(btn, feld, zeigeFehler) {
+    if (!SpracheErkennung) {
+      btn.disabled = true;
+      btn.title = 'Dieser Browser unterstützt keine Spracheingabe. In Chrome und Edge funktioniert sie.';
+      return;
+    }
+    btn.addEventListener('click', () => diktatUmschalten(feld, btn, zeigeFehler));
+  }
+
+  diktatKnopf(refineMic, refineInput, (msg) => {
+    const errorEl = document.getElementById('refine-error');
+    errorEl.textContent = msg;
+    errorEl.style.display = 'block';
+  });
+
+  // =======================================================================
+  // FEEDBACK
+  // =======================================================================
+  // Getippt oder diktiert. Jeder sieht nur seine eigenen Rückmeldungen;
+  // ausgewertet werden sie im Supabase-Dashboard (Tabelle feedback).
+  const FEEDBACK_ARTEN = {
+    lob: 'Lob',
+    kritik: 'Kritik',
+    verbesserung: 'Verbesserungsvorschlag',
+    fehler: 'Fehler',
+    frage: 'Frage'
+  };
+  const FEEDBACK_STATUS = { neu: 'Neu', gesehen: 'Gesehen', umgesetzt: 'Umgesetzt', abgelehnt: 'Nicht umgesetzt' };
+
+  const fbText = document.getElementById('fb-text');
+  const fbError = document.getElementById('fb-error');
+  const fbStatus = document.getElementById('fb-status');
+
+  function fbFehler(msg) {
+    fbError.textContent = msg || '';
+    fbError.style.display = msg ? 'block' : 'none';
+  }
+
+  diktatKnopf(document.getElementById('fb-mic'), fbText, fbFehler);
+
+  async function ladeFeedback() {
+    const liste = document.getElementById('fb-liste');
+    const { data, error } = await client
+      .from('feedback')
+      .select('id, art, bereich, text, status, created_at')
+      .order('created_at', { ascending: false });
+    if (error) {
+      liste.innerHTML = '<p style="font-size:13px; color:var(--color-ink-muted);">Die bisherigen Rückmeldungen konnten nicht geladen werden.</p>';
+      return;
+    }
+    if (!data || data.length === 0) {
+      liste.innerHTML = '<p style="font-size:13px; color:var(--color-ink-muted);">Noch keine Rückmeldung abgeschickt.</p>';
+      return;
+    }
+    liste.innerHTML = data.map(f => `
+      <div class="fb-eintrag">
+        <div class="fb-kopf">
+          <strong>${escapeHtml(FEEDBACK_ARTEN[f.art] || f.art)}</strong>
+          ${f.bereich ? '<span>· ' + escapeHtml(f.bereich) + '</span>' : ''}
+          <span>· ${new Date(f.created_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+          <span class="status-badge">${escapeHtml(FEEDBACK_STATUS[f.status] || f.status)}</span>
+          <span style="flex:1;"></span>
+          <button type="button" class="btn-danger-text fb-loeschen" data-id="${f.id}">Löschen</button>
+        </div>
+        <div class="fb-text">${escapeHtml(f.text)}</div>
+      </div>`).join('');
+
+    liste.querySelectorAll('.fb-loeschen').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Diese Rückmeldung löschen?')) return;
+        const { error: delErr } = await client.from('feedback').delete().eq('id', btn.dataset.id);
+        if (delErr) { fbFehler('Löschen fehlgeschlagen: ' + delErr.message); return; }
+        ladeFeedback();
+      });
+    });
+  }
+
+  document.getElementById('fb-send').addEventListener('click', async () => {
+    const btn = document.getElementById('fb-send');
+    const text = fbText.value.trim();
+    fbFehler('');
+    if (text.length < 5) {
+      fbFehler('Bitte schreib oder sprich noch ein paar Worte mehr.');
+      return;
+    }
+    diktatStoppen();
+    btn.disabled = true;
+    fbStatus.textContent = 'Wird gesendet …';
+
+    const { error } = await client.from('feedback').insert({
+      art: document.getElementById('fb-art').value,
+      bereich: document.getElementById('fb-bereich').value || null,
+      text,
+      quelle: diktatGenutzt ? 'diktat' : 'text'
+    });
+
+    btn.disabled = false;
+    if (error) {
+      fbStatus.textContent = '';
+      fbFehler('Absenden fehlgeschlagen: ' + error.message);
+      return;
+    }
+    fbText.value = '';
+    diktatGenutzt = false;
+    fbStatus.textContent = 'Danke! Deine Rückmeldung ist angekommen.';
+    ladeFeedback();
   });
 
   document.getElementById('refine-close').addEventListener('click', () => {
