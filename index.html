@@ -1365,7 +1365,10 @@
     transition: opacity 0.35s ease;
   }
   body.maus-aktiv .maus { opacity: 1; }
-  .app, .login-screen, .setup-screen, .modal-backdrop { position: relative; z-index: 1; }
+  /* Nur die Seitenbereiche über die Hintergrundebenen heben. Dialoge nicht:
+     sie liegen fest über der Seite (position: fixed, z-index 50) und würden
+     durch ein position: relative hier in den Seitenfluss rutschen. */
+  .app, .login-screen, .setup-screen { position: relative; z-index: 1; }
 
   @keyframes driften {
     0%   { transform: translate3d(0, 0, 0) scale(1); }
